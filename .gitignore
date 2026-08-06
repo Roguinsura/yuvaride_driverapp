@@ -28,8 +28,6 @@ local.properties
 *.iml
 *.hprof
 .cxx/
-*.keystore
-!debug.keystore
 
 # node.js
 node_modules/
@@ -39,8 +37,6 @@ yarn-error.log
 # BUCK
 buck-out/
 \.buckd/
-*.keystore
-!debug.keystore
 
 # fastlane
 **/fastlane/report.xml
@@ -65,9 +61,7 @@ ios/Pods/
 !.yarn/sdks
 !.yarn/versions
 
-# Firebase / secrets
-google-services.json
-GoogleService-Info.plist
+# secrets
 .env
 .env.*
 *.p12
