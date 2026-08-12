@@ -1,18 +1,20 @@
-import { View, Text, Image, TouchableOpacity, Platform } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import React, { useState } from 'react'
 import { useNavigation } from '@react-navigation/native'
-import styles from './styles'
-import { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import { RootStackParamList } from '../../../../../navigation/main/types'
 import { useSelector } from 'react-redux'
-import appFonts from '../../../../../theme/appFonts'
-import {
-  fontSizes,
-  windowHeight,
-  windowWidth,
-} from '../../../../../theme/appConstant'
+import { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import Svg, {
+  Defs,
+  LinearGradient as SvgLinearGradient,
+  Stop,
+  Rect,
+  Circle,
+} from 'react-native-svg'
+
+import styles, { CARD_WIDTH, CARD_HEIGHT } from './styles'
+import { RootStackParamList } from '../../../../../navigation/main/types'
 import appColors from '../../../../../theme/appColors'
-import Images from '../../../../../utils/images/images'
+import brandColors from '../../../../../theme/brandColors'
 import Icons from '../../../../../utils/icons/icons'
 import { notificationHelper } from '../../../../../commonComponents'
 import { useValues } from '../../../../../utils/context'
@@ -25,51 +27,57 @@ interface BalanceTopupProps {
   activeTab?: any
 }
 
-export function BalanceTopup({
-  walletTypedata,
-  handleButtonPress,
-  activeTab,
-}: BalanceTopupProps) {
+const FALLBACK = {
+  availableBalance: 'Available balance',
+  topUp: 'Top up',
+  withdraw: 'Withdraw',
+  balanceOf: 'Balance as of',
+}
+
+export function BalanceTopup({ walletTypedata }: BalanceTopupProps) {
   const navigation = useNavigation<NavigationProps>()
   const { taxidoSettingData, translateData } = useSelector(
     (state: any) => state.setting,
   )
   const { zoneValue } = useSelector((state: any) => state.zoneUpdate)
-  const { viewRtlStyle } = useValues()
+  const { selfDriver } = useSelector((state: any) => state.account)
+  const { viewRtlStyle, textRtlStyle } = useValues()
   const [isVisible, setIsVisible] = useState(true)
-  const rawAmount = `${zoneValue?.currency_symbol}${(
-    walletTypedata ?? 0
-  ).toFixed(2)}`
+
+  // `zoneValue` starts life as an empty array, so the symbol is undefined until
+  // the zone lookup resolves — and a template literal prints that as the string
+  // "undefined", which is where "undefined0.00" came from.
+  const currency = zoneValue?.currency_symbol ?? ''
+  const balance = Number(walletTypedata) || 0
+  const rawAmount = `${currency}${balance.toFixed(2)}`
+
   const maskNumber = (amount: string): string => {
     const numericPart = amount.replace(/[^0-9.]/g, '')
     const masked = numericPart.replace(/[0-9]/g, '*')
-    return `${zoneValue.currency_symbol} ${masked}`
+    return `${currency} ${masked}`.trim()
   }
-  const { selfDriver } = useSelector((state: any) => state.account)
-
   const maskedAmount = maskNumber(rawAmount)
+
   const gotoTopWithDraw = () => {
-    if (
-      walletTypedata >=
-      taxidoSettingData?.cabbooking_values?.driver_commission?.min_withdraw_amount
-    ) {
+    const minWithdraw =
+      taxidoSettingData?.cabbooking_values?.driver_commission
+        ?.min_withdraw_amount
+
+    if (balance >= minWithdraw) {
       navigation.navigate('TopupWallet')
     } else {
+      const rate = Number(zoneValue?.exchange_rate) || 1
       notificationHelper(
         '',
-        `${translateData.minimumAmount} ${zoneValue?.currency_symbol}${(
-          zoneValue?.exchange_rate *
-          taxidoSettingData?.cabbooking_values?.driver_commission
-            ?.min_withdraw_amount
+        `${translateData?.minimumAmount} ${currency}${(
+          rate * (Number(minWithdraw) || 0)
         ).toFixed(2)}.`,
         'error',
       )
     }
   }
 
-  const gotoTopUp = () => {
-    navigation.navigate('TopUp')
-  }
+  const gotoTopUp = () => navigation.navigate('TopUp')
 
   const today = new Date()
   const formattedDate = today.toLocaleDateString('en-US', {
@@ -78,135 +86,106 @@ export function BalanceTopup({
     day: 'numeric',
   })
 
+  const canWithdraw = balance > 0
+
   return (
     <View style={styles.mainBalance}>
-      <Image source={Images.cardBackground} style={styles.walletImage} />
-      <View style={[styles.subBalance]}>
-        <View style={{ marginHorizontal: windowWidth(4) }}>
-          <View style={styles.balanceView}>
-            <Text style={styles.balanceTitle}>
-              {translateData.availableBalance}
-            </Text>
-          </View>
-          <View
-            style={{
-              borderBottomWidth: 1,
-              borderStyle: Platform.OS === 'ios' ? 'solid' : 'dashed',
-              width: '100%',
-              borderColor: appColors.value,
-            }}
+      <View style={styles.card}>
+        {/*
+          The card used to be a stretched PNG (cardBackground) that was still
+          in the old green palette. It is drawn now, so it follows the brand
+          and stays sharp at any size.
+        */}
+        <Svg
+          style={StyleSheet.absoluteFill}
+          width={CARD_WIDTH}
+          height={CARD_HEIGHT}
+        >
+          <Defs>
+            <SvgLinearGradient id="walletCard" x1="0" y1="0" x2="1" y2="1">
+              <Stop offset="0" stopColor={brandColors.primary} />
+              <Stop offset="1" stopColor={brandColors.primaryPressed} />
+            </SvgLinearGradient>
+          </Defs>
+          <Rect
+            x={0}
+            y={0}
+            width={CARD_WIDTH}
+            height={CARD_HEIGHT}
+            fill="url(#walletCard)"
           />
+          <Circle
+            cx={CARD_WIDTH * 0.88}
+            cy={-CARD_HEIGHT * 0.1}
+            r={CARD_HEIGHT * 0.45}
+            fill="rgba(255,255,255,0.10)"
+          />
+          <Circle
+            cx={CARD_WIDTH * 0.1}
+            cy={CARD_HEIGHT * 1.05}
+            r={CARD_HEIGHT * 0.5}
+            fill="rgba(255,255,255,0.08)"
+          />
+        </Svg>
 
-          <View
-            style={{
-              flexDirection: viewRtlStyle,
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <View
-              style={{
-                flexDirection: 'row',
-                marginVertical: windowHeight(2.2),
-                alignItems: 'center',
-              }}
-            >
-              <Text
-                style={[
-                  styles.totalBalance,
-                  {
-                    fontVariant: ['tabular-nums'],
-                    minWidth: 100,
-                    textAlign: 'center',
-                  },
-                ]}
-              >
-                {isVisible ? rawAmount : maskedAmount}
-              </Text>
-
-              <TouchableOpacity
-                onPress={() => setIsVisible(prev => !prev)}
-                style={{
-                  marginHorizontal: windowWidth(2),
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: windowHeight(3),
-                }}
-              >
-                {isVisible ? <Icons.Eye /> : <Icons.EyeClose />}
-              </TouchableOpacity>
-            </View>
-
-          </View>
-
-          <View
-            style={{ flexDirection: 'row', justifyContent: 'space-between' }}
-          >
-            {selfDriver?.role == 'driver' && (
-              <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={gotoTopUp}
-                style={{
-                  backgroundColor: appColors.white,
-                  height: windowHeight(4.4),
-                  width: '47.5%',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: windowHeight(0.8),
-                }}
-              >
-                <Icons.TopUp />
-                <Text
-                  style={{
-                    color: appColors.primary,
-                    marginHorizontal: windowWidth(1.5),
-                    fontFamily: appFonts.medium,
-                  }}
-                >
-                  {translateData.topUp}
-                </Text>
-              </TouchableOpacity>
-            )}
+        <View>
+          <View style={[styles.topRow, { flexDirection: viewRtlStyle }]}>
+            <Text style={[styles.balanceTitle, { textAlign: textRtlStyle }]}>
+              {translateData?.availableBalance || FALLBACK.availableBalance}
+            </Text>
             <TouchableOpacity
-              activeOpacity={0.9}
-              onPress={gotoTopWithDraw}
-              disabled={walletTypedata <= 0}
-              style={{
-                backgroundColor: appColors.white,
-                height: windowHeight(4.4),
-                width: '47.5%',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: windowHeight(0.8),
-                opacity: walletTypedata <= 0 ? 0.5 : 1,
-              }}
+              activeOpacity={0.8}
+              onPress={() => setIsVisible(prev => !prev)}
+              style={styles.eyeButton}
             >
-              <Icons.DollorLarge />
-              <Text
-                style={{
-                  color: appColors.primary,
-                  marginHorizontal: windowWidth(1.5),
-                  fontFamily: appFonts.medium,
-                }}
-              >
-                {translateData.topupWallet}
-              </Text>
+              {isVisible ? (
+                <Icons.Eye />
+              ) : (
+                <Icons.EyeClose color={appColors.white} />
+              )}
             </TouchableOpacity>
           </View>
+
+          <Text
+            numberOfLines={1}
+            style={[styles.totalBalance, { textAlign: textRtlStyle }]}
+          >
+            {isVisible ? rawAmount : maskedAmount}
+          </Text>
+        </View>
+
+        <View style={[styles.actions, { flexDirection: viewRtlStyle }]}>
+          {selfDriver?.role == 'driver' && (
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={gotoTopUp}
+              style={[styles.actionButton, { flexDirection: viewRtlStyle }]}
+            >
+              <Icons.TopUp />
+              <Text style={styles.actionText}>
+                {translateData?.topUp || FALLBACK.topUp}
+              </Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={gotoTopWithDraw}
+            disabled={!canWithdraw}
+            style={[
+              styles.actionButton,
+              { flexDirection: viewRtlStyle, opacity: canWithdraw ? 1 : 0.5 },
+            ]}
+          >
+            <Icons.DollorLarge />
+            <Text style={styles.actionText}>
+              {translateData?.topupWallet || FALLBACK.withdraw}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
-      <Text
-        style={{
-          color: appColors.toup,
-          fontFamily: appFonts.regular,
-          fontSize: fontSizes.FONT4,
-          textAlign: 'center',
-          marginTop: windowHeight(1),
-        }}
-      >
-        {translateData?.balanceOf} {formattedDate}{' '}
+
+      <Text style={styles.footerDate}>
+        {translateData?.balanceOf || FALLBACK.balanceOf} {formattedDate}
       </Text>
     </View>
   )

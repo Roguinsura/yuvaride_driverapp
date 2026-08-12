@@ -1,16 +1,20 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+  Image,
+} from 'react-native'
 import React, { useCallback, useEffect, useState } from 'react'
-import appColors from '../../../../../theme/appColors'
 import styles from './styles'
-import { Button } from '../../../../../commonComponents'
-import { InputBox } from '../../../component'
+import brandColors from '../../../../../theme/brandColors'
+import images from '../../../../../utils/images/images'
 import LoginViewProps from '../../types'
-import { useFocusEffect, useTheme } from '@react-navigation/native'
+import { useFocusEffect } from '@react-navigation/native'
 import { useValues } from '../../../../../utils/context'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch } from '../../../../../api/store'
-import { windowHeight, windowWidth } from '../../../../../theme/appConstant'
-import { AuthTitle } from '../authtitle'
 import {
   taxidosettingDataGet,
   translateDataGet,
@@ -40,8 +44,10 @@ export function LoginView({
   const [numberShow, setNumberShow] = useState(true)
   const [pickerVisible, setPickerVisible] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
-  const { colors } = useTheme()
-  const { textRtlStyle, viewRtlStyle, isDark, rtl } = useValues()
+  // Which account the entered phone/email belongs to. Replaces the old pair of
+  // Driver / Fleet submit buttons — same field, one submit, tab picks the API.
+  const [accountType, setAccountType] = useState<'driver' | 'fleet'>('driver')
+  const { textRtlStyle, viewRtlStyle, isDark } = useValues()
   const dispatch = useDispatch<AppDispatch>()
   const { translateData, taxidoSettingData } = useSelector(
     (state: any) => state.setting,
@@ -66,148 +72,199 @@ export function LoginView({
     setNumberShow(/^\d+$/.test(value))
   }
 
-  const handleGetOTP = async (userType: string) => {
-    setDriverLoading(true)
+  // Driver and Fleet previously had their own near-identical copy of this. The
+  // validation is the same for both — only the endpoint the tab points at
+  // differs — so it lives in one place now.
+  const handleSubmit = async () => {
+    const isDriver = accountType === 'driver'
+    const setLoading = isDriver ? setDriverLoading : setFleetLoading
+
+    setLoading?.(true)
+
     const isNumeric = /^\d+$/.test(phoneNumber)
+    let msg = ''
 
     if (isNumeric) {
-      const msg = ValidatePhoneNumber(phoneNumber)
-      if (msg) {
-        setError(msg)
-        setDriverLoading(false)
-        return
-      }
+      msg = ValidatePhoneNumber(phoneNumber)
     } else if (phoneNumber.includes('@')) {
-      const msg = validateEmail(phoneNumber)
-      if (msg) {
-        setError(msg)
-        setDriverLoading(false)
-        return
-      }
+      msg = validateEmail(phoneNumber)
     } else {
-      setError(translateData?.validPhoneEmail)
-      setDriverLoading(false)
+      msg = translateData?.validPhoneEmail
+    }
+
+    if (msg) {
+      setError(msg)
+      setLoading?.(false)
       return
     }
 
     setError('')
-    await gotoOTP(userType)
-  }
 
-  const handleGetOTPFleet = async (userType: string) => {
-    if (setFleetLoading) setFleetLoading(true)
-    const isNumeric = /^\d+$/.test(phoneNumber)
-
-    if (isNumeric) {
-      const msg = ValidatePhoneNumber(phoneNumber)
-      if (msg) {
-        setError(msg)
-        setFleetLoading?.(false)
-        return
-      }
-    } else if (phoneNumber.includes('@')) {
-      const msg = validateEmail(phoneNumber)
-      if (msg) {
-        setError(msg)
-        setFleetLoading?.(false)
-        return
-      }
+    if (isDriver) {
+      await gotoOTP('driver')
     } else {
-      setError(translateData?.validPhoneEmail)
-      setFleetLoading?.(false)
-      return
+      await gotoOTPFleet('fleet')
     }
-
-    setError('')
-    await gotoOTPFleet(userType)
   }
+
+  const selectTab = (type: 'driver' | 'fleet') => {
+    setAccountType(type)
+    // A "not a valid phone/email" message from the previous tab is not about
+    // the tab the user just switched to.
+    setError('')
+  }
+
+  const titleColor = isDark ? brandColors.titleDark : brandColors.titleLight
+  const bodyColor = isDark ? brandColors.bodyDark : brandColors.bodyLight
+  const idleBorder = isDark
+    ? brandColors.borderDark
+    : borderColor || brandColors.borderLight
+  const anyLoading = driverLoading || fleetLoading
 
   return (
     <View
       style={[
         styles.main,
-        { backgroundColor: isDark ? appColors.darkThemeSub : appColors.white },
+        {
+          backgroundColor: isDark
+            ? brandColors.cardDark
+            : brandColors.cardLight,
+        },
       ]}
     >
-      <View style={styles.subView}>
-        <AuthTitle
-          title={translateData?.authTitle}
-          subTitle={translateData?.subTitle}
+      <View style={styles.logoWrap}>
+        <Image
+          source={images.brandLogo}
+          style={styles.logo}
+          resizeMode="contain"
         />
+      </View>
+
+      <View
+        style={[
+          styles.card,
+          {
+            backgroundColor: isDark
+              ? brandColors.cardDark
+              : brandColors.cardLight,
+            borderColor: isDark
+              ? brandColors.borderDark
+              : brandColors.borderLight,
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.tabsTrack,
+            {
+              flexDirection: viewRtlStyle,
+              backgroundColor: isDark
+                ? brandColors.fieldDark
+                : brandColors.fieldLight,
+            },
+          ]}
+        >
+          {(['driver', 'fleet'] as const).map(type => {
+            const active = accountType === type
+            return (
+              <TouchableOpacity
+                key={type}
+                style={[
+                  styles.tab,
+                  active && { backgroundColor: brandColors.primary },
+                ]}
+                activeOpacity={0.8}
+                disabled={anyLoading}
+                onPress={() => selectTab(type)}
+              >
+                <Text
+                  style={[
+                    styles.tabText,
+                    { color: active ? brandColors.onPrimary : bodyColor },
+                  ]}
+                >
+                  {type === 'driver'
+                    ? translateData?.driver
+                    : translateData?.fleet}
+                </Text>
+              </TouchableOpacity>
+            )
+          })}
+        </View>
+
+        <Text
+          style={[
+            styles.screenTitle,
+            { color: titleColor, textAlign: textRtlStyle },
+          ]}
+        >
+          {translateData?.authTitle}
+        </Text>
+        <Text
+          style={[
+            styles.screenSubtitle,
+            { color: bodyColor, textAlign: textRtlStyle },
+          ]}
+        >
+          {translateData?.subTitle}
+        </Text>
+
+        <Text
+          style={[
+            styles.fieldLabel,
+            { color: titleColor, textAlign: textRtlStyle },
+          ]}
+        >
+          {translateData?.enterPhoneandEmailBoth}
+        </Text>
 
         <View
           style={[
-            styles.countryCodeContainer,
+            styles.fieldShell,
             {
               flexDirection: viewRtlStyle,
-              justifyContent: numberShow ? 'flex-start' : 'center',
-              width: '100%',
+              backgroundColor: isDark
+                ? brandColors.fieldDark
+                : isFocused
+                  ? brandColors.cardLight
+                  : brandColors.fieldLight,
+              borderColor: isFocused ? brandColors.primary : idleBorder,
             },
           ]}
         >
           {numberShow && (
-            <View
-              style={[
-                styles.codeComponent,
-                {
-                  marginRight: rtl ? 0 : windowWidth(2),
-                  marginLeft: rtl ? windowWidth(2) : 0,
-                },
-              ]}
-            >
+            <>
               <TouchableOpacity
-                style={[
-                  styles.countryCode,
-                  {
-                    backgroundColor: isDark
-                      ? appColors.primaryFont
-                      : appColors.graybackground,
-                    borderColor: isFocused
-                      ? appColors.primary
-                      : borderColor || colors.border,
-                  },
-                ]}
-                onPress={() => {
-                  setIsFocused(true)
-                  setPickerVisible(true)
-                }}
+                style={styles.countryCode}
+                onPress={() => setPickerVisible(true)}
                 activeOpacity={0.7}
               >
-                <Text
-                  style={[
-                    styles.codeText,
-                    { color: isDark ? appColors.white : appColors.black },
-                  ]}
-                >
+                <Text style={[styles.codeText, { color: titleColor }]}>
                   {`+${countryCode}`}
                 </Text>
               </TouchableOpacity>
-            </View>
+              <View
+                style={[styles.fieldDivider, { backgroundColor: idleBorder }]}
+              />
+            </>
           )}
 
-          <InputBox
-            placeholder={translateData?.enterPhoneandEmailBoth}
-            placeholderTextColor={
-              isDark ? appColors.darkText : appColors.secondaryFont
-            }
+          <TextInput
+            style={[
+              styles.input,
+              { color: titleColor, textAlign: textRtlStyle },
+            ]}
+            // Label above the field already carries this copy — repeating it as
+            // a placeholder just prints the same sentence twice.
+            placeholder=""
+            placeholderTextColor={bodyColor}
             value={phoneNumber}
             onChangeText={handlePhoneNumberChange}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
             keyboardType="email-address"
-            backgroundColors={
-              isDark ? appColors.primaryFont : appColors.graybackground
-            }
             autoCapitalize="none"
-            borderColor={
-              isDark ? appColors.primaryFont : appColors.graybackground
-            }
-            style={{
-              flex: 1,
-              marginLeft: numberShow && !rtl ? windowWidth(1.5) : 0,
-              marginRight: numberShow && rtl ? windowWidth(1.5) : 0,
-              height: numberShow ? windowHeight(6) : windowHeight(6.7),
-              color: isDark ? appColors.darkText : appColors.primaryFont,
-              textAlign: rtl ? 'right' : 'left',
-            }}
+            autoCorrect={false}
           />
         </View>
 
@@ -216,35 +273,21 @@ export function LoginView({
             {error}
           </Text>
         ) : null}
-      </View>
 
-      <View style={styles.button}>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            paddingBottom: windowHeight(2),
-          }}
+        <TouchableOpacity
+          style={[styles.cta, anyLoading && styles.ctaDisabled]}
+          activeOpacity={0.85}
+          disabled={anyLoading}
+          onPress={handleSubmit}
         >
-          <View style={{ width: '50%' }}>
-            <Button
-              onPress={() => handleGetOTP('driver')}
-              title={translateData?.driver}
-              backgroundColor={appColors.primary}
-              color={appColors.white}
-              loading={driverLoading}
-            />
-          </View>
-          <View style={{ width: '50%' }}>
-            <Button
-              onPress={() => handleGetOTPFleet('fleet')}
-              title={translateData?.fleet}
-              backgroundColor={appColors.primary}
-              color={appColors.white}
-              loading={fleetLoading}
-            />
-          </View>
-        </View>
+          {anyLoading ? (
+            <ActivityIndicator color={brandColors.onPrimary} />
+          ) : (
+            <Text style={styles.ctaText}>
+              {translateData?.proceed || translateData?.submit || 'Continue'}
+            </Text>
+          )}
+        </TouchableOpacity>
       </View>
 
       {pickerVisible && (

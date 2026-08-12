@@ -4,629 +4,395 @@ import {
   TouchableOpacity,
   View,
   ScrollView,
-  StyleSheet,
   Pressable,
   BackHandler,
 } from 'react-native'
-import appColors from '../../../theme/appColors'
-import { Header } from '../../../commonComponents'
-import Svg, { Rect, Line, Text as SvgText } from 'react-native-svg'
-import appFonts from '../../../theme/appFonts'
-import {
-  windowHeight,
-  fontSizes,
-  windowWidth,
-} from '../../../theme/appConstant'
 import { useSelector } from 'react-redux'
-import Icons from '../../../utils/icons/icons'
-import { useValues } from '../../../utils/context'
-import localStyles from './styles'
 import { useNavigation } from '@react-navigation/native'
 
+import appColors from '../../../theme/appColors'
+import brandColors from '../../../theme/brandColors'
+import { Header } from '../../../commonComponents'
+import Icons from '../../../utils/icons/icons'
+import { useValues } from '../../../utils/context'
+import localStyles, {
+  CHART_HEIGHT,
+  BAR_SLOT,
+  GRID_ROWS,
+} from './styles'
+
+const FALLBACK = {
+  totalEarning: 'Total Earnings',
+  day: 'Day',
+  week: 'Week',
+  month: 'Month',
+  income: 'Income',
+  averageEarnings: 'Average earnings',
+  averageRides: 'Average rides',
+  highestRecord: 'Highest record',
+  noDataAvailable: 'No data available',
+  date: 'Date',
+  periodTotal: 'Total for this period',
+}
+
+// The period a tab represents is kept separate from the text on it. They used
+// to be the same value — the tab label came from `translateData`, but the
+// switch that picked the data compared against the literals 'Day'/'Week'/
+// 'Month', so any translation other than exactly those English words silently
+// fell through to the default branch and every tab showed day data.
+type PeriodKey = 'Day' | 'Week' | 'Month'
+const PERIOD_KEYS: PeriodKey[] = ['Day', 'Week', 'Month']
+
 export function TotalEarnings() {
-  const { dashBoardList } = useSelector(state => state.dashboard)
-  const initialEarningsData = dashBoardList?.day?.dayRevenues?.revenues
-  const weekEarningsData = dashBoardList?.week?.weekRevenues?.revenues
-  const monthEarningsData = dashBoardList?.month?.monthRevenues?.revenues
-  const dayLabels = dashBoardList?.day?.dayRevenues?.days
-  const weekLabels = dashBoardList?.week?.weekRevenues?.days
-  const monthLabels = dashBoardList?.month?.monthRevenues?.months
-  const { isDark, rtl } = useValues()
-  const { translateData } = useSelector(state => state.setting)
-  const [selectedPeriod, setSelectedPeriod] = useState('Day')
-  const [chartData, setChartData] = useState(initialEarningsData)
-  const options = [
-    translateData?.day,
-    translateData?.week,
-    translateData?.month,
-  ]
-  const chartScrollViewRef = useRef(null)
-  const [scrollX, setScrollX] = useState(0)
-  const navigation = useNavigation()
+  const { dashBoardList } = useSelector((state: any) => state.dashboard)
+  const { translateData } = useSelector((state: any) => state.setting)
+  const { isDark, viewRtlStyle, textRtlStyle } = useValues()
+  const navigation = useNavigation<any>()
+
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodKey>('Day')
+  const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null)
+  const chartScrollViewRef = useRef<ScrollView>(null)
+
+  const pageBg = isDark ? appColors.bgDark : appColors.graybackground
+  const cardBg = isDark ? appColors.darkThemeSub : appColors.white
+  const borderColor = isDark ? appColors.darkborder : appColors.border
+  const titleColor = isDark ? appColors.white : brandColors.titleLight
+  const bodyColor = isDark ? appColors.darkText : brandColors.bodyLight
+
+  const currency = dashBoardList?.ride?.currency_symbol || ''
+
+  const periodLabels: Record<PeriodKey, string> = {
+    Day: translateData?.day || FALLBACK.day,
+    Week: translateData?.week || FALLBACK.week,
+    Month: translateData?.month || FALLBACK.month,
+  }
+
+  /* -------------------- data for the active period -------------------- */
+  // Every one of these can be missing while the dashboard call is in flight,
+  // so they are normalised to arrays before any math touches them.
+  const sourceByPeriod: Record<PeriodKey, { values: any; labels: any; averages: any; record: any }> = {
+    Day: {
+      values: dashBoardList?.day?.dayRevenues?.revenues,
+      labels: dashBoardList?.day?.dayRevenues?.days,
+      averages: null,
+      record: dashBoardList?.day?.highest_records?.daily,
+    },
+    Week: {
+      values: dashBoardList?.week?.weekRevenues?.revenues,
+      labels: dashBoardList?.week?.weekRevenues?.days,
+      averages: dashBoardList?.week?.averages,
+      record: dashBoardList?.week?.highest_records?.weekly,
+    },
+    Month: {
+      values: dashBoardList?.month?.monthRevenues?.revenues,
+      labels: dashBoardList?.month?.monthRevenues?.months,
+      averages: dashBoardList?.month?.averages,
+      record: dashBoardList?.month?.highest_records?.monthly,
+    },
+  }
+
+  const active = sourceByPeriod[selectedPeriod]
+  const chartData: number[] = Array.isArray(active.values)
+    ? active.values.map((v: any) => Number(v) || 0)
+    : []
+  const rawLabels: any[] = Array.isArray(active.labels) ? active.labels : []
+  const labels = rawLabels.slice(0, chartData.length)
+
+  const maxValue = chartData.length > 0 ? Math.max(...chartData) : 0
+  const yAxisMax = Math.max(30, Math.ceil(maxValue / 5) * 5)
+  const gridValues = Array.from({ length: GRID_ROWS }, (_, i) =>
+    Math.round((yAxisMax * (GRID_ROWS - 1 - i)) / (GRID_ROWS - 1)),
+  )
+
+  const periodTotal = chartData.reduce((sum, v) => sum + v, 0)
+
+  const formatAmount = (value: any) => {
+    const num = Number(value)
+    if (!isFinite(num)) return '0'
+    return num.toLocaleString(undefined, { maximumFractionDigits: 2 })
+  }
+
+  /* -------------------- interaction -------------------- */
+  const changePeriod = (period: PeriodKey) => {
+    setSelectedPeriod(period)
+    setSelectedBarIndex(null)
+  }
+
+  useEffect(() => {
+    chartScrollViewRef.current?.scrollTo({ x: 0, animated: true })
+  }, [selectedPeriod])
 
   useEffect(() => {
     const backAction = () => {
       navigation.goBack()
       return true
     }
-
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
       backAction,
     )
-
     return () => backHandler.remove()
   }, [])
 
-  const handleScroll = event => {
-    setScrollX(event.nativeEvent.contentOffset.x)
-  }
-  const updateChartData = period => {
-    setSelectedPeriod(period)
+  // The floating tooltip that used to hover over the tapped bar needed the
+  // scroll offset and a fudged width to place itself, and clipped at the edges
+  // of the chart. This readout sits above the chart instead: always visible,
+  // and it just reflects whatever is selected.
+  const hasSelection =
+    selectedBarIndex !== null && chartData[selectedBarIndex] !== undefined
+  const readoutLabel = hasSelection
+    ? `${translateData?.income || FALLBACK.income} · ${labels[selectedBarIndex as number] ?? ''}`
+    : FALLBACK.periodTotal
+  const readoutValue = hasSelection
+    ? chartData[selectedBarIndex as number]
+    : periodTotal
 
-    setSelectedBarIndex(null)
-
-    switch (period) {
-      case 'Day':
-        setChartData(initialEarningsData)
-        break
-      case 'Week':
-        setChartData(weekEarningsData)
-        break
-      case 'Month':
-        setChartData(monthEarningsData)
-        break
-      default:
-        setChartData(initialEarningsData)
-    }
-  }
-
-  const getLabels = () => {
-    switch (selectedPeriod) {
-      case 'Day':
-        return dayLabels
-      case 'Week':
-        return weekLabels
-      case 'Month':
-        return monthLabels.slice(0, chartData.length)
-      default:
-        return []
-    }
-  }
-
-  const labels = getLabels()
-  const chartHeight = 200
-  const chartHorizontalPadding = windowHeight(2)
-  const baseBarActualWidth = windowHeight(1.5)
-  const baseBarSpacing = windowWidth(8)
-  const barActualWidth = baseBarActualWidth
-  const barContainerWidth = baseBarActualWidth + baseBarSpacing
-  const totalChartContentWidth =
-    chartData?.length * barContainerWidth + chartHorizontalPadding * 2
-  const maxValue = Math.max(...chartData)
-  const yAxisMax = Math.max(30, Math.ceil(maxValue / 5) * 5)
-  const fixedYAxisLabels = [
-    yAxisMax,
-    (yAxisMax * 5) / 6,
-    (yAxisMax * 4) / 6,
-    (yAxisMax * 3) / 6,
-    (yAxisMax * 2) / 6,
-    yAxisMax / 6,
-    0,
-  ].map(val => Math.round(val))
-
-  const formatValue = value => {
-    if (value >= 1000) {
-      return `${(value / 1000).toFixed(1)}K`
-    }
-    return value?.toString()
-  }
-
-  useEffect(() => {
-    if (chartScrollViewRef.current) {
-      chartScrollViewRef.current.scrollTo({ x: 0, animated: true })
-    }
-  }, [chartData])
-
-  const [selectedBarIndex, setSelectedBarIndex] = useState(null)
-  const [tooltipWidth, setTooltipWidth] = useState(0)
-  const tooltipMargin = windowHeight(3.5)
-
-  const AvgCard = ({ earnings, rides }: any) => (
-    <View
-      style={{
-        flexDirection: rtl ? 'row-reverse' : 'row',
-        justifyContent: 'space-between',
-        marginHorizontal: windowHeight(2.5),
-        marginBottom: windowHeight(2),
-      }}
-    >
-      <View
-        style={{
-          backgroundColor: isDark ? appColors.darkThemeSub : appColors.white,
-          borderWidth: 1,
-          borderColor: isDark ? appColors.darkBorderBlack : appColors.border,
-          borderRadius: windowHeight(0.8),
-          width: '48%',
-        }}
-      >
-        <View style={{ flexDirection: 'row', margin: windowHeight(1.5) }}>
-          <View
-            style={{
-              height: windowHeight(6.5),
-              width: windowHeight(6.5),
-              backgroundColor: appColors.whiteopicity,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: windowHeight(0.8),
-            }}
-          >
-            <Icons.Earnings />
-          </View>
-          <View
-            style={{
-              height: windowHeight(6.5),
-              justifyContent: 'center',
-              marginHorizontal: windowWidth(3),
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: appFonts.bold,
-                color: appColors.blueShade,
-                fontSize: fontSizes.FONT4,
-              }}
-            >
-              {dashBoardList?.ride?.currency_symbol}
-              {earnings}
-            </Text>
-          </View>
-        </View>
-        <Text
-          style={{
-            paddingBottom: windowHeight(1),
-            marginHorizontal: windowHeight(1.5),
-            fontFamily: appFonts.medium,
-            color: isDark ? appColors.white : appColors.black,
-          }}
-        >
-          {translateData?.averageEarnings}
-        </Text>
-      </View>
-      <View
-        style={{
-          backgroundColor: isDark ? appColors.darkThemeSub : appColors.white,
-          borderWidth: 1,
-          borderColor: isDark ? appColors.darkBorderBlack : appColors.border,
-          borderRadius: windowHeight(0.8),
-          width: '48%',
-        }}
-      >
-        <View
-          style={{
-            flexDirection: rtl ? 'row-reverse' : 'row',
-            margin: windowHeight(1.5),
-          }}
-        >
-          <View
-            style={{
-              height: windowHeight(6.5),
-              width: windowHeight(6.5),
-              backgroundColor: appColors.bgColor2,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: windowHeight(0.8),
-            }}
-          >
-            <Icons.Rides />
-          </View>
-          <View
-            style={{
-              height: windowHeight(6.5),
-              justifyContent: 'center',
-              marginHorizontal: windowWidth(3),
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: appFonts.bold,
-                color: appColors.orange,
-                fontSize: fontSizes.FONT4,
-              }}
-            >
-              {rides} {dashBoardList?.driver_performance?.unit}
-            </Text>
-          </View>
-        </View>
-        <Text
-          style={{
-            paddingBottom: windowHeight(1),
-            marginHorizontal: windowHeight(1.5),
-            fontFamily: appFonts.medium,
-            color: isDark ? appColors.white : appColors.black,
-            textAlign: rtl ? 'right' : 'left',
-          }}
-        >
-          {translateData?.averageRides}
-        </Text>
-      </View>
-    </View>
-  )
-
-  const RecordCard = ({ date, amount }) => (
-    <View
-      style={[
-        localStyles.recordCard,
-        { backgroundColor: isDark ? appColors.darkThemeSub : appColors.white },
-
-        { borderColor: isDark ? appColors.darkBorderBlack : appColors.border },
-      ]}
-    >
-      <Text
-        style={[
-          localStyles.recordCardLabel,
-          {
-            color: isDark ? appColors.darkText : appColors.iconColor,
-            textAlign: rtl ? 'right' : 'left',
-          },
-        ]}
-      >
-        Date
-      </Text>
-      {date ? (
-        <View
-          style={[
-            localStyles.recordCardContent,
-            { flexDirection: rtl ? 'row-reverse' : 'row' },
-          ]}
-        >
-          <Text
-            style={[
-              localStyles.recordCardDate,
-              { color: isDark ? appColors.white : appColors.black },
-            ]}
-          >
-            {date}
-          </Text>
-          <Text style={localStyles.recordCardAmount}>
-            {dashBoardList?.ride?.currency_symbol}
-            {amount}
-          </Text>
-        </View>
-      ) : (
-        <Text
-          style={[
-            localStyles.nodata,
-            {
-              color: isDark ? appColors.white : appColors.black,
-              textAlign: rtl ? 'right' : 'left',
-            },
-          ]}
-        >
-          {translateData?.noDataAvailable}
-        </Text>
-      )}
-    </View>
-  )
-
-  const renderAvg = () => {
-    switch (selectedPeriod) {
-      case 'Day':
-        return null
-
-      case 'Week':
-        return (
-          <AvgCard
-            earnings={dashBoardList?.week?.averages?.average_earnings}
-            rides={dashBoardList?.week?.averages?.average_rides}
-          />
-        )
-
-      case 'Month':
-        return (
-          <AvgCard
-            earnings={dashBoardList?.month?.averages?.average_earnings}
-            rides={dashBoardList?.month?.averages?.average_rides}
-          />
-        )
-      default:
-        return null
-    }
-  }
-
-  const renderRecord = () => {
-    switch (selectedPeriod) {
-      case 'Day':
-        return (
-          <RecordCard
-            date={dashBoardList?.day?.highest_records?.daily?.date}
-            amount={dashBoardList?.day?.highest_records?.daily?.amount}
-          />
-        )
-
-      case 'Week':
-        return (
-          <RecordCard
-            date={dashBoardList?.week?.highest_records?.weekly?.date}
-            amount={dashBoardList?.week?.highest_records?.weekly?.amount}
-          />
-        )
-
-      case 'Month':
-        return (
-          <RecordCard
-            date={dashBoardList?.month?.highest_records?.monthly?.date}
-            amount={dashBoardList?.month?.highest_records?.monthly?.amount}
-          />
-        )
-
-      default:
-        return null
-    }
-  }
+  const averages = active.averages
+  const record = active.record
 
   return (
-    <View style={{ flex: 1 }}>
-      <Header title={translateData?.totalEarning} />
-      <View
-        style={{
-          backgroundColor: isDark ? appColors.bgDark : appColors.graybackground,
-          flex: 1,
-        }}
+    <View style={localStyles.screen}>
+      <Header title={translateData?.totalEarning || FALLBACK.totalEarning} />
+
+      <ScrollView
+        style={[localStyles.body, { backgroundColor: pageBg }]}
+        contentContainerStyle={localStyles.scrollContent}
+        showsVerticalScrollIndicator={false}
       >
+        {/* ---------- period switcher ---------- */}
         <View
           style={[
-            localStyles.optionsContainer,
-            { flexDirection: rtl ? 'row-reverse' : 'row' },
+            localStyles.segment,
+            { backgroundColor: cardBg, borderColor, flexDirection: viewRtlStyle },
           ]}
         >
-          {options.map(option => (
-            <TouchableOpacity
-              key={option}
-              style={[
-                {
-                  backgroundColor: isDark
-                    ? appColors.darkThemeSub
-                    : appColors.white,
-                },
-                localStyles.option,
-                selectedPeriod === option && localStyles.selectedOption,
-              ]}
-              onPress={() => {
-                updateChartData(option)
-                renderRecord()
-              }}
-            >
-              <Text
+          {PERIOD_KEYS.map(key => {
+            const isActive = selectedPeriod === key
+            return (
+              <TouchableOpacity
+                key={key}
+                activeOpacity={0.8}
+                onPress={() => changePeriod(key)}
                 style={[
-                  localStyles.optionText,
-                  { color: isDark ? appColors.darkText : appColors.black },
-                  selectedPeriod === option && localStyles.selectedText,
+                  localStyles.segmentItem,
+                  isActive && localStyles.segmentItemActive,
                 ]}
               >
-                {option}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Text
+                  style={[
+                    localStyles.segmentText,
+                    { color: bodyColor },
+                    isActive && localStyles.segmentTextActive,
+                  ]}
+                >
+                  {periodLabels[key]}
+                </Text>
+              </TouchableOpacity>
+            )
+          })}
         </View>
 
-        <Text
-          style={[
-            localStyles.title,
-            {
-              color: isDark ? appColors.white : appColors.black,
-              textAlign: rtl ? 'right' : 'left',
-            },
-          ]}
-        >
-          {translateData?.totalEarning}
-        </Text>
+        {/* ---------- chart ---------- */}
         <View
           style={[
             localStyles.card,
-            {
-              backgroundColor: isDark
-                ? appColors.darkThemeSub
-                : appColors.white,
-            },
-            {
-              borderColor: isDark
-                ? appColors.darkBorderBlack
-                : appColors.border,
-            },
+            localStyles.chartCard,
+            { backgroundColor: cardBg, borderColor },
           ]}
         >
-          <View style={[localStyles.chartAndLabelsWrapper]}>
-            <View style={localStyles.yAxisLabels}>
-              {fixedYAxisLabels.map((value, i) => (
-                <Text
-                  key={`y-label-${i}`}
-                  style={[
-                    localStyles.yAxisLabel,
-                    { textAlign: rtl ? 'right' : 'left' },
-                  ]}
-                >
-                  {value}
-                </Text>
-              ))}
-            </View>
-
-            <ScrollView
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              ref={chartScrollViewRef}
-              scrollEventThrottle={16}
-              onScroll={handleScroll}
-              contentContainerStyle={{
-                paddingHorizontal: chartHorizontalPadding,
-                flexDirection: 'column',
-                flexGrow: 1,
-              }}
+          <View style={localStyles.readout}>
+            <Text
+              style={[localStyles.readoutLabel, { color: bodyColor, textAlign: textRtlStyle }]}
             >
-              <Svg
-                width={totalChartContentWidth}
-                height={chartHeight}
-                style={localStyles.svg}
-              >
-                {Array.from({ length: fixedYAxisLabels?.length }).map(
-                  (_, i) => {
-                    const y = (i / (fixedYAxisLabels?.length - 1)) * chartHeight
-                    return (
-                      <Line
-                        key={`grid-line-${i}`}
-                        x1="0"
-                        y1={y}
-                        x2={totalChartContentWidth}
-                        y2={y}
-                        stroke="#E0E0E0"
-                        strokeWidth="0.5"
-                        strokeDasharray="4 4"
-                      />
-                    )
-                  },
-                )}
-
-                {chartData.map((value, index) => {
-                  const barHeight = (value / yAxisMax) * chartHeight
-                  const x =
-                    index * barContainerWidth +
-                    (barContainerWidth - barActualWidth) / 2
-                  const y = chartHeight - barHeight
-
-                  return (
-                    <Rect
-                      key={`bar-${index}`}
-                      x={x}
-                      y={y}
-                      width={barActualWidth}
-                      height={barHeight}
-                      fill={appColors.primary}
-                      rx={2}
-                    />
-                  )
-                })}
-              </Svg>
-
-              <View
-                style={[
-                  StyleSheet.absoluteFillObject,
-                  {
-                    flexDirection: rtl ? 'row-reverse' : 'row',
-                    left: chartHorizontalPadding,
-                    bottom: 0,
-                  },
-                ]}
-              >
-                {chartData.map((_, index) => {
-                  return (
-                    <Pressable
-                      key={`touchable-${index}`}
-                      onPress={() => {
-                        setSelectedBarIndex(index)
-
-                        const xOffset =
-                          index * barContainerWidth - windowWidth(40)
-                        chartScrollViewRef.current?.scrollTo({
-                          x: xOffset,
-                          animated: true,
-                        })
-                      }}
-                      style={{
-                        width: barContainerWidth,
-                        height: chartHeight,
-                        backgroundColor: 'transparent',
-                      }}
-                    />
-                  )
-                })}
-              </View>
-
-              <View
-                style={{
-                  flexDirection: 'row',
-                  marginTop: windowHeight(10),
-                  width: totalChartContentWidth,
-                  justifyContent: 'flex-start',
-                }}
-              >
-                {labels.map((label, index) => {
-                  return (
-                    <View
-                      key={`label-${index}`}
-                      style={{
-                        width: barContainerWidth,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Text style={localStyles.xAxisLabelText}>{label}</Text>
-                    </View>
-                  )
-                })}
-              </View>
-            </ScrollView>
+              {readoutLabel}
+            </Text>
+            <Text
+              style={[localStyles.readoutValue, { color: titleColor, textAlign: textRtlStyle }]}
+            >
+              {currency}
+              {formatAmount(readoutValue)}
+            </Text>
           </View>
 
-          {selectedBarIndex !== null && (
-            <View
-              onLayout={event => {
-                const { width } = event.nativeEvent.layout
-                setTooltipWidth(width)
-              }}
-              style={[
-                localStyles.tooltipContainer,
-                {
-                  bottom:
-                    (chartData[selectedBarIndex] / yAxisMax) * chartHeight +
-                    tooltipMargin,
-                  left:
-                    chartHorizontalPadding +
-                    selectedBarIndex * barContainerWidth +
-                    barContainerWidth / 2 -
-                    tooltipWidth / 3.9 -
-                    scrollX,
-                },
-              ]}
-            >
-              <View
-                style={{
-                  flexDirection: rtl ? 'row-reverse' : 'row',
-                  justifyContent: 'space-between',
-                  gap: 8,
-                }}
-              >
-                <Text style={localStyles.tooltipText}>
-                  {translateData?.income}:{' '}
-                </Text>
-                <Text
-                  style={{
-                    color: appColors.primary,
-                    fontSize: fontSizes.FONT3HALF,
-                    fontFamily: appFonts.medium,
-                  }}
-                >
-                  {dashBoardList?.ride?.currency_symbol}
-                  {formatValue(chartData[selectedBarIndex])}
-                </Text>
+          {chartData.length === 0 ? (
+            <View style={localStyles.emptyChart}>
+              <Text style={[localStyles.emptyText, { color: bodyColor }]}>
+                {translateData?.noDataAvailable || FALLBACK.noDataAvailable}
+              </Text>
+            </View>
+          ) : (
+            <View style={localStyles.chartRow}>
+              <View style={localStyles.yAxis}>
+                {gridValues.map((value, i) => (
+                  <Text key={`y-${i}`} style={localStyles.yAxisLabel}>
+                    {value}
+                  </Text>
+                ))}
               </View>
-              <View style={localStyles.tooltipArrow} />
+
+              <View style={localStyles.plot}>
+                {/* Grid lines are static: they span the full width and never
+                    scroll, so they live behind the scroller rather than in it. */}
+                <View style={localStyles.gridLayer} pointerEvents="none">
+                  {gridValues.map((_, i) => (
+                    <View
+                      key={`grid-${i}`}
+                      style={[localStyles.gridLine, { borderTopColor: borderColor }]}
+                    />
+                  ))}
+                </View>
+
+                <ScrollView
+                  ref={chartScrollViewRef}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                >
+                  <View style={localStyles.barsRow}>
+                    {chartData.map((value, index) => {
+                      const isActive = selectedBarIndex === index
+                      const barHeight = Math.max(
+                        (value / yAxisMax) * CHART_HEIGHT,
+                        value > 0 ? 3 : 0,
+                      )
+                      return (
+                        <Pressable
+                          key={`bar-${index}`}
+                          style={localStyles.barSlot}
+                          onPress={() =>
+                            setSelectedBarIndex(isActive ? null : index)
+                          }
+                        >
+                          <View style={localStyles.barTrack}>
+                            <View
+                              style={[
+                                localStyles.bar,
+                                {
+                                  height: barHeight,
+                                  backgroundColor:
+                                    selectedBarIndex === null || isActive
+                                      ? appColors.primary
+                                      : brandColors.primaryBorder,
+                                },
+                              ]}
+                            />
+                          </View>
+                          <Text
+                            numberOfLines={1}
+                            style={[
+                              localStyles.barLabel,
+                              { width: BAR_SLOT, textAlign: 'center' },
+                              isActive && localStyles.barLabelActive,
+                            ]}
+                          >
+                            {labels[index] ?? ''}
+                          </Text>
+                        </Pressable>
+                      )
+                    })}
+                  </View>
+                </ScrollView>
+              </View>
             </View>
           )}
         </View>
-        {renderAvg()}
+
+        {/* ---------- averages (week + month only) ---------- */}
+        {averages && (
+          <View style={[localStyles.avgRow, { flexDirection: viewRtlStyle }]}>
+            <View
+              style={[localStyles.avgTile, { backgroundColor: cardBg, borderColor }]}
+            >
+              <View
+                style={[
+                  localStyles.avgIcon,
+                  { backgroundColor: isDark ? 'rgba(248,111,0,0.18)' : brandColors.primarySoft },
+                ]}
+              >
+                {/* Draws itself in appColors.primary, so it follows the brand. */}
+                <Icons.Doller />
+              </View>
+              <Text
+                style={[localStyles.avgValue, { color: titleColor, textAlign: textRtlStyle }]}
+                numberOfLines={1}
+              >
+                {currency}
+                {formatAmount(averages?.average_earnings)}
+              </Text>
+              <Text
+                style={[localStyles.avgLabel, { color: bodyColor, textAlign: textRtlStyle }]}
+              >
+                {translateData?.averageEarnings || FALLBACK.averageEarnings}
+              </Text>
+            </View>
+
+            <View
+              style={[localStyles.avgTile, { backgroundColor: cardBg, borderColor }]}
+            >
+              <View
+                style={[
+                  localStyles.avgIcon,
+                  { backgroundColor: isDark ? 'rgba(63,143,218,0.16)' : '#EAF2FB' },
+                ]}
+              >
+                <Icons.Car color="#3F8FDA" />
+              </View>
+              {/*
+                This used to render `{rides} {driver_performance.unit}`, which
+                stuck the distance unit onto a ride count — an average of 12
+                rides displayed as "12 km".
+              */}
+              <Text
+                style={[localStyles.avgValue, { color: titleColor, textAlign: textRtlStyle }]}
+                numberOfLines={1}
+              >
+                {formatAmount(averages?.average_rides)}
+              </Text>
+              <Text
+                style={[localStyles.avgLabel, { color: bodyColor, textAlign: textRtlStyle }]}
+              >
+                {translateData?.averageRides || FALLBACK.averageRides}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* ---------- highest record ---------- */}
         <Text
+          style={[localStyles.sectionTitle, { color: titleColor, textAlign: textRtlStyle }]}
+        >
+          {translateData?.highestRecord || FALLBACK.highestRecord}
+        </Text>
+
+        <View
           style={[
-            localStyles.highestRecordTitle,
-            {
-              color: isDark ? appColors.darkText : appColors.iconColor,
-              textAlign: rtl ? 'right' : 'left',
-            },
+            localStyles.card,
+            localStyles.recordCard,
+            { backgroundColor: cardBg, borderColor, flexDirection: viewRtlStyle },
           ]}
         >
-          {translateData?.highestRecord}
-        </Text>
-        {renderRecord()}
-      </View>
+          <View style={localStyles.recordIcon}>
+            <Icons.Calander />
+          </View>
+          <View style={localStyles.recordTextWrap}>
+            <Text
+              style={[localStyles.recordLabel, { color: bodyColor, textAlign: textRtlStyle }]}
+            >
+              {translateData?.date || FALLBACK.date}
+            </Text>
+            <Text
+              style={[localStyles.recordDate, { color: titleColor, textAlign: textRtlStyle }]}
+            >
+              {record?.date || (translateData?.noDataAvailable || FALLBACK.noDataAvailable)}
+            </Text>
+          </View>
+          {record?.date ? (
+            <Text style={localStyles.recordAmount}>
+              {currency}
+              {formatAmount(record?.amount)}
+            </Text>
+          ) : null}
+        </View>
+      </ScrollView>
     </View>
   )
 }

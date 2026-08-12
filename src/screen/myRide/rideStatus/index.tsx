@@ -1,132 +1,84 @@
-import React, { useEffect, useState, useMemo, memo } from 'react'
-import { FlatList, Pressable, ScrollView, Text, View } from 'react-native'
+import React, { useState, useMemo, memo } from 'react'
+import { Text, TouchableOpacity, View } from 'react-native'
+import { useSelector } from 'react-redux'
+
 import appColors from '../../../theme/appColors'
+import brandColors from '../../../theme/brandColors'
 import { styles } from './styles'
 import RideContainer from '../rideContainer/index'
 import { useValues } from '../../../utils/context'
-import { useTheme } from '@react-navigation/native'
-import { useLoadingContext } from '../../../utils/loadingContext'
-import { LoaderStatus } from './loaderStatus'
-import { windowHeight } from '../../../theme/appConstant'
-export function RideStatus() {
-  const { rtl, isDark } = useValues()
+
+const FALLBACK = {
+  upcoming: 'Upcoming',
+  active: 'Active',
+  past: 'Past',
+}
+
+// The tab's identity is the `status` it filters by, kept separate from the text
+// drawn on it so a translated label can never break the filtering.
+const TABS = [
+  { status: 'schedule', fallback: FALLBACK.upcoming, key: 'upcoming' },
+  { status: 'accepted', fallback: FALLBACK.active, key: 'active' },
+  { status: 'past', fallback: FALLBACK.past, key: 'past' },
+]
+
+type Props = {
+  refreshing?: boolean
+  onRefresh?: () => void
+}
+
+export function RideStatus({ refreshing, onRefresh }: Props) {
+  const { isDark, viewRtlStyle } = useValues()
+  const { translateData } = useSelector((state: any) => state.setting)
   const [selected, setSelected] = useState(0)
-  const { colors } = useTheme()
-  const [loading, setLoading] = useState(false)
-  const loadingContext: any = useLoadingContext()
-  const { addressLoaded, setAddressLoaded } = loadingContext || {}
-  const rideStatusData = useMemo(
-    () => [
-      {
-        id: 0,
-        title: 'Upcoming',
-      },
-      {
-        id: 1,
-        title: 'Active',
-      },
-      {
-        id: 2,
-        title: 'Past',
-      },
-    ],
-    [],
-  )
 
-  useEffect(() => {
-    if (!addressLoaded) {
-      setLoading(true)
-      setLoading(false)
-      setAddressLoaded && setAddressLoaded(true)
-    }
-  }, [addressLoaded, setAddressLoaded])
+  const cardBg = isDark ? appColors.darkThemeSub : appColors.white
+  const borderColor = isDark ? appColors.darkborder : appColors.border
+  const bodyColor = isDark ? appColors.darkText : brandColors.bodyLight
 
-  const renderItem = useMemo(() => {
-    return ({ item }: { item: any }) => (
-      <View
-        style={{
-          backgroundColor: isDark ? appColors.bgDark : appColors.white,
-          borderRadius: windowHeight(5),
-        }}
-      >
-        <Pressable
-          onPress={() => setSelected(item?.id)}
-          style={[
-            styles.container,
-            {
-              backgroundColor:
-                item?.id === selected
-                  ? appColors.primary
-                  : isDark
-                    ? appColors.bgDark
-                    : appColors.white,
-              borderColor: colors.border,
-            },
-            item?.id === selected ? { borderColor: appColors.primary } : null,
-          ]}
-        >
-          <Text
-            style={[
-              styles.mediumTextBlack12,
-              item?.id === selected
-                ? { color: appColors.white }
-                : { color: appColors.primary },
-            ]}
-          >
-            {item?.title}
-          </Text>
-        </Pressable>
-      </View>
-    )
-  }, [selected, isDark, colors, rtl])
-
-  const renderRideComponents = useMemo(() => {
-    switch (selected) {
-      case 0:
-        return <RideContainer status={'schedule'} />
-      case 1:
-        return <RideContainer status={'accepted'} />
-      case 2:
-        return <RideContainer status={'past'} />
-      default:
-        return <RideContainer status={'schedule'} />
-    }
-  }, [selected])
+  const activeStatus = useMemo(() => TABS[selected].status, [selected])
 
   return (
-    <View
-      style={{
-        backgroundColor: isDark ? colors.background : appColors.graybackground,
-        flex: 1,
-      }}
-    >
-      {loading ? (
-        <LoaderStatus />
-      ) : (
-        <View
-          style={[
-            styles.listContainer,
-            { backgroundColor: isDark ? appColors.bgDark : appColors.white },
-          ]}
-        >
-          <FlatList
-            showsHorizontalScrollIndicator={false}
-            horizontal
-            renderItem={renderItem}
-            data={rideStatusData}
-            inverted={rtl}
-            initialNumToRender={3}
-            maxToRenderPerBatch={3}
-            contentContainerStyle={{
-              justifyContent: 'space-between',
-              width: '100%',
-            }}
-            keyExtractor={item => item?.id.toString()}
-          />
-        </View>
-      )}
+    <View style={styles.screen}>
+      <View
+        style={[
+          styles.segment,
+          { backgroundColor: cardBg, borderColor, flexDirection: viewRtlStyle },
+        ]}
+      >
+        {TABS.map((tab, index) => {
+          const isActive = selected === index
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              activeOpacity={0.8}
+              onPress={() => setSelected(index)}
+              style={[
+                styles.segmentItem,
+                isActive && styles.segmentItemActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.segmentText,
+                  { color: bodyColor },
+                  isActive && styles.segmentTextActive,
+                ]}
+              >
+                {translateData?.[tab.key] || tab.fallback}
+              </Text>
+            </TouchableOpacity>
+          )
+        })}
+      </View>
 
-      <View style={{ flex: 1 }}>{renderRideComponents}</View>
+      <View style={{ flex: 1 }}>
+        <RideContainer
+          status={activeStatus}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+        />
+      </View>
     </View>
   )
 }

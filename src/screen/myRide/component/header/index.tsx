@@ -1,44 +1,56 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 import React from 'react'
-import Icons from '../../../../utils/icons/icons'
-import styles from './styles'
-import { useTheme, useNavigation } from '@react-navigation/native'
-import { useValues } from '../../../../utils/context'
-import { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import { RootStackParamList } from '../../../../navigation/main/types'
+import { useNavigation } from '@react-navigation/native'
 import { useSelector } from 'react-redux'
+import { NativeStackNavigationProp } from '@react-navigation/native-stack'
+
+import Icons from '../../../../utils/icons/icons'
+import appColors from '../../../../theme/appColors'
+import styles from './styles'
+import { useValues } from '../../../../utils/context'
+import { RootStackParamList } from '../../../../navigation/main/types'
 
 type navigation = NativeStackNavigationProp<RootStackParamList>
 
+const FALLBACK = {
+  title: 'My Rides',
+  subtitle: 'Everything you have driven',
+}
+
 export function Header() {
-  const { colors } = useTheme()
-  const { viewRtlStyle } = useValues()
+  const { viewRtlStyle, textRtlStyle } = useValues()
   const navigation = useNavigation<navigation>()
   const { translateData } = useSelector((state: any) => state.setting)
 
   return (
-    <View
-      style={[
-        styles.main,
-        {
-          backgroundColor: colors.card,
-          flexDirection: viewRtlStyle,
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        },
-      ]}
-    >
-      <View />
-      <Text style={[styles.title, { color: colors.text }]}>
-        {translateData.titleMyRide}
-      </Text>
-      <TouchableOpacity
-        style={[styles.callIcon, { borderColor: colors.border }]}
-        activeOpacity={0.7}
-        onPress={() => navigation.navigate('Notification')}
-      >
-        <Icons.Notification color={colors.text} />
-      </TouchableOpacity>
+    <View style={[styles.main, { backgroundColor: appColors.primary }]}>
+      <View style={[styles.row, { flexDirection: viewRtlStyle }]}>
+        <View>
+          <Text
+            style={[
+              styles.title,
+              { color: appColors.white, textAlign: textRtlStyle },
+            ]}
+          >
+            {translateData?.titleMyRide || FALLBACK.title}
+          </Text>
+          <Text
+            style={[
+              styles.subtitle,
+              { color: 'rgba(255,255,255,0.82)', textAlign: textRtlStyle },
+            ]}
+          >
+            {FALLBACK.subtitle}
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={[styles.bellButton, { borderColor: appColors.greenborder }]}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('Notification')}
+        >
+          <Icons.Notification color={appColors.white} />
+        </TouchableOpacity>
+      </View>
     </View>
   )
 }

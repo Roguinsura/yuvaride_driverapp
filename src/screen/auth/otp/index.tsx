@@ -1,9 +1,14 @@
 import React, { useEffect } from 'react'
-import { BackHandler, View } from 'react-native'
+import {
+  BackHandler,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+} from 'react-native'
 import styles from './styles'
-import { Background, Header } from '../component'
 import OtpView from './component/otpView'
-import appColors from '../../../theme/appColors'
+import brandColors from '../../../theme/brandColors'
 import { useValues } from '../../../utils/context'
 import { useNavigation } from '@react-navigation/native'
 
@@ -24,25 +29,33 @@ export function Otp() {
   }, []);
 
   const { isDark } = useValues()
+
+  // Header (Taxido logo) and Background (city artwork) are both gone. They are
+  // still used by loginMail and the registration screens, so only the usage was
+  // removed here — the shared components are untouched.
   return (
-    <View style={styles.main}>
-      <View
-        style={[
-          styles.background,
-          {
-            backgroundColor: isDark
-              ? appColors.bgDark
-              : appColors.graybackground,
-          },
-        ]}
+    <SafeAreaView
+      style={[
+        styles.main,
+        {
+          backgroundColor: isDark
+            ? brandColors.pageDark
+            : brandColors.cardLight,
+        },
+      ]}
+    >
+      <KeyboardAvoidingView
+        style={styles.main}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Header
-          showBackButton={false}
-          backgroundColor={isDark ? appColors.bgDark : appColors.graybackground}
-        />
-      </View>
-      <Background />
-      <OtpView />
-    </View>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <OtpView />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   )
 }

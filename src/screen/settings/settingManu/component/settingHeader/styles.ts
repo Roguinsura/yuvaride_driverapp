@@ -1,25 +1,42 @@
 import { StyleSheet } from 'react-native'
 import appFonts from '../../../../../theme/appFonts'
-import { windowHeight, windowWidth, fontSizes } from '../../../../../theme/appConstant'
+import {
+  windowHeight,
+  windowWidth,
+  fontSizes,
+} from '../../../../../theme/appConstant'
 
 const styles = StyleSheet.create({
   main: {
-    height: windowHeight(9.5),
     width: '100%',
+    paddingTop: windowHeight(2),
+    paddingBottom: windowHeight(2),
+    paddingHorizontal: windowWidth(5),
+  },
+  row: {
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: windowWidth(4),
   },
   title: {
-    fontFamily: appFonts.medium,
-    fontSize: fontSizes.FONT5,
-    marginHorizontal: windowWidth(4),
+    fontFamily: appFonts.bold,
+    fontSize: fontSizes.FONT5HALF,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+  },
+  subtitle: {
+    fontFamily: appFonts.regular,
+    fontSize: fontSizes.FONT3HALF,
+    marginTop: windowHeight(0.4),
+  },
+  actions: {
+    alignItems: 'center',
+    gap: windowWidth(2.5),
   },
   iconView: {
-    height: windowHeight(5),
-    width: windowWidth(10.3),
+    height: windowHeight(5.2),
+    width: windowHeight(5.2),
     borderWidth: windowHeight(0.1),
-    borderRadius: windowHeight(0.8),
+    borderRadius: windowHeight(1.4),
     alignItems: 'center',
     justifyContent: 'center',
   },

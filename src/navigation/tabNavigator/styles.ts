@@ -11,8 +11,6 @@ const styles = StyleSheet.create({
     right: windowHeight(0),
     height: windowHeight(8.9),
     backgroundColor: appColors.primary,
-    borderTopRightRadius: windowHeight(2.6),
-    borderTopLeftRadius: windowHeight(2.6),
     overflow: 'hidden',
     paddingBottom: windowHeight(1.3),
     paddingTop: windowHeight(1.3),

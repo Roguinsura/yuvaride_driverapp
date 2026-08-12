@@ -5,8 +5,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Image,
+  StatusBar,
 } from 'react-native'
-import LottieView from 'lottie-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import styles from './styles'
 import {
@@ -20,7 +20,6 @@ import { useTheme } from '@react-navigation/native'
 import DeviceInfo from 'react-native-device-info'
 import {
   currentZone,
-  deleteProfile,
   fleetVehicleList,
   fleetWalletData,
   incentivesValue,
@@ -42,7 +41,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import appColors from '../../../theme/appColors'
 import Images from '../../../utils/images/images'
 import appFonts from '../../../theme/appFonts'
-import { Button, notificationHelper } from '../../../commonComponents'
+import { notificationHelper } from '../../../commonComponents'
 import { clearValue } from '../../../utils/localstorage'
 import useSmartLocation from '../../../commonComponents/helper/locationHelper'
 import { useValues } from '../../../utils/context'
@@ -91,35 +90,8 @@ export function Settings() {
   }, [])
 
 
-  const bottomSheetRef = useRef<any>(null)
-  const snapPoints = useMemo(() => ['50%'], [])
-  const openSheet = () => bottomSheetRef.current?.present()
-
-  const renderBackdrop = useCallback(
-    (props: any) => (
-      <BottomSheetBackdrop
-        {...props}
-        pressBehavior="close"
-        appearsOnIndex={0}
-        disappearsOnIndex={-1}
-      />
-    ),
-    [],
-  )
   const navigation = useAppNavigation()
   const { currentLatitude, currentLongitude } = useSmartLocation()
-
-  const deleteAccount = () => {
-    notificationHelper('', translateData?.sucessacount, 'error')
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Login' }],
-    })
-    dispatch(deleteProfile())
-    dispatch(settingDataGet())
-    dispatch(currentZone({ lat: currentLatitude, lng: currentLongitude }))
-    clearValue()
-  }
 
   const closeLogoutSheet = () => {
     logoutSheetRef.current?.close()
@@ -168,8 +140,16 @@ export function Settings() {
   return (
     <GestureHandlerRootView>
       <View style={{ flex: 1 }}>
+        {/* The header is brand orange, so the system bar above it has to be
+            too — without this the screen inherits whatever the last screen
+            left behind. */}
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor={appColors.primary}
+        />
         <ScrollView
           style={[styles.main, { backgroundColor: colors.background }]}
+          contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
           <SettingHeader />
@@ -177,72 +157,13 @@ export function Settings() {
             <Profile />
             <General />
             <RegistrationDetails />
-            <AlertZone
-              openSheet={openSheet}
-              openLogoutSheet={openLogoutSheet}
-            />
+            <AlertZone openLogoutSheet={openLogoutSheet} />
             <Text style={styles.version}>
               {translateData.settingTextVersion}: {versionCode}
             </Text>
           </View>
         </ScrollView>
       </View>
-
-      <BottomSheetModalProvider>
-        <BottomSheetModal
-          ref={bottomSheetRef}
-          index={1}
-          snapPoints={snapPoints}
-          backdropComponent={renderBackdrop}
-          enablePanDownToClose
-          handleIndicatorStyle={{
-            backgroundColor: appColors.primary,
-            width: '13%',
-          }}
-          backgroundStyle={{
-            backgroundColor: isDark ? appColors.bgDark : appColors.white,
-          }}
-        >
-          <BottomSheetView style={{ alignItems: 'center' }}>
-            <LottieView
-              source={require('../../../assets/gif/delete.json')}
-              style={{ height: windowHeight(13), width: windowHeight(13) }}
-              autoPlay
-              loop
-            />
-            <Text
-              style={{
-                color: isDark ? appColors.white : appColors.black,
-                fontFamily: appFonts.medium,
-                fontSize: fontSizes.FONT4HALF,
-                top: windowHeight(1),
-              }}
-            >
-              {translateData?.whatyoudeleteaccount}
-            </Text>
-            <Text
-              style={{
-                color: appColors.darkBorderBlack,
-                textAlign: 'center',
-                fontFamily: appFonts.regular,
-                fontSize: fontSizes.FONT3HALF,
-                width: '92%',
-                top: windowHeight(2),
-              }}
-            >
-              {translateData?.deleteNotice}
-            </Text>
-            <View style={{ width: '96%', top: windowHeight(5) }}>
-              <Button
-                title={translateData?.proceed}
-                backgroundColor={appColors.primary}
-                color={appColors.white}
-                onPress={deleteAccount}
-              />
-            </View>
-          </BottomSheetView>
-        </BottomSheetModal>
-      </BottomSheetModalProvider>
 
       <BottomSheetModalProvider>
         <BottomSheetModal

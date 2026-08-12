@@ -18,7 +18,7 @@ const CarMarker = () => (
             style={{
                 stroke: "none",
                 fillRule: "nonzero",
-                fill: "#126a55",
+                fill: "#C25800",
                 fillOpacity: 1,
             }}
         />
@@ -90,7 +90,7 @@ const CarMarker = () => (
             style={{
                 stroke: "none",
                 fillRule: "nonzero",
-                fill: "#115444",
+                fill: "#7A3600",
                 fillOpacity: 1,
             }}
         />

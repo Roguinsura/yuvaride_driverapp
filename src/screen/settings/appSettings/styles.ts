@@ -13,15 +13,34 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   container: {
-    paddingHorizontal: windowWidth(4),
+    paddingHorizontal: windowWidth(5),
     marginTop: windowHeight(1.3),
   },
+  sectionTitle: {
+    fontFamily: appFonts.bold,
+    fontSize: fontSizes.FONT4HALF,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+    marginTop: windowHeight(1.6),
+    marginBottom: windowHeight(1.2),
+  },
+  hint: {
+    fontFamily: appFonts.regular,
+    fontSize: fontSizes.FONT3HALF,
+    marginTop: windowHeight(1.4),
+    lineHeight: fontSizes.FONT3HALF * 1.5,
+  },
   listContainer: {
-    height: windowHeight(25.5),
+    // Was a fixed windowHeight(25.5) sized for three rows. It holds its own
+    // content now, so hiding rows cannot leave dead space behind.
     width: '100%',
-    marginVertical: windowHeight(1.5),
-    borderRadius: windowHeight(1),
-    borderWidth: windowHeight(0.1),
+    borderRadius: windowWidth(5),
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.05,
+    shadowRadius: 18,
+    elevation: 3,
   },
   modalAlign: {
     alignItems: 'center',

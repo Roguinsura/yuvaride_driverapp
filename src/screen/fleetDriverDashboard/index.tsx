@@ -143,7 +143,7 @@ export function FleetDriverDashBoard() {
                                     <Text style={{ fontFamily: appFonts.medium, color: appColors.white }}>{cancelTotal}</Text>
                                 </View>
                             </View>
-                            <View style={{ borderTopWidth: 1.5, borderStyle: 'dashed', marginVertical: windowHeight(1), marginHorizontal: windowHeight(2), borderColor: '#81BFAF' }} />
+                            <View style={{ borderTopWidth: 1.5, borderStyle: 'dashed', marginVertical: windowHeight(1), marginHorizontal: windowHeight(2), borderColor: 'rgba(255,255,255,0.45)' }} />
                             <Text style={{ textAlign: 'center', paddingBottom: windowHeight(1), color: appColors.white, fontFamily: appFonts.medium }}>{translateData.viewRides}</Text>
                         </ImageBackground>
                     </View>

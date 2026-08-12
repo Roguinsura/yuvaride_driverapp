@@ -1,3 +1,5 @@
+import brandColors from './brandColors'
+
 type AppColors = {
   white: string
   black: string
@@ -84,41 +86,57 @@ type AppColors = {
   rgb:string
 }
 
+// YuvaRide palette. This was the Taxido green (#199675) and its family of
+// tints; every one of them has been remapped onto the brand orange at the same
+// relative lightness, so existing screens keep their contrast without needing
+// to be touched individually.
+//
+// The base hue lives in ./brandColors and is imported rather than repeated, so
+// the two palettes cannot drift apart. Token *names* are deliberately left
+// alone (`greenborder`, `mintCream`, `lightGreen1` …) — they are referenced by
+// roughly 295 files, and renaming them is a separate, mechanical change.
+//
+// Deliberately NOT remapped, because they carry meaning rather than brand:
+//   price        #20B149  green for money / earnings
+//   activeColor  #3F8FDA  blue   — ride status
+//   completeColor#FFB400  amber  — ride status
+//   scheduleColor#7F00FF  purple — ride status
+//   lightGreen   #ECF4FB  misnamed; it is actually a pale blue
 const appColors: AppColors = {
   loaderBackground: '#E8E8E8',
   loaderLightHighlight: '#F2F8FC',
   white: '#fff',
   black: '#000',
   darkText: '#BCBCBC',
-  primary: '#199675',
-  darkFillBar: '#303E3A',
-  dotPrimary: '#2F4841',
+  primary: brandColors.primary,
+  darkFillBar: '#3E332B',
+  dotPrimary: '#4A3524',
   lightYellow: '#FFF7E5',
   pink: '#ff00ff',
   lightPink: '#F2E5FF',
-  subPrimary: '#C9E2DB',
+  subPrimary: '#FAD9BE',
   lightGreen: '#ECF4FB',
   primaryFont: '#1F1F1F',
   secondaryFont: '#8F8F8F',
   graybackground: '#F5F5F5',
   border: '#E9E9E9',
   delBackground: '#FFEDED',
-  primaryLight: '#32A284',
-  greenborder: '#8ECCBB',
-  cardicon: '#E8F4F1',
+  primaryLight: '#FF8A2B',
+  greenborder: brandColors.primaryBorder,
+  cardicon: '#FFF1E6',
   price: '#20B149',
   red: '#FF4B4B',
   alertRed: '#F33737',
   subFont: '#171C26',
   modelBg: 'rgba(0, 0, 0, 0.5)',
-  railFillBackgroundColor: 'rgba(223, 236,233, 0.5)',
+  railFillBackgroundColor: 'rgba(248, 111, 0, 0.12)',
   bordercolor: '#E9E9E9',
   alertBg: '#F6E4E4',
   alertIconBg: '#F7D5D5',
   alertBorder: '#F8C5C5',
   invoiceBtn: '#E0E0E0',
   darkThemeSub: '#343434',
-  categoryTitle: '#8CCBBA',
+  categoryTitle: '#F7B278',
   activeColor: '#3F8FDA',
   completeColor: '#FFB400',
   scheduleColor: '#7F00FF',
@@ -127,46 +145,46 @@ const appColors: AppColors = {
   darkPurpal: '#C084FC',
   lightPurpal: '#F9F3FF',
   lightRed: '#FFEDED',
-  primaryBg: '#DFECE9',
+  primaryBg: '#FCEADC',
   subCategorytag: '#F0EAF6',
   darkBorderBlack: '#797D83',
   bgDark: '#272727',
   planNote: '#F5F6F7',
   dropDownColor: '#fafafa',
-  planDot: '#47AB91',
-  planLine: '#9DCFC2',
-  round: '#1B8569',
+  planDot: '#F08A3C',
+  planLine: '#F7C9A3',
+  round: brandColors.primaryPressed,
   grayRound: '#D0D3D8',
-  tagColor: '#E8F5F2',
+  tagColor: brandColors.primarySoft,
   loader: '#EEEEEE',
   lightOrange: '#FEEBEB',
   iconColor: '#777777',
   line: '#C7CACF',
-  darkLine: '#1A8065',
-  dotDark: "#2F4841",
+  darkLine: brandColors.primaryPressed,
+  dotDark: "#4A3524",
   border1: "#E9E9E9",
   yellow: '#ECB238',
   bgColor: '#FDF7EB',
-  value: '#BADFD6',
-  value1: '#E8F4F1',
+  value: '#F7CFAC',
+  value1: '#FFF1E6',
   bgColor1: '#F8F8F8',
   bgColor2: '#FFF4F1',
   blueShade: '#47A1E5',
-  toup: '#B7C7C4',
+  toup: '#D9C6B6',
   whiteopicity: '#F1F7FE',
   gray: '#FCF9EA',
   orange: '#FF8367',
   setp: '#86909C',
   lightGray: "#F4F4F4",
   cream: '#FCF9EA',
-  mintCream: '#EEFBF6',
+  mintCream: '#FFF6EF',
   steelGray: '#86909C',
   brightRed: '#F14848',
   vividRed: '#FF4B4B',
   darkCrimson: '#B42D30',
   roseTint: '#F5D5D6',
-  darkPrimary: '#0F453A',
-  lightGreen1:"#C1E2DA",
+  darkPrimary: '#7A3600',
+  lightGreen1:"#F5D6BC",
   rgb:"rgba(211, 211, 211, 0.2)"
 }
 export default appColors

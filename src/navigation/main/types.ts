@@ -51,12 +51,28 @@ export type AddDocument = {
 
 }
 
+// Mirrors what the Chat screen actually destructures from route.params
+// (screen/settings/chat/index.tsx). `riderId`, `rideId` and `riderImage` were
+// missing even though four call sites pass them, and `from` was required even
+// though only the two "help" entry points send it.
 export type Chat = {
   driverId?: number,
-  from: string,
+  riderId?: number,
+  rideId?: number,
+  from?: string,
   riderName?: string,
+  riderImage?: string,
   setUnreadCount?: any
 
+}
+
+// Was declared `undefined` — i.e. "takes no params" — while the screen reads
+// four of them off route.params.
+export type PendingDetails = {
+  item: any,
+  vehicleDetail?: any,
+  status?: any,
+  rideStatus?: string,
 }
 
 export type TicketDetails = {
@@ -125,7 +141,7 @@ export type RootStackParamList = {
   CompleteRide: undefined
   CancelRide: undefined
   PendingRide: undefined
-  PendingDetails: undefined
+  PendingDetails: PendingDetails
   CompleteDetails: undefined
   CancelDetails: undefined
   MapDetails: undefined

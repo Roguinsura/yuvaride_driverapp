@@ -287,8 +287,11 @@ export function Ride() {
     })}`
   }
 
+  // appColors.disabled never existed, so the below-fare case resolved to
+  // undefined and the Accept button rendered with no background at all.
+  // steelGray is the existing muted tone and keeps the white label legible.
   const buttonColor =
-    safeFare >= ride?.ride_fare ? appColors.primary : appColors.disabled
+    safeFare >= ride?.ride_fare ? appColors.primary : appColors.steelGray
 
   // Default fallback
   const defaultLocation = { latitude: 0, longitude: 0 }

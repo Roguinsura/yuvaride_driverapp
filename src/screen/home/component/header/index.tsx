@@ -1,10 +1,9 @@
 import React from 'react'
-import { View, Text, Image, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import SwitchToggle from 'react-native-switch-toggle'
 import Icons from '../../../../utils/icons/icons'
 import appColors from '../../../../theme/appColors'
 import styles from './styles'
-import images from '../../../../utils/images/images'
 import { useNavigation, useTheme } from '@react-navigation/native'
 import { useValues } from '../../../../utils/context'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
@@ -32,10 +31,12 @@ export function Header({ isOn, toggleSwitch, setDriverModal }: HeaderProps) {
   return (
     <View style={styles.headerMain}>
       <View style={styles.headerMargin}>
+        {/*
+          The Taxido logo used to sit on the left here. With it gone the row has
+          only the action buttons, so it aligns to the end instead of relying on
+          space-between against an empty View.
+        */}
         <View style={[styles.headerAlign, { flexDirection: viewRtlStyle }]}>
-          <View style={[styles.headerTitle, { flexDirection: viewRtlStyle }]}>
-            <Image source={images.splash} style={styles.logo} />
-          </View>
           <View style={{ flexDirection: viewRtlStyle }}>
             {selfDriver?.fleet_manager?.name && (
               <TouchableOpacity

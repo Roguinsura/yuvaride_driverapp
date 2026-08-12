@@ -8,7 +8,13 @@ import {
   Image,
   BackHandler,
 } from 'react-native'
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from 'react'
 import appColors from '../../../theme/appColors'
 import styles from './styles'
 import {
@@ -19,11 +25,24 @@ import {
 } from '../../../commonComponents'
 import { useNavigation, useTheme } from '@react-navigation/native'
 import { useValues } from '../../../utils/context'
-import { setValue, getValue, deleteValue } from '../../../utils/localstorage'
+import {
+  setValue,
+  getValue,
+  deleteValue,
+  clearValue,
+} from '../../../utils/localstorage'
 import { useDispatch, useSelector } from 'react-redux'
 import { getAllCountries } from 'react-native-country-select/lib/utils/countryHelpers'
 import { InputBox } from '../../auth/component'
-import { selfDriverData } from '../../../api/store/action'
+import {
+  selfDriverData,
+  deleteProfile,
+  settingDataGet,
+  currentZone,
+} from '../../../api/store/action'
+import useSmartLocation from '../../../commonComponents/helper/locationHelper'
+import brandColors from '../../../theme/brandColors'
+import LottieView from 'lottie-react-native'
 import { ImageContainer } from './imageContainer'
 import { URL } from '../../../api/config'
 import {
@@ -37,6 +56,7 @@ import { ValidatePhoneNumber } from '../../../utils/validation'
 import Images from '../../../utils/images/images'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import {
+  BottomSheetBackdrop,
   BottomSheetModal,
   BottomSheetModalProvider,
   BottomSheetView,
@@ -337,6 +357,35 @@ export function ProfileSetting() {
     navigation.navigate('EditDetails' as any, { field, formData })
   }
 
+  /* ---------- delete account, moved here from the Settings menu ---------- */
+  const deleteSheetRef = useRef<BottomSheetModal>(null)
+  const deleteSnapPoints = useMemo(() => ['52%'], [])
+  const { currentLatitude, currentLongitude } = useSmartLocation()
+
+  const renderDeleteBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        pressBehavior="close"
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+      />
+    ),
+    [],
+  )
+
+  const deleteAccount = () => {
+    notificationHelper('', translateData?.sucessacount, 'error')
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    })
+    dispatch(deleteProfile())
+    dispatch(settingDataGet())
+    dispatch(currentZone({ lat: currentLatitude, lng: currentLongitude }))
+    clearValue()
+  }
+
   return (
     <KeyboardAvoidingView
       style={styles.main}
@@ -344,7 +393,17 @@ export function ProfileSetting() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : -200}
     >
       <Header title={translateData.profileSettings} />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      {/*
+        Without flex: 1 the ScrollView sizes itself to its content rather than
+        to the space available, so anything past the first screenful — the
+        delete row below — ended up laid out beyond the visible area instead of
+        being reachable by scrolling.
+      */}
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View
           style={[
             styles.profileView,
@@ -470,15 +529,7 @@ export function ProfileSetting() {
                     >
                       {String(formData.phoneNumber)}
                     </Text>
-                    <Text
-                      style={{
-                        color: isDark ? appColors.white : appColors.black,
-                        fontSize: fontSizes.FONT4,
-                        textDecorationLine: 'underline',
-                      }}
-                    >
-                      {translateData?.edit}
-                    </Text>
+                    <Icons.edit color={appColors.primary} />
                   </View>
                 </TouchableOpacity>
 
@@ -515,27 +566,61 @@ export function ProfileSetting() {
                     }}
                   >
                     <Text
+                      numberOfLines={1}
                       style={{
+                        flex: 1,
+                        marginHorizontal: windowWidth(1),
                         color: isDark ? appColors.white : appColors.black,
                       }}
                     >
                       {formData.email}
                     </Text>
-                    <Text
-                      style={{
-                        color: isDark ? appColors.white : appColors.black,
-                        fontSize: fontSizes.FONT4,
-                        textDecorationLine: 'underline',
-                      }}
-                    >
-                      {translateData?.edit}
-                    </Text>
+                    <Icons.edit color={appColors.primary} />
                   </View>
                 </TouchableOpacity>
               </View>
             </>
           )}
         </View>
+
+        {!loadingShimmer && (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => deleteSheetRef.current?.present()}
+            style={[
+              styles.deleteRow,
+              {
+                backgroundColor: colors.card,
+                borderColor: isDark ? 'rgba(229,72,77,0.32)' : '#F6CFD0',
+                flexDirection: viewRtlStyle,
+              },
+            ]}
+          >
+            <View
+              style={[
+                styles.deleteIcon,
+                {
+                  backgroundColor: isDark
+                    ? 'rgba(229,72,77,0.16)'
+                    : '#FDECEC',
+                },
+              ]}
+            >
+              <Icons.Delete />
+            </View>
+            <View style={styles.deleteTextWrap}>
+              {/* The explanation lives in the confirmation sheet, not here. */}
+              <Text
+                style={[
+                  styles.deleteTitle,
+                  { color: brandColors.danger, textAlign: textRtlStyle },
+                ]}
+              >
+                {translateData?.deleteAccount || 'Delete account'}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        )}
       </ScrollView>
       {!loadingShimmer && (
         <View style={styles.updateBtn}>
@@ -680,6 +765,83 @@ export function ProfileSetting() {
                 {translateData.removeImage}
               </Text>
             </TouchableOpacity>
+          </BottomSheetView>
+        </BottomSheetModal>
+
+        {/* ---------- delete account confirmation ---------- */}
+        <BottomSheetModal
+          ref={deleteSheetRef}
+          snapPoints={deleteSnapPoints}
+          backdropComponent={renderDeleteBackdrop}
+          enablePanDownToClose
+          handleIndicatorStyle={{
+            backgroundColor: appColors.primary,
+            width: '13%',
+          }}
+          backgroundStyle={{
+            backgroundColor: isDark ? appColors.bgDark : appColors.white,
+          }}
+        >
+          <BottomSheetView style={{ alignItems: 'center' }}>
+            <LottieView
+              source={require('../../../assets/gif/delete.json')}
+              style={{ height: windowHeight(13), width: windowHeight(13) }}
+              autoPlay
+              loop
+            />
+            <Text
+              style={[
+                styles.sheetTitle,
+                { color: isDark ? appColors.white : appColors.black },
+              ]}
+            >
+              {translateData?.whatyoudeleteaccount}
+            </Text>
+            <Text style={styles.sheetBody}>{translateData?.deleteNotice}</Text>
+
+            <View
+              style={[styles.sheetActions, { flexDirection: viewRtlStyle }]}
+            >
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => deleteSheetRef.current?.dismiss()}
+                style={[
+                  styles.sheetButton,
+                  {
+                    backgroundColor: isDark
+                      ? appColors.darkThemeSub
+                      : appColors.graybackground,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.sheetButtonText,
+                    { color: isDark ? appColors.white : appColors.iconColor },
+                  ]}
+                >
+                  {translateData?.cancel || 'Cancel'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={deleteAccount}
+                style={[
+                  styles.sheetButton,
+                  { backgroundColor: brandColors.danger },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.sheetButtonText,
+                    { color: appColors.white },
+                  ]}
+                >
+                  {translateData?.proceed || 'Proceed'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </BottomSheetView>
         </BottomSheetModal>
       </BottomSheetModalProvider>

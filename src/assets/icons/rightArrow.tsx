@@ -22,7 +22,7 @@ const SvgComponent = (props: any) => (
     </G>
     <Defs>
       <ClipPath id="a">
-        <Path fill={appColors.whites} d="M0 0h16v16H0z" />
+        <Path fill={appColors.white} d="M0 0h16v16H0z" />
       </ClipPath>
     </Defs>
   </Svg>

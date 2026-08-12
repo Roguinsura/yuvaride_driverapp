@@ -5,7 +5,7 @@ const SvgComponent = () => (
     <Svg width={22} height={22} fill="none">
         <G clipPath="url(#a)">
             <Path
-                fill="#199675"
+                fill="#f86f00"
                 d="M11 22c6.075 0 11-4.925 11-11S17.075 0 11 0 0 4.925 0 11s4.925 11 11 11Z"
             />
             <Path

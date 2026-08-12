@@ -150,9 +150,11 @@ export const styles = StyleSheet.create({
         backgroundColor: appColors.darkThemeSub,
         borderColor: appColors.darkborder,
     },
+    // `style` is applied last on the Input's TextInput, so anything set here
+    // beats the component's own colours. This carried a literal
+    // `backgroundColor: 'red'` with red text, which made the email invisible.
+    // Width only — the background and text colour come from Input.
     input: {
-        backgroundColor: 'red',
         width: '90%',
-        color: appColors.alertRed
     }
 });

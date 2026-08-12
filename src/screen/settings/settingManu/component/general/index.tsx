@@ -1,8 +1,9 @@
-import { View, Text, Linking } from 'react-native'
+import { View, Linking } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import styles from './styles'
 import Icons from '../../../../../utils/icons/icons'
 import appColors from '../../../../../theme/appColors'
+import brandColors from '../../../../../theme/brandColors'
 import { ListItem } from '../'
 import { useTheme } from '@react-navigation/native'
 import { useValues } from '../../../../../utils/context'
@@ -12,7 +13,7 @@ import { useAppNavigation } from '../../../../../utils/navigation'
 export function General() {
   const navigation = useAppNavigation()
   const { colors } = useTheme()
-  const { textRtlStyle, isDark } = useValues()
+  const { isDark } = useValues()
   const { translateData, taxidoSettingData } = useSelector((state: any) => state.setting)
   const { selfDriver } = useSelector((state: any) => state.account);
   const adminId = 1;
@@ -26,15 +27,7 @@ export function General() {
 
 
   return (
-    <View>
-      <Text
-        style={[
-          styles.title,
-          { color: colors.text, textAlign: textRtlStyle },
-        ]}
-      >
-        {translateData.general}
-      </Text>
+    <View style={styles.section}>
       <View
         style={[
           styles.listView,
@@ -43,10 +36,10 @@ export function General() {
       >
         <>
           <ListItem
-            icon={<Icons.UserSetting color={colors.text} />}
+            icon={<Icons.UserSetting color={appColors.primary} />}
             text={translateData.profileSettings}
             backgroundColor={
-              isDark ? colors.background : appColors.graybackground
+              isDark ? 'rgba(248,111,0,0.16)' : brandColors.primarySoft
             }
             color={isDark ? appColors.white : appColors.primaryFont}
             onPress={() => navigation.navigate('ProfileSetting')}
@@ -55,10 +48,10 @@ export function General() {
 
           <View style={[styles.border, { borderColor: colors.border }]} />
           <ListItem
-            icon={<Icons.WalletSetting color={colors.text} />}
+            icon={<Icons.WalletSetting color={appColors.primary} />}
             text={translateData.myWallet}
             backgroundColor={
-              isDark ? colors.background : appColors.graybackground
+              isDark ? 'rgba(248,111,0,0.16)' : brandColors.primarySoft
             }
             color={isDark ? appColors.white : appColors.primaryFont}
             onPress={() => navigation.navigate('MyWallet')}
@@ -67,10 +60,10 @@ export function General() {
 
           <View style={[styles.border, { borderColor: colors.border }]} />
           <ListItem
-            icon={<Icons.settingIcon color={colors.text} />}
+            icon={<Icons.settingIcon color={appColors.primary} />}
             text={translateData.appSetting}
             backgroundColor={
-              isDark ? colors.background : appColors.graybackground
+              isDark ? 'rgba(248,111,0,0.16)' : brandColors.primarySoft
             }
             color={isDark ? appColors.white : appColors.primaryFont}
             onPress={() => navigation.navigate('AppSettings')}
@@ -81,10 +74,10 @@ export function General() {
             <>
               <View style={[styles.border, { borderColor: colors.border }]} />
               <ListItem
-                icon={<Icons.Subscription color={colors.text} />}
+                icon={<Icons.Subscription color={appColors.primary} />}
                 text={translateData.subscriptionPlan}
                 backgroundColor={
-                  isDark ? colors.background : appColors.graybackground
+                  isDark ? 'rgba(248,111,0,0.16)' : brandColors.primarySoft
                 }
                 color={isDark ? appColors.white : appColors.primaryFont}
                 onPress={() => navigation.navigate('Subscription')}
@@ -96,10 +89,10 @@ export function General() {
           {selfDriver?.service_category_id == 5 &&
             <>
               <ListItem
-                icon={<Icons.VehicleList color={colors.text} />}
+                icon={<Icons.VehicleList color={appColors.primary} />}
                 text={translateData.rentalVehicle}
                 backgroundColor={
-                  isDark ? colors.background : appColors.graybackground
+                  isDark ? 'rgba(248,111,0,0.16)' : brandColors.primarySoft
                 }
                 color={isDark ? appColors.white : appColors.primaryFont}
                 onPress={() => navigation.navigate('VehicleList')}
@@ -109,10 +102,10 @@ export function General() {
             </>
           }
           <ListItem
-            icon={<Icons.MessageEmpty color={colors.text} />}
+            icon={<Icons.MessageEmpty color={appColors.primary} />}
             text={translateData.supportTicket}
             backgroundColor={
-              isDark ? colors.background : appColors.graybackground
+              isDark ? 'rgba(248,111,0,0.16)' : brandColors.primarySoft
             }
             color={isDark ? appColors.white : appColors.primaryFont}
             onPress={() => navigation.navigate('SupportTicket')}
@@ -120,10 +113,10 @@ export function General() {
           />
           <View style={[styles.border, { borderColor: colors.border }]} />
           <ListItem
-            icon={<Icons.HelpSupport color={colors.text} />}
+            icon={<Icons.HelpSupport color={appColors.primary} />}
             text={translateData?.chatwithstaf}
             backgroundColor={
-              isDark ? colors.background : appColors.graybackground
+              isDark ? 'rgba(248,111,0,0.16)' : brandColors.primarySoft
             }
             color={isDark ? appColors.white : appColors.primaryFont}
             onPress={() => navigation.navigate('Chat', {
@@ -138,10 +131,10 @@ export function General() {
             <>
               <View style={[styles.border, { borderColor: colors.border }]} />
               <ListItem
-                icon={<Icons.VehicleList color={colors.text} />}
+                icon={<Icons.VehicleList color={appColors.primary} />}
                 text={translateData?.manageVehicle}
                 backgroundColor={
-                  isDark ? colors.background : appColors.graybackground
+                  isDark ? 'rgba(248,111,0,0.16)' : brandColors.primarySoft
                 }
                 color={isDark ? appColors.white : appColors.primaryFont}
                 onPress={() => navigation.navigate('ManageVehicle')}
@@ -154,10 +147,10 @@ export function General() {
             <>
               <View style={[styles.border, { borderColor: colors.border }]} />
               <ListItem
-                icon={<Icons.Driver color={colors.text} />}
+                icon={<Icons.Driver color={appColors.primary} />}
                 text={translateData?.manageDriver}
                 backgroundColor={
-                  isDark ? colors.background : appColors.graybackground
+                  isDark ? 'rgba(248,111,0,0.16)' : brandColors.primarySoft
                 }
                 color={isDark ? appColors.white : appColors.primaryFont}
                 onPress={() => navigation.navigate('DriverList')}
@@ -169,10 +162,10 @@ export function General() {
             <>
               <View style={[styles.border, { borderColor: colors.border }]} />
               <ListItem
-                icon={<Icons.privacyPolicy color={colors.text} />}
+                icon={<Icons.privacyPolicy color={appColors.primary} />}
                 text={translateData.privacyPolicy}
                 backgroundColor={
-                  isDark ? colors.background : appColors.graybackground
+                  isDark ? 'rgba(248,111,0,0.16)' : brandColors.primarySoft
                 }
                 color={isDark ? appColors.white : appColors.primaryFont}
                 onPress={gotoPolicy}
@@ -184,10 +177,10 @@ export function General() {
             <>
               <View style={[styles.border, { borderColor: colors.border }]} />
               <ListItem
-                icon={<Icons.Referral color={colors.text} />}
+                icon={<Icons.Referral color={appColors.primary} />}
                 text={translateData?.erarnMoney}
                 backgroundColor={
-                  isDark ? colors.background : appColors.graybackground
+                  isDark ? 'rgba(248,111,0,0.16)' : brandColors.primarySoft
                 }
                 color={isDark ? appColors.white : appColors.primaryFont}
                 onPress={() => navigation.navigate('ReferralHome')}
@@ -199,10 +192,10 @@ export function General() {
             <>
               <View style={[styles.border, { borderColor: colors.border }]} />
               <ListItem
-                icon={<Icons.IncentiveIcon color={colors.text} />}
+                icon={<Icons.IncentiveIcon color={appColors.primary} />}
                 text={translateData?.incentive}
                 backgroundColor={
-                  isDark ? colors.background : appColors.graybackground
+                  isDark ? 'rgba(248,111,0,0.16)' : brandColors.primarySoft
                 }
                 color={isDark ? appColors.white : appColors.primaryFont}
                 onPress={() => navigation.navigate('Incentive')}

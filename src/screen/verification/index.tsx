@@ -1,26 +1,22 @@
 import React, { useCallback, useEffect, useRef } from 'react'
 import {
   BackHandler,
+  Image,
+  SafeAreaView,
+  ScrollView,
   Text,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native'
 import LottieView from 'lottie-react-native'
+import brandColors from '../../theme/brandColors'
+import images from '../../utils/images/images'
 import Icons from '../../utils/icons/icons'
-import appColors from '../../theme/appColors'
 import { useValues } from '../../utils/context'
 import { useDispatch, useSelector } from 'react-redux'
 import styles from './styles'
-import { Button } from '../../commonComponents'
-import { fontSizes, windowHeight } from '../../theme/appConstant'
-import appFonts from '../../theme/appFonts'
 import { selfDriverData } from '../../api/store/action'
-import {
-  useFocusEffect,
-  useIsFocused,
-  useTheme,
-} from '@react-navigation/native'
+import { useFocusEffect, useIsFocused } from '@react-navigation/native'
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetView,
@@ -28,6 +24,23 @@ import BottomSheet, {
 import { AppDispatch } from '../../api/store'
 import { useAppNavigation } from '../../utils/navigation'
 import getEchoInstance from '../../utils/echo'
+
+// This screen is reachable before the settings call has ever succeeded, so
+// every translated string needs a literal to fall back to — the old code read
+// straight through `translateData` and would throw on a cold start.
+const FALLBACK = {
+  verification: 'Verification',
+  underReview: 'Under review',
+  actionRequired: 'Action required',
+  process: 'Your documents are being verified',
+  note: 'We are reviewing the documents you submitted. You will be notified as soon as the review is complete.',
+  chat: 'Chat with staff',
+  updateDocument: 'Update documents',
+  backToLogin: 'Back to Login',
+  exitMsg: 'Are you sure you want to exit?',
+  exit: 'Exit',
+  cancel: 'Cancel',
+}
 
 export function Verification() {
   const { selfDriver } = useSelector((state: any) => state.account)
@@ -38,7 +51,6 @@ export function Verification() {
   const echoChannelRef = useRef<any>(null)
   const bottomSheetRef = useRef<any>(null)
   const { viewRtlStyle, isDark } = useValues()
-  const { colors } = useTheme()
 
   const isFocused = useIsFocused()
 
@@ -139,66 +151,71 @@ export function Verification() {
     ? selfDriver?.documents.some((doc: any) => doc?.status === 'rejected')
     : false
 
+  const pageBg = isDark ? brandColors.pageDark : brandColors.cardLight
+  const cardBg = isDark ? brandColors.cardDark : brandColors.cardLight
+  const borderColor = isDark ? brandColors.borderDark : brandColors.borderLight
+  const titleColor = isDark ? brandColors.titleDark : brandColors.titleLight
+  const bodyColor = isDark ? brandColors.bodyDark : brandColors.bodyLight
+
+  // A rejected document is the one state the driver can act on, so it gets its
+  // own colour and label rather than sitting under the same "under review" pill.
+  const statusBg = hasRejectedDocument ? '#FDECEC' : brandColors.primarySoft
+  const statusFg = hasRejectedDocument
+    ? brandColors.danger
+    : brandColors.primary
+  const statusLabel = hasRejectedDocument
+    ? FALLBACK.actionRequired
+    : FALLBACK.underReview
+
   return (
-    <View style={{ height: '100%' }}>
-      <View
-        style={{ height: '10%', backgroundColor: colors.card, width: '100%' }}
-      >
-        <Text
-          style={{
-            top: windowHeight(3.8),
-            justifyContent: 'center',
-            textAlign: 'center',
-            fontSize: fontSizes.FONT5,
-            fontFamily: appFonts.medium,
-            color: colors.text,
-          }}
-        >
-          {translateData.verification}
+    <SafeAreaView style={[styles.page, { backgroundColor: pageBg }]}>
+      <View style={[styles.header, { borderBottomColor: borderColor }]}>
+        <Text style={[styles.headerTitle, { color: titleColor }]}>
+          {translateData?.verification || FALLBACK.verification}
         </Text>
       </View>
 
-      <View
-        style={[
-          styles.main,
-          {
-            backgroundColor: isDark
-              ? appColors.bgDark
-              : appColors.graybackground,
-          },
-        ]}
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
       >
-        <LottieView
-          source={require('../../assets/gif/under_process.json')}
-          autoPlay
-          loop
-          style={styles.image}
-        />
-        <View style={[styles.container, { flexDirection: viewRtlStyle }]}>
-          <Text
-            style={[
-              styles.title,
-              { color: isDark ? appColors.white : appColors.primaryFont },
-            ]}
-          >
-            {translateData.verificationProcess}
-          </Text>
-          <Icons.Info />
+        <View style={styles.logoWrap}>
+          <Image
+            source={images.brandLogo}
+            style={styles.logo}
+            resizeMode="contain"
+          />
         </View>
-        <Text
-          style={[
-            styles.text,
-            { color: isDark ? appColors.darkText : appColors.darkBorderBlack },
-          ]}
-        >
-          {translateData.verificationNote}
-        </Text>
 
-        <View style={[styles.btn, { marginBottom: windowHeight(2) }]}>
-          <Button
-            title={translateData.chatwithstaf}
-            backgroundColor={appColors.primary}
-            color={appColors.white}
+        <View style={styles.animationWrap}>
+          <LottieView
+            source={require('../../assets/gif/review.json')}
+            autoPlay
+            loop
+            style={styles.animation}
+          />
+        </View>
+
+        <View
+          style={[styles.card, { backgroundColor: cardBg, borderColor }]}
+        >
+          <View style={[styles.statusPill, { backgroundColor: statusBg }]}>
+            <Text style={[styles.statusText, { color: statusFg }]}>
+              {statusLabel}
+            </Text>
+          </View>
+
+          <Text style={[styles.title, { color: titleColor }]}>
+            {translateData?.verificationProcess || FALLBACK.process}
+          </Text>
+
+          <Text style={[styles.text, { color: bodyColor }]}>
+            {translateData?.verificationNote || FALLBACK.note}
+          </Text>
+
+          <TouchableOpacity
+            style={styles.cta}
+            activeOpacity={0.85}
             onPress={() =>
               navigation.navigate('Chat', {
                 driverId: selfDriver?.id,
@@ -206,88 +223,87 @@ export function Verification() {
                 riderName: selfDriver?.name,
               })
             }
-          />
+          >
+            <Text style={styles.ctaText}>
+              {translateData?.chatwithstaf || FALLBACK.chat}
+            </Text>
+          </TouchableOpacity>
+
+          {hasRejectedDocument && (
+            <TouchableOpacity
+              style={styles.ctaSecondary}
+              activeOpacity={0.85}
+              onPress={gotoDocUpdate}
+            >
+              <Text style={styles.ctaSecondaryText}>
+                {translateData?.updateDocument || FALLBACK.updateDocument}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
-        {hasRejectedDocument && (
-          <View style={styles.btn}>
-            <Button
-              title={translateData.updateDocument}
-              backgroundColor={appColors.primary}
-              color={appColors.white}
-              onPress={gotoDocUpdate}
-            />
-          </View>
-        )}
-      </View>
-      <Button
-        title="Back to Login"
-        textDecorationLine={'underline'}
-        onPress={() => {
-          navigation.navigate('Login')
-        }}
-      />
+        <TouchableOpacity
+          style={[
+            styles.backToLogin,
+            { borderColor, flexDirection: viewRtlStyle },
+          ]}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('Login')}
+        >
+          <Icons.Back color={bodyColor} />
+          <Text style={[styles.backToLoginText, { color: bodyColor }]}>
+            {translateData?.backToLogin || FALLBACK.backToLogin}
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+
       <BottomSheet
         ref={bottomSheetRef}
         index={-1}
-        snapPoints={['20%']}
+        snapPoints={['26%']}
         backdropComponent={renderBackdrop}
         enablePanDownToClose
+        backgroundStyle={{ backgroundColor: cardBg }}
         handleIndicatorStyle={{
-          backgroundColor: appColors.primary,
+          backgroundColor: brandColors.primary,
           width: '13%',
         }}
       >
-        <BottomSheetView style={{ paddingHorizontal: windowHeight(2) }}>
-          <TouchableWithoutFeedback>
+        <BottomSheetView style={styles.sheetContent}>
+          <Text style={[styles.modalTitle, { color: titleColor }]}>
+            {translateData?.exitMsg || FALLBACK.exitMsg}
+          </Text>
+          <View
+            style={[styles.buttonContainer, { flexDirection: viewRtlStyle }]}
+          >
             <TouchableOpacity
-              style={[styles.modalContainer, { backgroundColor: colors.card }]}
-              activeOpacity={1}
+              style={[
+                styles.button,
+                {
+                  backgroundColor: isDark
+                    ? brandColors.fieldDark
+                    : brandColors.fieldLight,
+                },
+              ]}
+              activeOpacity={0.8}
+              onPress={handleExit}
             >
-              <Text
-                style={[
-                  styles.modalTitle,
-                  { color: isDark ? appColors.white : appColors.primaryFont },
-                ]}
-              >
-                {translateData.exitMsg}
+              <Text style={[styles.buttonText, { color: titleColor }]}>
+                {translateData?.exit || FALLBACK.exit}
               </Text>
-              <View
-                style={[
-                  styles.buttonContainer,
-                  { flexDirection: viewRtlStyle },
-                ]}
-              >
-                <TouchableOpacity
-                  style={[
-                    styles.button,
-                    {
-                      backgroundColor: isDark
-                        ? colors.background
-                        : appColors.graybackground,
-                    },
-                  ]}
-                  onPress={handleExit}
-                >
-                  <Text
-                    style={[
-                      styles.buttonText,
-                      {
-                        color: isDark ? appColors.white : appColors.primaryFont,
-                      },
-                    ]}
-                  >
-                    {translateData.exit}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.button} onPress={handleCancel}>
-                  <Text style={styles.buttonText}>{translateData.cancel}</Text>
-                </TouchableOpacity>
-              </View>
             </TouchableOpacity>
-          </TouchableWithoutFeedback>
+            <TouchableOpacity
+              style={[styles.button, styles.buttonPrimary]}
+              activeOpacity={0.85}
+              onPress={handleCancel}
+            >
+              <Text style={[styles.buttonText, styles.buttonPrimaryText]}>
+                {translateData?.cancel || FALLBACK.cancel}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </BottomSheetView>
       </BottomSheet>
-    </View>
+    </SafeAreaView>
   )
 }

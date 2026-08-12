@@ -10,6 +10,8 @@ interface AuthTitleProps {
   subTitle?: string;
 }
 
+// Shared with loginMail and otpverify — the Login screen no longer uses this,
+// so keep it on the original Taxido styling until those screens are redesigned.
 export function AuthTitle({ title, subTitle }: AuthTitleProps) {
   const { colors } = useTheme()
   const { textRtlStyle } = useValues()

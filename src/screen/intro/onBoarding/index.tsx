@@ -1,29 +1,22 @@
 import {
-  ActivityIndicator,
   Image,
-  ImageBackground,
-  Keyboard,
   SafeAreaView,
   Text,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native'
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import Swiper from 'react-native-swiper'
-import Images from '../../../utils/images/images'
 import appColors from '../../../theme/appColors'
-import { styles, windowHeight } from './styles'
+import { styles, BRAND } from './styles'
 import {
   useNavigation,
   useTheme,
 } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { RootStackParamList } from '../../../navigation/main/types'
-import DropDownPicker from 'react-native-dropdown-picker'
 import { useValues } from '../../../utils/context'
 import Icons from '../../../utils/icons/icons'
-import { fontSizes } from '../../../theme/appConstant'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   languageDataGet,
@@ -42,34 +35,21 @@ export function OnBoarding() {
   const { colors } = useTheme()
   const dispatch = useDispatch<AppDispatch>()
   const swiperRef = useRef<Swiper | null>(null)
-  const hasNavigated = useRef(false)
 
   const { settingData, languageData, translateData, taxidoSettingData } =
     useSelector((state: any) => state.setting)
 
-  const { isDark, viewRtlStyle, setRtl } = useValues()
+  const { isDark, viewRtlStyle, textRtlStyle, setRtl } = useValues()
 
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null)
-  const [items, setItems] = useState<
-    { label: string; value: string; icon: () => React.JSX.Element }[]
-  >([])
-  const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
-
-  const imageDarkBottom = isDark ? Images.bgDarkOnboard : Images.bgOnboarding
-
+  const [activeIndex, setActiveIndex] = useState(0)
 
   useEffect(() => {
     if (languageData?.data?.length) {
       const formattedItems = languageData?.data.map((lang: any) => ({
         label: lang.name,
         value: lang.locale,
-        icon: () => (
-          <Image source={{ uri: lang.flag }} style={styles.flagImage} />
-        ),
       }))
-
-      setItems(formattedItems)
 
       if (!selectedLanguage) {
         const firstLang =
@@ -81,12 +61,6 @@ export function OnBoarding() {
       }
     }
   }, [languageData])
-
-  useEffect(() => {
-    if (swiperRef.current) {
-      swiperRef.current.scrollBy(0, false)
-    }
-  }, [selectedLanguage, items, open])
 
   const handleLanguageChange = async (value: string | null) => {
     if (!value) return
@@ -107,123 +81,55 @@ export function OnBoarding() {
     dispatch(taxidosettingDataGet())
   }
 
-  const handleOpenDropdown = async () => {
-    if (!languageData?.data?.length) {
-      setLoading(true)
-      try {
-        await dispatch(languageDataGet())
-      } catch (error) {
-        console.log('Error fetching language data:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-  }
+  const onboardingData = taxidoSettingData?.cabbooking_values?.onboarding || []
 
   const handleNavigation = () => {
     navigate('Login')
   }
 
+  // Slide changes only move the pager. Navigation happens on an explicit tap —
+  // previously this auto-jumped to Login the moment you swiped onto index 2,
+  // which made the last slide unreadable and broke if the admin panel ever
+  // served a number of slides other than three.
   const handleIndexChanged = (index: number) => {
-    if (index === 2 && !hasNavigated.current) {
-      hasNavigated.current = true
-      setTimeout(handleNavigation, 300)
-    }
+    setActiveIndex(index)
   }
 
   const handleNext = (index: number) => {
-    const total = taxidoSettingData?.cabbooking_values?.onboarding?.length || 0
-    if (index < total - 1) {
+    if (index < onboardingData.length - 1) {
       swiperRef.current?.scrollBy(1)
     } else {
       handleNavigation()
     }
   }
 
-  const onboardingData = taxidoSettingData?.cabbooking_values?.onboarding || []
-
   if (!onboardingData.length) {
     return <View style={{ flex: 1, backgroundColor: colors.background }} />
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={[styles.slide, { backgroundColor: colors.background }]}>
       <Swiper
         ref={swiperRef}
         loop={false}
-        autoplayTimeout={2}
         showsButtons={false}
+        showsPagination={false}
         onIndexChanged={handleIndexChanged}
-        activeDotStyle={styles.activeStyle}
-        paginationStyle={styles.paginationStyle}
-        dotColor={isDark ? appColors.dotPrimary : appColors.subPrimary}
       >
-        {onboardingData.map((slide: any, index: number) => (
-          <TouchableWithoutFeedback
-            key={slide.key || index}
-            onPress={() => {
-              setOpen(false)
-              Keyboard.dismiss()
-            }}
-          >
-            <View style={styles.slide}>
-              <View
-                style={[
-                  styles.languageContainer,
-                  { flexDirection: viewRtlStyle },
-                ]}
-              >
-                <DropDownPicker
-                  open={open}
-                  value={selectedLanguage}
-                  items={items}
-                  setOpen={setOpen}
-                  setValue={setSelectedLanguage}
-                  setItems={setItems}
-                  placeholder={"Select Language"}
-                  onSelectItem={item => handleLanguageChange(item?.value ?? null)}
-                  onChangeValue={handleLanguageChange}
-                  onOpen={handleOpenDropdown}
-                  loading={loading}
-                  listMode="SCROLLVIEW"
-                  dropDownContainerStyle={[
-                    styles.dropdownManu,
-                    { backgroundColor: colors.card },
-                  ]}
-                  labelStyle={[styles.labelStyle, { color: colors.text }]}
-                  arrowIconStyle={{ right: windowHeight(8) }}
-                  containerStyle={styles.dropdownContainer}
-                  style={styles.dropdown}
-                  textStyle={{
-                    color: colors.text,
-                    fontSize: fontSizes.FONT4,
-                  }}
-                  theme={isDark ? 'DARK' : 'LIGHT'}
-                  ActivityIndicatorComponent={({ color }) => (
-                    <ActivityIndicator color={color} size="small" />
-                  )}
-                  ArrowDownIconComponent={() => (
-                    <View style={{ transform: [{ rotate: '-90deg' }] }}>
-                      <Icons.Back color={colors.text} />
-                    </View>
-                  )}
-                  ArrowUpIconComponent={() => (
-                    <View style={{ transform: [{ rotate: '90deg' }] }}>
-                      <Icons.Back color={colors.text} />
-                    </View>
-                  )}
-                />
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={handleNavigation}
-                >
+        {onboardingData.map((slide: any, index: number) => {
+          const isLast = index === onboardingData.length - 1
+
+          return (
+            <View key={slide.key || index} style={styles.slide}>
+              <View style={styles.skipWrap}>
+                <TouchableOpacity activeOpacity={0.7} onPress={handleNavigation}>
                   <Text
                     style={[
                       styles.skipText,
                       {
-                        borderColor: isDark
-                          ? appColors.darkborder
-                          : appColors.border,
+                        backgroundColor: isDark
+                          ? appColors.darkThemeSub
+                          : appColors.graybackground,
                       },
                     ]}
                   >
@@ -232,50 +138,85 @@ export function OnBoarding() {
                 </TouchableOpacity>
               </View>
 
-              <Image
-                style={styles.imageBackground}
-                source={{
-                  uri: slide?.onboarding_image_url || '',
-                }}
-                resizeMode="contain"
-              />
+              {/*
+                Language picker intentionally disabled for now — restore this
+                block (plus the DropDownPicker import, `items`/`open`/`loading`
+                state and handleOpenDropdown) to bring it back. Note languageDataGet
+                is only dispatched from here and from Settings, so with this off the
+                language defaults to whatever the server sends and is changed in
+                Settings instead.
+
+                <View style={[styles.languageContainer, { flexDirection: viewRtlStyle }]}>
+                  <DropDownPicker ... />
+                </View>
+              */}
 
               <View
                 style={[
-                  styles.imageBgView,
-                  { backgroundColor: colors.background },
+                  styles.heroArea,
+                  {
+                    backgroundColor: isDark
+                      ? BRAND.heroBgDark
+                      : BRAND.heroBgLight,
+                  },
                 ]}
               >
-                <ImageBackground
-                  resizeMode="stretch"
-                  style={styles.img}
-                  source={imageDarkBottom}
+                <Image
+                  style={styles.heroImage}
+                  source={{ uri: slide?.onboarding_image_url || '' }}
+                  resizeMode="contain"
+                />
+              </View>
+
+              <View style={[styles.card, { backgroundColor: BRAND.primary }]}>
+                <View style={[styles.dotsRow, { flexDirection: viewRtlStyle }]}>
+                  {onboardingData.map((_: any, dotIndex: number) => (
+                    <View
+                      key={dotIndex}
+                      style={[
+                        styles.dot,
+                        dotIndex === activeIndex
+                          ? styles.dotActive
+                          : styles.dotIdle,
+                      ]}
+                    />
+                  ))}
+                </View>
+
+                <Text
+                  style={[
+                    styles.title,
+                    {
+                      color: BRAND.onPrimary,
+                      textAlign: textRtlStyle,
+                    },
+                  ]}
                 >
-                  <Text
-                    style={[
-                      styles.title,
-                      {
-                        color: isDark ? appColors.white : appColors.primaryFont,
-                      },
-                    ]}
-                  >
-                    {slide?.title || ''}
+                  {slide?.title || ''}
+                </Text>
+
+                <Text style={[styles.description, { textAlign: textRtlStyle }]}>
+                  {slide?.description || ''}
+                </Text>
+
+                <TouchableOpacity
+                  style={styles.cta}
+                  activeOpacity={0.85}
+                  onPress={() => handleNext(index)}
+                >
+                  <Text style={styles.ctaText}>
+                    {isLast
+                      ? translateData?.get_started || 'Get Started'
+                      : translateData?.next || 'Next'}
                   </Text>
-                  <Text style={styles.description}>
-                    {slide?.description || ''}
-                  </Text>
-                  <TouchableOpacity
-                    style={[styles.backArrow, { transform: [{ scaleX: -1 }] }]}
-                    onPress={() => handleNext(index)}
-                    activeOpacity={0.7}
-                  >
-                    <Icons.Back color={appColors.white} />
-                  </TouchableOpacity>
-                </ImageBackground>
+                  <View style={styles.ctaArrow}>
+                    <Icons.Back color={BRAND.primary} />
+                  </View>
+                </TouchableOpacity>
               </View>
             </View>
-          </TouchableWithoutFeedback>
-        ))}
+          )
+        })}
       </Swiper>
     </SafeAreaView>
   )

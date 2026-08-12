@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -33,12 +34,13 @@
         android:value="@integer/google_play_services_version" />
     <meta-data
         android:name="com.google.android.geo.API_KEY"
-        android:value="Enter Your Google Map Keye Here" /> 
+        android:value="@string/google_maps_api_key" />
 
              <!-- Google Mobile Ads SDK configuration -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="enter your google ads key" />
+            android:value="@string/admob_app_id"
+            tools:replace="android:value" />
             
       <activity
         android:name=".MainActivity"

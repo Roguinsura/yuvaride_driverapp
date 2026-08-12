@@ -10,8 +10,11 @@ import {
 } from "react-native-google-mobile-ads";
 import appFonts from "../../../theme/appFonts";
 import appColors from "../../../theme/appColors";
-import { windowHeight } from "../../../theme/appConstant";
-import { fontSizes } from "../../../screen/settings/chat/context";
+// The app-wide scale. This used to pull `fontSizes` from the chat screen's
+// private module, which exports the same name on a different scale — its
+// FONT22 is windowWidth(22), around 86dp, so the headline rendered several
+// times larger than the card.
+import { windowHeight, fontSizes } from "../../../theme/appConstant";
 import { useSelector } from 'react-redux'
 
 
@@ -143,18 +146,18 @@ const styles = StyleSheet.create({
         marginBottom: 8
     },
     headline: {
-        fontSize: fontSizes.FONT22,
+        fontSize: fontSizes.FONT4HALF,
         fontFamily: appFonts.medium,
         marginBottom: windowHeight(1)
     },
     tagline: {
-        fontSize: fontSizes.FONT16,
+        fontSize: fontSizes.FONT3HALF,
         fontFamily: appFonts.regular,
         color: "#555",
         marginTop: windowHeight(0.5)
     },
     advertiser: {
-        fontSize: fontSizes.FONT14,
+        fontSize: fontSizes.FONT3,
         fontFamily: appFonts.medium,
         color: "#777",
         marginTop: windowHeight(0.5)
@@ -175,7 +178,7 @@ const styles = StyleSheet.create({
     ctaText: {
         textAlign: "center",
         color: appColors.white,
-        fontSize: fontSizes.FONT20,
+        fontSize: fontSizes.FONT3HALF,
         fontFamily: appFonts.medium,
     },
 });

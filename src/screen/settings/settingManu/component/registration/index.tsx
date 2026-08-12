@@ -1,16 +1,14 @@
-import { View, Text } from 'react-native'
-import React, { useEffect, useState, useMemo, useCallback } from 'react'
+import { View } from 'react-native'
+import React, { useEffect, useState, useMemo } from 'react'
 import { ListItem } from '../listItem'
 import Icons from '../../../../../utils/icons/icons'
 import styles from './styles'
 import appColors from '../../../../../theme/appColors'
+import brandColors from '../../../../../theme/brandColors'
 import { useNavigation, useTheme } from '@react-navigation/native'
 import { useValues } from '../../../../../utils/context'
 import { useLoadingContext } from '../../../../../utils/loadingContext'
 import { SkeletonAppPage } from '../../../appSettings/component'
-import { windowHeight } from '../../../chat/context'
-import ContentLoader, { Rect } from 'react-content-loader/native'
-import { windowWidth } from '../../../../../theme/appConstant'
 import { useSelector } from 'react-redux'
 import { settingDataGet } from '../../../../../api/store/action'
 
@@ -18,7 +16,7 @@ import { settingDataGet } from '../../../../../api/store/action'
 export function RegistrationDetails() {
   const navigation = useNavigation<any>()
   const { colors } = useTheme()
-  const { textRtlStyle, isDark } = useValues()
+  const { isDark } = useValues()
   const { addressLoaded, setAddressLoaded }: any = useLoadingContext()
   const { translateData } = useSelector((state: any) => state.setting)
   const [loading, setLoading] = useState(!addressLoaded)
@@ -39,29 +37,6 @@ export function RegistrationDetails() {
     fetchAddressData()
   }, [addressLoaded, setAddressLoaded])
 
-  const skeletonTitle = useCallback(
-    () => (
-      <ContentLoader
-        speed={1}
-        width={windowWidth(40)}
-        height={windowHeight(18)}
-        backgroundColor={isDark ? appColors.bgDark : appColors.loaderBackground}
-        foregroundColor={
-          isDark ? appColors.darkThemeSub : appColors.loaderLightHighlight
-        }
-      >
-        <Rect
-          x="0"
-          y="0"
-          width={windowWidth(40)}
-          height={windowHeight(15)}
-          rx={0}
-          ry={0}
-        />
-      </ContentLoader>
-    ),
-    [isDark],
-  )
   let menuItems;
 
   if (type === 'driver') {
@@ -115,19 +90,7 @@ export function RegistrationDetails() {
   }
 
   return (
-    <View>
-      {loading ? (
-        skeletonTitle()
-      ) : (
-        <Text
-          style={[
-            styles.title,
-            { color: colors.text, textAlign: textRtlStyle },
-          ]}
-        >
-          {translateData.registrationDetails}
-        </Text>
-      )}
+    <View style={styles.section}>
       <View
         style={[
           styles.listView,
@@ -155,10 +118,10 @@ export function RegistrationDetails() {
           : menuItems.map(({ icon: Icon, text, route }, index) => (
             <React.Fragment key={route}>
               <ListItem
-                icon={<Icon color={colors.text} />}
+                icon={<Icon color={appColors.primary} />}
                 text={text}
                 backgroundColor={
-                  isDark ? colors.background : appColors.graybackground
+                  isDark ? 'rgba(248,111,0,0.16)' : brandColors.primarySoft
                 }
                 color={isDark ? appColors.white : appColors.primaryFont}
                 showNextIcon

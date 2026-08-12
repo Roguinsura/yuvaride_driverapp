@@ -1,17 +1,20 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { BackHandler, View, ScrollView, RefreshControl } from 'react-native'
+import { BackHandler, StatusBar, View } from 'react-native'
+import { useDispatch } from 'react-redux'
+
 import { Header } from '../component'
 import styles from './styles'
 import { RideStatus } from '../rideStatus'
 import appColors from '../../../theme/appColors'
 import { rideDataGets } from '../../../api/store/action'
-import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../../api/store'
 import { useAppNavigation } from '../../../utils/navigation'
+import { useValues } from '../../../utils/context'
 
 export function MyRide() {
   const dispatch = useDispatch<AppDispatch>()
   const navigation = useAppNavigation()
+  const { isDark } = useValues()
   const [refreshing, setRefreshing] = useState(false)
 
   // Only call once on mount
@@ -31,44 +34,41 @@ export function MyRide() {
 
   useEffect(() => {
     const backAction = () => {
-      navigation.goBack();
-      return true;
-    };
+      navigation.goBack()
+      return true
+    }
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
-      backAction
-    );
+      backAction,
+    )
 
-    return () => backHandler.remove();
-  }, [navigation]);
+    return () => backHandler.remove()
+  }, [navigation])
 
   return (
-    <View style={styles.main}>
+    <View
+      style={[
+        styles.main,
+        {
+          backgroundColor: isDark
+            ? appColors.bgDark
+            : appColors.graybackground,
+        },
+      ]}
+    >
+      {/* Matches the orange header; without it the screen keeps whatever the
+          previously focused tab set. */}
+      <StatusBar barStyle="light-content" backgroundColor={appColors.primary} />
       <Header />
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ flexGrow: 1 }}
-        alwaysBounceVertical={true}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[appColors.primary]}
-          />
-        }
-      >
-        <View
-          style={{
-            backgroundColor: appColors.graybackground,
-            flex: 1
-          }}
-        >
-          <RideStatus />
-        </View>
-      </ScrollView>
+      {/*
+        The list used to sit inside a ScrollView, which nests a VirtualizedList
+        in a plain scroll container — it warns, and it defeats windowing because
+        every row is mounted at once. Pull-to-refresh now rides on the FlatList
+        itself, passed down through RideStatus.
+      */}
+      <RideStatus refreshing={refreshing} onRefresh={onRefresh} />
     </View>
   )
 }
 
 export default MyRide
-

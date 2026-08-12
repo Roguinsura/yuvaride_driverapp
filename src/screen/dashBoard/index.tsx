@@ -1,555 +1,336 @@
 import React, { useEffect } from 'react'
-import { View, Text, TouchableOpacity, Image, ScrollView, BackHandler } from 'react-native'
-import appColors from '../../theme/appColors'
-import { fontSizes, windowHeight, windowWidth } from '../../theme/appConstant'
-import appFonts from '../../theme/appFonts'
-import Icons from '../../utils/icons/icons'
-import Svg, { G, Circle } from 'react-native-svg'
-import Images from '../../utils/images/images'
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  BackHandler,
+  StatusBar,
+} from 'react-native'
+import Svg, { Circle, G } from 'react-native-svg'
 import { useSelector } from 'react-redux'
 import { useNavigation } from '@react-navigation/native'
+
+import appColors from '../../theme/appColors'
+import brandColors from '../../theme/brandColors'
+import Icons from '../../utils/icons/icons'
 import { useValues } from '../../utils/context'
 import { notificationHelper } from '../../commonComponents'
-import styles from './styles'
 import { useAppNavigation } from '../../utils/navigation'
+import styles, { CHART_SIZE, CHART_STROKE } from './styles'
+
+// Every label on this screen comes from `translateData`, which is empty until
+// the settings call lands. Without these the screen renders blank strings on a
+// cold start.
+const FALLBACK = {
+  dashboard: 'Dashboard',
+  subtitle: 'Your driving at a glance',
+  totalBooking: 'Total bookings',
+  completed: 'Completed',
+  pending: 'Pending',
+  cancelled: 'Cancelled',
+  totalEarning: 'Total earnings',
+  earningNotYet: 'No earnings yet',
+  drivePerformance: 'Drive performance',
+  averageDrivePerformance: 'Average performance',
+  totalDistances: 'Total distance',
+  totalHours: 'Total hours',
+  averageDistances: 'Average distance',
+  averageHours: 'Average hours',
+  noRidesYet: 'No rides recorded yet',
+}
+
+// Segment colours. Completed carries the brand, pending is amber and cancelled
+// stays a neutral slate so the ring never reads as an error state.
+const COMPLETED_COLOR = brandColors.primary
+const PENDING_COLOR = '#FFB400'
+const CANCELLED_COLOR = '#C3C8D1'
 
 export function DashBoard() {
-  const { dashBoardList } = useSelector((state: any) => state.dashboard);
-  const size = windowHeight(20)
-  const strokeWidth = windowHeight(2)
-  const radius = (size - strokeWidth) / 2
-  const cx = size / 2
-  const cy = size / 2
-  const total = dashBoardList?.ride?.completed_rides + dashBoardList?.ride?.pending_rides + dashBoardList?.ride?.cancelled_rides
-  const { navigate } = useAppNavigation()
-  const { isDark, rtl } = useValues()
+  const { dashBoardList } = useSelector((state: any) => state.dashboard)
   const { translateData } = useSelector((state: any) => state.setting)
+  const { isDark, viewRtlStyle, textRtlStyle } = useValues()
+  const { navigate } = useAppNavigation()
+  const navigation = useNavigation<any>()
 
-  const data = [
-    { value: dashBoardList?.ride?.completed_rides, color: appColors.primary, label: translateData.completed },
-    { value: dashBoardList?.ride?.pending_rides, color: appColors.value, label: translateData.pendingRide },
-    { value: dashBoardList?.ride?.cancelled_rides, color: appColors.value1, label: translateData.cancelled },
+  const pageBg = isDark ? appColors.bgDark : appColors.graybackground
+  const cardBg = isDark ? appColors.darkThemeSub : appColors.white
+  const borderColor = isDark ? appColors.darkborder : appColors.border
+  const titleColor = isDark ? appColors.white : brandColors.titleLight
+  const bodyColor = isDark ? appColors.darkText : brandColors.bodyLight
+
+  const ride = dashBoardList?.ride
+  const performance = dashBoardList?.driver_performance
+
+  const completed = Number(ride?.completed_rides) || 0
+  const pending = Number(ride?.pending_rides) || 0
+  const cancelled = Number(ride?.cancelled_rides) || 0
+  const total = completed + pending + cancelled
+
+  const legend = [
+    { value: completed, color: COMPLETED_COLOR, label: translateData?.completed || FALLBACK.completed },
+    { value: pending, color: PENDING_COLOR, label: translateData?.pendingRide || FALLBACK.pending },
+    { value: cancelled, color: CANCELLED_COLOR, label: translateData?.cancelled || FALLBACK.cancelled },
   ]
 
-  let startAngle = -90
+  /* -------------------- donut geometry -------------------- */
+  const radius = (CHART_SIZE - CHART_STROKE) / 2
+  const cx = CHART_SIZE / 2
+  const cy = CHART_SIZE / 2
+  const circumference = 2 * Math.PI * radius
+  // A visual breather between slices, in path units rather than degrees so it
+  // stays constant whatever the slice sizes are.
+  const GAP = circumference * 0.012
+
+  let angleCursor = -90
+  const arcs = legend
+    .filter(item => item.value > 0)
+    .map((item, index) => {
+      const sweep = (item.value / total) * circumference
+      // Only one slice? Draw it whole, otherwise the gap leaves a nick in a
+      // ring that should be closed.
+      const drawn = legend.filter(l => l.value > 0).length === 1
+        ? sweep
+        : Math.max(sweep - GAP, circumference * 0.004)
+      const rotation = angleCursor
+      angleCursor += (item.value / total) * 360
+      return { key: index, color: item.color, drawn, rotation }
+    })
+
+  const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0
+
+  /* -------------------- performance tiles -------------------- */
+  const distanceUnit = performance?.unit || ''
+  const tiles = [
+    {
+      key: 'totalDistance',
+      Icon: Icons.Speed,
+      tint: '#3F8FDA',
+      soft: isDark ? 'rgba(63,143,218,0.16)' : '#EAF2FB',
+      value: performance?.total_distance ?? 0,
+      unit: distanceUnit,
+      label: translateData?.totalDistances || FALLBACK.totalDistances,
+    },
+    {
+      key: 'totalHours',
+      Icon: Icons.Clock,
+      tint: brandColors.primary,
+      soft: isDark ? 'rgba(248,111,0,0.18)' : brandColors.primarySoft,
+      value: performance?.total_hours ?? 0,
+      unit: '',
+      label: translateData?.totalHours || FALLBACK.totalHours,
+    },
+    {
+      key: 'averageDistance',
+      Icon: Icons.Target,
+      tint: '#20B149',
+      soft: isDark ? 'rgba(32,177,73,0.16)' : '#E8F7EE',
+      value: performance?.average_distance ?? 0,
+      unit: distanceUnit,
+      label: translateData?.averageDistances || FALLBACK.averageDistances,
+    },
+    {
+      key: 'averageHours',
+      Icon: Icons.Clock,
+      tint: '#FFB400',
+      soft: isDark ? 'rgba(255,180,0,0.18)' : '#FFF4DC',
+      value: performance?.average_hours ?? 0,
+      unit: '',
+      label: translateData?.averageHours || FALLBACK.averageHours,
+    },
+  ]
 
   const gotoDetails = () => {
-    if (dashBoardList?.ride?.total_earnings > 0) {
+    if (ride?.total_earnings > 0) {
       navigate('TotalEarnings')
     } else {
-      notificationHelper("", translateData.earningNotYet, "success")
+      notificationHelper(
+        '',
+        translateData?.earningNotYet || FALLBACK.earningNotYet,
+        'success',
+      )
     }
   }
-  const navigation = useNavigation<any>()
+
   useEffect(() => {
     const backAction = () => {
-      navigation.goBack();
-      return true;
-    };
-
+      navigation.goBack()
+      return true
+    }
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
-      backAction
-    );
+      backAction,
+    )
+    return () => backHandler.remove()
+  }, [])
 
-    return () => backHandler.remove();
-  }, []);
   return (
-    <ScrollView
-      vertical
-      showsVerticalScrollIndicator={false}
-      style={{ marginBottom: windowHeight(8), backgroundColor: isDark ? appColors.bgDark : appColors.graybackground, flex: 1 }}
-    >
-      <View>
-        <View style={{ backgroundColor: isDark ? appColors.darkThemeSub : appColors.white, height: windowHeight(10) }}>
-          <View
-            style={[
-              styles.dashBoardHeader,
-              { flexDirection: rtl ? 'row-reverse' : 'row' }
-            ]}
-          >
+    <View style={[styles.screen, { backgroundColor: pageBg }]}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={appColors.primary}
+      />
 
-
-            <Text
-              style={{
-                color: isDark ? appColors.white : appColors.primaryFont,
-                fontFamily: appFonts.medium,
-                fontSize: fontSizes.FONT5,
-              }}
-            >
-              {translateData.dashboard}
+      {/*
+        A fixed header, outside the ScrollView. It stays put while the content
+        scrolls under it and it never overlaps the cards below.
+      */}
+      <View style={styles.header}>
+        <View style={[styles.headerRow, { flexDirection: viewRtlStyle }]}>
+          <View>
+            <Text style={[styles.headerTitle, { textAlign: textRtlStyle }]}>
+              {translateData?.dashboard || FALLBACK.dashboard}
             </Text>
-            <TouchableOpacity onPress={() => navigate('Notification')}
-              style={{
-                backgroundColor: isDark ? appColors.darkThemeSub : appColors.white,
-                borderColor: isDark ? appColors.darkborder : appColors.border,
-                borderWidth: windowHeight(0.1),
-                width: windowHeight(5.5),
-                height: windowHeight(5.5),
-                borderRadius: windowHeight(3),
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Icons.Notification color={isDark ? appColors.white : appColors.black} />
-            </TouchableOpacity>
+            <Text style={[styles.headerSubtitle, { textAlign: textRtlStyle }]}>
+              {FALLBACK.subtitle}
+            </Text>
           </View>
+          <TouchableOpacity
+            style={styles.bellButton}
+            activeOpacity={0.7}
+            onPress={() => navigate('Notification')}
+          >
+            <Icons.Notification color={appColors.white} />
+          </TouchableOpacity>
         </View>
+      </View>
 
-        <View style={[styles.chartContainer, { backgroundColor: isDark ? appColors.darkThemeSub : appColors.white }, { borderColor: isDark ? appColors.darkborder : appColors.border }]}>
-          <View style={{ marginTop: windowHeight(3) }}>
-            <Svg width={size} height={size}>
-              <G rotation="0" origin={`${cx}, ${cy}`}>
-                {data.map((item, index) => {
-                  const angle = (item.value / total) * 360
-                  const strokeLength = (angle / 360) * 2 * Math.PI * radius
-                  const strokeDasharray = `${strokeLength} ${2 * Math.PI * radius
-                    }`
-                  const circle = (
-                    <Circle
-                      key={index}
-                      cx={cx}
-                      cy={cy}
-                      r={radius}
-                      stroke={item.color}
-                      strokeWidth={strokeWidth}
-                      fill="none"
-                      strokeDasharray={strokeDasharray}
-                      strokeLinecap="round"
-                      rotation={startAngle}
-                      origin={`${cx}, ${cy}`}
-                    />
-                  )
-                  startAngle += angle + 4
-                  return circle
-                })}
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ---------- earnings hero ---------- */}
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={gotoDetails}
+          style={[
+            styles.card,
+            styles.earningCard,
+            { backgroundColor: cardBg, borderColor, flexDirection: viewRtlStyle },
+          ]}
+        >
+          <View style={styles.earningIcon}>
+            <Icons.DollorLarge />
+          </View>
+          <View style={styles.earningTextWrap}>
+            <Text
+              style={[styles.earningLabel, { color: bodyColor, textAlign: textRtlStyle }]}
+            >
+              {translateData?.totalEarning || FALLBACK.totalEarning}
+            </Text>
+            <Text
+              style={[styles.earningValue, { color: titleColor, textAlign: textRtlStyle }]}
+            >
+              {ride?.currency_symbol || ''}
+              {ride?.total_earnings ?? 0}
+            </Text>
+          </View>
+          <Icons.LeftArrow color={bodyColor} />
+        </TouchableOpacity>
+
+        {/* ---------- bookings donut ---------- */}
+        <Text style={[styles.sectionTitle, { color: titleColor, textAlign: textRtlStyle }]}>
+          {translateData?.totalBooking || FALLBACK.totalBooking}
+        </Text>
+
+        <View
+          style={[styles.card, styles.ridesCard, { backgroundColor: cardBg, borderColor }]}
+        >
+          <View style={styles.chartWrap}>
+            <Svg width={CHART_SIZE} height={CHART_SIZE}>
+              <G origin={`${cx}, ${cy}`}>
+                {/* Track — keeps the ring readable when a slice is missing. */}
+                <Circle
+                  cx={cx}
+                  cy={cy}
+                  r={radius}
+                  stroke={isDark ? appColors.darkborder : appColors.graybackground}
+                  strokeWidth={CHART_STROKE}
+                  fill="none"
+                />
+                {arcs.map(arc => (
+                  <Circle
+                    key={arc.key}
+                    cx={cx}
+                    cy={cy}
+                    r={radius}
+                    stroke={arc.color}
+                    strokeWidth={CHART_STROKE}
+                    fill="none"
+                    strokeDasharray={`${arc.drawn} ${circumference}`}
+                    strokeLinecap="round"
+                    rotation={arc.rotation}
+                    origin={`${cx}, ${cy}`}
+                  />
+                ))}
               </G>
             </Svg>
+
+            <View style={styles.chartCenter} pointerEvents="none">
+              <Text style={[styles.chartCount, { color: titleColor }]}>{total}</Text>
+              <Text style={[styles.chartCaption, { color: bodyColor }]}>
+                {total > 0
+                  ? `${completionRate}% ${translateData?.completed || FALLBACK.completed}`
+                  : FALLBACK.noRidesYet}
+              </Text>
+            </View>
           </View>
 
-          <View style={styles.centerText}>
-            <Text style={[styles.title, { color: isDark ? appColors.white : appColors.black }]}>{translateData.totalBooking}</Text>
-            <Text style={styles.count}>{total || 0}</Text>
-          </View>
-
-          <View style={[styles.statusContainer, { backgroundColor: isDark ? appColors.darkThemeSub : appColors.white, flexDirection: rtl ? 'row-reverse' : 'row' }]}>
-            {data.map((item, index) => (
-              <View style={styles.statusBox} key={index}>
-                <View style={styles.statusTop}>
-                  <View
-                    style={[styles.statusDot, { backgroundColor: item.color }]}
-                  />
-                  <Text style={[styles.statusLabel, { color: isDark ? appColors.darkText : appColors.iconColor }]}>{item.label}</Text>
+          <View style={styles.legend}>
+            {legend.map((item, index) => (
+              <View key={item.label}>
+                <View style={[styles.legendRow, { flexDirection: viewRtlStyle }]}>
+                  <View style={[styles.legendLeft, { flexDirection: viewRtlStyle }]}>
+                    <View style={[styles.legendDot, { backgroundColor: item.color }]} />
+                    <Text style={[styles.legendLabel, { color: bodyColor }]}>
+                      {item.label}
+                    </Text>
+                  </View>
+                  <Text style={[styles.legendValue, { color: titleColor }]}>
+                    {item.value}
+                  </Text>
                 </View>
-                <Text style={[styles.statusValue, { color: isDark ? appColors.white : appColors.black }]}>{item.value}</Text>
+                {index < legend.length - 1 && (
+                  <View style={[styles.legendDivider, { backgroundColor: borderColor }]} />
+                )}
               </View>
             ))}
           </View>
         </View>
-        <View
-          style={{
-            height: windowHeight(80),
-            marginTop: windowHeight(3),
-            backgroundColor: isDark ? appColors.bgDark : appColors.white
-          }}
-        >
-          <TouchableOpacity
-            style={{
-              backgroundColor: isDark ? appColors.darkThemeSub : appColors.white,
-              borderColor: isDark ? appColors.darkborder : appColors.border,
-              borderWidth: windowHeight(0.1),
-              height: windowHeight(12),
-              width: '91%',
-              alignSelf: 'center',
-              marginTop: windowHeight(2.8),
-              borderRadius: windowHeight(0.8),
-              flexDirection: rtl ? 'row-reverse' : 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingHorizontal: windowHeight(2),
-            }}
-            onPress={gotoDetails}
-          >
-            <View
-              style={{
-                backgroundColor: appColors.gray,
-                width: windowHeight(8),
-                height: windowHeight(8),
-                borderRadius: windowHeight(0.8),
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Image
-                source={Images.mapFrame}
-                resizeMode="contain"
-                style={{
-                  height: windowHeight(4),
-                  width: windowHeight(4),
-                }}
-              />
-            </View>
 
-            <View style={{ flex: 1, marginLeft: windowHeight(2) }}>
-              <Text
-                style={{
-                  color: isDark ? appColors.white : appColors.black,
-                  fontSize: fontSizes.FONT4,
-                  fontFamily: appFonts.medium,
-                }}
-              >
-                {translateData?.totalEarning}
-              </Text>
-              <Text
-                style={{
-                  color: appColors.yellow,
-                  fontSize: fontSizes.FONT4HALF,
-                  fontFamily: appFonts.bold,
-                  marginTop: windowHeight(0.5),
-                }}
-              >
-                {dashBoardList?.ride?.currency_symbol}{dashBoardList?.ride?.total_earnings}
-              </Text>
-            </View>
-            <Icons.LeftArrow color={isDark ? appColors.darkText : appColors.primaryFont} />
-          </TouchableOpacity>
+        {/* ---------- performance tiles ---------- */}
+        <Text style={[styles.sectionTitle, { color: titleColor, textAlign: textRtlStyle }]}>
+          {translateData?.drivePerformance || FALLBACK.drivePerformance}
+        </Text>
 
-          <Text
-            style={{
-              color: isDark ? appColors.white : appColors.black,
-              marginHorizontal: windowWidth(5),
-              marginTop: windowHeight(2.5),
-              fontFamily: appFonts.medium,
-              fontSize: fontSizes.FONT4,
-            }}
-          >
-            {translateData.drivePerformance}
-          </Text>
-          <View
-            style={{
-              flexDirection: rtl ? 'row-reverse' : 'row',
-              justifyContent: 'space-between',
-              gap: 5,
-            }}
-          >
+        <View style={styles.tileGrid}>
+          {tiles.map(tile => (
             <View
-              style={{
-                height: windowHeight(21),
-                width: windowHeight(20),
-                borderColor: isDark ? appColors.darkborder : appColors.border,
-                borderWidth: windowHeight(0.1),
-                marginHorizontal: windowHeight(2.5),
-                borderRadius: windowHeight(0.8),
-                marginTop: windowHeight(2),
-              }}
+              key={tile.key}
+              style={[styles.tile, { backgroundColor: cardBg, borderColor }]}
             >
-              <View style={{ flexDirection: rtl ? 'row-reverse' : 'row' }}>
-                <View
-                  style={{
-                    backgroundColor: appColors.whiteopicity,
-                    height: windowHeight(6),
-                    width: windowHeight(6),
-                    borderRadius: windowHeight(0.7),
-                    marginTop: windowHeight(2),
-                    marginHorizontal: windowHeight(2),
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Image
-                    source={Images.mapFrame1}
-                    resizeMode="contain"
-                    style={{
-                      height: windowHeight(4),
-                      width: windowHeight(3),
-                    }}
-                  />
-                </View>
-                <View>
-                  <Text
-                    style={{
-                      color: appColors.blueShade,
-                      top: windowHeight(2),
-                      fontFamily: appFonts.bold,
-                      fontSize: fontSizes.FONT5,
-                      textAlign: 'center'
-                    }}
-                  >
-                    {dashBoardList?.driver_performance?.total_distance}
-                  </Text>
-                  <Text
-                    style={{
-                      color: appColors.blueShade,
-                      top: windowHeight(2),
-                      fontFamily: appFonts.bold,
-                      fontSize: fontSizes.FONT5,
-                      textAlign: 'center'
-                    }}
-                  >
-                    {dashBoardList?.driver_performance?.unit}
-                  </Text>
-                </View>
+              <View style={[styles.tileIcon, { backgroundColor: tile.soft }]}>
+                <tile.Icon color={tile.tint} />
               </View>
               <Text
-                style={{
-                  color: isDark ? appColors.white : appColors.black,
-                  marginHorizontal: windowHeight(2),
-                  marginTop: windowHeight(1.7),
-                  fontFamily: appFonts.medium,
-                  textAlign: rtl ? 'right' : 'left'
-                }}
+                style={[styles.tileValue, { color: titleColor, textAlign: textRtlStyle }]}
+                numberOfLines={1}
               >
-                {translateData.totalDistances}
+                {tile.value}
+                {tile.unit ? (
+                  <Text style={[styles.tileUnit, { color: bodyColor }]}> {tile.unit}</Text>
+                ) : null}
               </Text>
-              <Image
-                source={Images.mapFrame2}
-                resizeMode="contain"
-                style={{
-                  height: windowHeight(10),
-                  width: windowHeight(21),
-                  alignSelf: 'center',
-                }}
-              />
-            </View>
-            <View
-              style={{
-                height: windowHeight(21),
-                width: windowHeight(20),
-                borderColor: isDark ? appColors.darkborder : appColors.border,
-                borderWidth: windowHeight(0.1),
-                borderRadius: windowHeight(0.8),
-                marginTop: windowHeight(2),
-                right: windowHeight(2.5),
-              }}
-            >
-              <View style={{ flexDirection: rtl ? 'row-reverse' : 'row' }}>
-                <View
-                  style={{
-                    backgroundColor: appColors.bgColor2,
-                    height: windowHeight(6),
-                    width: windowHeight(6),
-                    borderRadius: windowHeight(0.7),
-                    marginTop: windowHeight(2),
-                    marginHorizontal: windowHeight(1),
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Image
-                    source={Images.mapFrame3}
-                    resizeMode="contain"
-                    style={{
-                      height: windowHeight(4),
-                      width: windowHeight(3),
-                    }}
-                  />
-                </View>
-                <Text
-                  style={{
-                    color: appColors.orange,
-                    top: windowHeight(3.5),
-                    fontFamily: appFonts.bold,
-                    fontSize: fontSizes.FONT5,
-                    textAlign: rtl ? 'right' : 'left'
-                  }}
-                >
-                  {dashBoardList?.driver_performance?.total_hours}
-                </Text>
-              </View>
               <Text
-                style={{
-                  color: isDark ? appColors.white : appColors.black,
-                  marginHorizontal: windowHeight(2),
-                  marginTop: windowHeight(1.7),
-                  fontFamily: appFonts.medium,
-                  textAlign: rtl ? 'right' : 'left'
-                }}
+                style={[styles.tileLabel, { color: bodyColor, textAlign: textRtlStyle }]}
               >
-                {translateData.totalHours}
+                {tile.label}
               </Text>
-              <Image
-                source={Images.mapFrame4}
-                resizeMode="contain"
-                style={{
-                  height: windowHeight(10),
-                  width: windowHeight(21),
-                  alignSelf: 'center',
-                }}
-              />
             </View>
-          </View>
-
-          <Text
-            style={{
-              color: isDark ? appColors.white : appColors.black,
-              marginHorizontal: windowWidth(5),
-              marginTop: windowHeight(2.5),
-              fontFamily: appFonts.medium,
-              fontSize: fontSizes.FONT4,
-            }}
-          >
-            {translateData.averageDrivePerformance}
-          </Text>
-          <View
-            style={{
-              flexDirection: rtl ? 'row-reverse' : 'row',
-              justifyContent: 'space-between',
-              gap: 5,
-            }}
-          >
-            <View
-              style={{
-                height: windowHeight(26),
-                width: windowHeight(20),
-                borderColor: isDark ? appColors.darkborder : appColors.border,
-                borderWidth: windowHeight(0.1),
-                marginHorizontal: windowHeight(2.5),
-                borderRadius: windowHeight(0.8),
-                marginTop: windowHeight(2),
-              }}
-            >
-              <View style={{ flexDirection: rtl ? 'row-reverse' : 'row' }}>
-                <View
-                  style={{
-                    backgroundColor: appColors.gray,
-                    height: windowHeight(6),
-                    width: windowHeight(6),
-                    borderRadius: windowHeight(0.7),
-                    marginTop: windowHeight(2),
-                    marginHorizontal: windowHeight(2),
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Image
-                    source={Images.mapFrame5}
-                    resizeMode="contain"
-                    style={{
-                      height: windowHeight(4),
-                      width: windowHeight(3),
-                      tintColor: appColors.completeColor
-                    }}
-                  />
-                </View>
-                <View>
-                  <Text
-                    style={{
-                      color: appColors.completeColor,
-                      top: windowHeight(2),
-                      fontFamily: appFonts.bold,
-                      fontSize: fontSizes.FONT5,
-                      textAlign: 'center'
-                    }}
-                  >
-                    {dashBoardList?.driver_performance?.average_distance}
-                  </Text>
-                  <Text
-                    style={{
-                      color: appColors.completeColor,
-                      top: windowHeight(2),
-                      fontFamily: appFonts.bold,
-                      fontSize: fontSizes.FONT5,
-                      textAlign: 'center'
-                    }}
-                  >
-                    {dashBoardList?.driver_performance?.unit}
-                  </Text>
-                </View>
-              </View>
-              <Text
-                style={{
-                  color: isDark ? appColors.white : appColors.black,
-                  marginHorizontal: windowHeight(2),
-                  marginTop: windowHeight(1.7),
-                  fontFamily: appFonts.medium,
-                  textAlign: rtl ? 'right' : 'left'
-                }}
-              >
-                {translateData.averageDistances}
-              </Text>
-              <Image
-                source={Images.mapFrame6}
-                style={{
-                  height: windowHeight(12.4),
-                  width: windowHeight(21),
-                  alignSelf: 'center',
-                  marginTop: windowHeight(1.8),
-                  tintColor: appColors.completeColor
-                }}
-              />
-            </View>
-            <View
-              style={{
-                height: windowHeight(26),
-                width: windowHeight(20),
-                borderColor: isDark ? appColors.darkborder : appColors.border,
-                borderWidth: windowHeight(0.1),
-                borderRadius: windowHeight(0.8),
-                marginTop: windowHeight(2),
-                right: windowHeight(2.5),
-              }}
-            >
-              <View style={{
-                flexDirection: rtl ? 'row-reverse' : 'row'
-              }}>
-                <View
-                  style={{
-                    backgroundColor: appColors.bgColor1,
-                    height: windowHeight(6),
-                    width: windowHeight(6),
-                    borderRadius: windowHeight(0.7),
-                    marginTop: windowHeight(2),
-                    marginHorizontal: windowHeight(2),
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Image
-                    source={Images.mapFrame8}
-                    resizeMode="contain"
-                    style={{
-                      height: windowHeight(4),
-                      width: windowHeight(3),
-                    }}
-                  />
-                </View>
-                <Text
-                  style={{
-                    color: appColors.setp,
-                    top: windowHeight(3.5),
-                    fontFamily: appFonts.bold,
-                    fontSize: fontSizes.FONT5,
-                  }}
-                >
-                  {dashBoardList?.driver_performance?.average_hours}
-                </Text>
-              </View>
-              <Text
-                style={{
-                  color: isDark ? appColors.white : appColors.black,
-                  marginHorizontal: windowHeight(2),
-                  marginTop: windowHeight(1.7),
-                  fontFamily: appFonts.medium,
-                  textAlign: rtl ? 'right' : 'left'
-                }}
-              >
-                {translateData.averageHours}{' '}
-              </Text>
-              <Image
-                source={Images.mapFrame7}
-                style={{
-                  height: windowHeight(10),
-                  width: windowHeight(20),
-                  alignSelf: 'center',
-                  top: windowHeight(3),
-                }}
-              />
-            </View>
-          </View>
+          ))}
         </View>
-      </View >
-    </ScrollView >
+      </ScrollView>
+    </View>
   )
 }
-
-

@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     marginTop: windowHeight(1.2),
   },
   headerAlign: {
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
   },
   headerTitle: {
@@ -40,7 +40,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: windowHeight(0.6),
-    backgroundColor: appColors.primaryLight,
+    // Flush with the header, so the pale border is what defines the button.
+    backgroundColor: appColors.primary,
     borderColor: appColors.greenborder,
   },
   switchContainer: {

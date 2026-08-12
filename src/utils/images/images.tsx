@@ -1,4 +1,7 @@
 const Images = {
+  brandLogo: require('../../assets/images/brandLogo.jpeg'),
+  loginCity: require('../../assets/images/loginCity.png'),
+  otpIllustration: require('../../assets/images/otpIllustration.png'),
   payPal: require('../../assets/images/payPal.png'),
   googlePay: require('../../assets/images/googlePay.png'),
   user: require('../../assets/images/user.png'),

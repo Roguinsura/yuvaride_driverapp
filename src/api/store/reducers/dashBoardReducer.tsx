@@ -23,7 +23,7 @@ const dashBoardSlice = createSlice({
             state.statusCode = action.payload.status;
             state.loading = false;
         });
-        builder.addCase(dashBoardData.rejected, (state) => {
+        builder.addCase(dashBoardData.rejected, (state, action: any) => {
             state.loading = false;
             state.success = false;
             state.statusCode = action.payload?.status || 500;

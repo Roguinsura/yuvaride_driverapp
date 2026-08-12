@@ -1,10 +1,18 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react'
-import { BackHandler, View } from 'react-native'
+import {
+  BackHandler,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  View,
+} from 'react-native'
 import { useIsFocused } from '@react-navigation/native'
 import { useDispatch, useSelector } from 'react-redux'
 import styles from './styles'
-import appColors from '../../../theme/appColors'
-import { Background, Header } from '../component'
+import brandColors from '../../../theme/brandColors'
+import images from '../../../utils/images/images'
 import { LoginView } from './component/'
 import { useValues } from '../../../utils/context'
 import { AppDispatch } from '../../../api/store'
@@ -20,7 +28,7 @@ import {
 } from '../../../api/interface/authInterface'
 import { getValue, setValue } from '../../../utils/localstorage'
 import { useAppNavigation } from '../../../utils/navigation'
-import { getFcmToken } from '../../../utils/pushNotificationHandler'
+import { getFCMToken } from '../../../utils/pushNotificationHandler'
 
 import { getAllCountries } from 'react-native-country-select/lib/utils/countryHelpers'
 
@@ -50,7 +58,7 @@ export function Login() {
         if (token) {
           setFcmToken(token)
         } else {
-          const newToken = await getFcmToken()
+          const newToken = await getFCMToken()
           if (newToken) {
             setFcmToken(newToken)
             await setValue('fcmToken', newToken)
@@ -195,45 +203,52 @@ export function Login() {
   }, [])
 
   return (
-    <View
+    <SafeAreaView
       style={[
         styles.main,
         {
           backgroundColor: isDark
-            ? appColors.darkThemeSub
-            : appColors.graybackground,
+            ? brandColors.pageDark
+            : brandColors.cardLight,
         },
       ]}
     >
-      <Header
-        showBackButton={false}
-        backgroundColor={isDark ? appColors.bgDark : appColors.graybackground}
-      />
-      <Background />
-      <View style={styles.loginView}>
-        <LoginView
-          gotoOTP={() => {
-            setDriverLoading(false)
-            gotoOTP('driver')
-          }}
-          driverLoading={driverLoading}
-          setDriverLoading={setDriverLoading}
-          fleetLoading={fleetLoading}
-          setFleetLoading={setFleetLoading}
-          gotoOTPFleet={gotoOTPFleet}
-          phoneNumber={phoneNumber}
-          setPhoneNumber={setPhoneNumber}
-          countryCode={countryCode}
-          setCountryCode={setCountryCode}
-          borderColor={
-            isDark ? appColors.primaryFont : appColors.graybackground
-          }
-          setCca2={setCca2}
-          demouser={demouser}
+      <KeyboardAvoidingView
+        style={styles.main}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <LoginView
+            gotoOTP={() => {
+              setDriverLoading(false)
+              gotoOTP('driver')
+            }}
+            driverLoading={driverLoading}
+            setDriverLoading={setDriverLoading}
+            fleetLoading={fleetLoading}
+            setFleetLoading={setFleetLoading}
+            gotoOTPFleet={gotoOTPFleet}
+            phoneNumber={phoneNumber}
+            setPhoneNumber={setPhoneNumber}
+            countryCode={formattedCountryCode}
+            setCountryCode={setCountryCode}
+            setCca2={setCca2}
+            demouser={demouser}
+          />
 
-          countryCode={formattedCountryCode}
-        />
-      </View>
-    </View>
+          <View style={styles.bottomArt}>
+            <Image
+              source={images.loginCity}
+              style={styles.bottomArtImage}
+              resizeMode="contain"
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   )
 }

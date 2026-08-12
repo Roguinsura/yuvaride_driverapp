@@ -1,17 +1,52 @@
 import { StyleSheet } from 'react-native'
-import { windowHeight, windowWidth } from '../../../../../theme/appConstant'
+import {
+  windowHeight,
+  windowWidth,
+  fontSizes,
+} from '../../../../../theme/appConstant'
 import appColors from '../../../../../theme/appColors'
 import appFonts from '../../../../../theme/appFonts'
+import brandColors from '../../../../../theme/brandColors'
 
 const styles = StyleSheet.create({
   main: {
-    height: windowHeight(8),
     width: '100%',
-    marginVertical: windowHeight(1.5),
-    borderRadius: windowHeight(0.9),
+    borderRadius: windowWidth(5),
     borderWidth: 1,
-    borderColor: appColors.border,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.05,
+    shadowRadius: 18,
+    elevation: 3,
+  },
+  // Matches the "General" / "Registration" headings. A big red heading shouted
+  // over the whole section; the danger now reads from the row and the card's
+  // tinted border instead.
+  title: {
+    fontFamily: appFonts.bold,
+    fontSize: fontSizes.FONT4HALF,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+    marginTop: windowHeight(2.4),
+    marginBottom: windowHeight(1.2),
+  },
+  logoutButton: {
+    width: '100%',
+    alignItems: 'center',
     justifyContent: 'center',
+    marginTop: windowHeight(2),
+    height: windowHeight(6.2),
+    borderRadius: windowWidth(3),
+    borderWidth: 1.5,
+    borderColor: brandColors.primary,
+    backgroundColor: brandColors.primarySoft,
+  },
+  logoutText: {
+    color: appColors.primary,
+    fontFamily: appFonts.bold,
+    fontSize: fontSizes.FONT4,
+    fontWeight: '700',
   },
   loaderTitle: {
     marginVertical: windowHeight(1.5),
@@ -19,36 +54,12 @@ const styles = StyleSheet.create({
     width: windowWidth(20),
     left: windowHeight(2),
   },
-  title: {
-    color: appColors.red,
-    marginHorizontal: windowWidth(1),
-    marginTop: windowHeight(1),
-    fontFamily: appFonts.medium,
-  },
   border: {
-    borderBottomWidth: windowHeight(0.1),
+    borderBottomWidth: 1,
     marginHorizontal: windowWidth(4),
   },
   loaderStyle: {
     bottom: windowHeight(2.5),
-  },
-  modelButton: {
-    justifyContent: 'space-between',
-    marginTop: windowHeight(2),
-  },
-  modelTitle: {
-    fontFamily: appFonts.regular,
-    width: windowWidth(300),
-    textAlign: 'center',
-    marginBottom: windowHeight(20),
-  },
-  modalContent: {
-    borderRadius: windowHeight(1),
-  },
-  alertBorder: {
-    borderBottomWidth: windowHeight(0.9),
-    marginHorizontal: windowHeight(13),
-    marginVertical: windowHeight(10),
   },
   cancelButton: {
     height: windowHeight(5.7),

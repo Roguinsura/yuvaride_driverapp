@@ -1,67 +1,89 @@
 import { StyleSheet } from 'react-native'
 import appColors from '../../../../../theme/appColors'
 import appFonts from '../../../../../theme/appFonts'
-import { fontSizes, windowHeight, windowWidth } from '../../../../../theme/appConstant'
+import {
+  fontSizes,
+  windowHeight,
+  windowWidth,
+} from '../../../../../theme/appConstant'
+
+// The card is measured rather than percentage-sized: the SVG background needs
+// concrete numbers to place its gradient and decorative circles.
+export const CARD_WIDTH = windowWidth(90)
+export const CARD_HEIGHT = windowHeight(25)
 
 const styles = StyleSheet.create({
   mainBalance: {
     marginTop: windowHeight(2),
-    borderRadius: windowHeight(1.2),
+    marginHorizontal: windowWidth(5),
+  },
+  card: {
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
+    borderRadius: windowWidth(5),
     overflow: 'hidden',
-    marginHorizontal: windowWidth(4),
-    height: windowHeight(23.5),
-    backgroundColor: appColors.darkPrimary,
+    justifyContent: 'space-between',
+    padding: windowWidth(4.5),
+    shadowColor: appColors.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 18,
+    elevation: 8,
   },
-  walletImage: {
-    height: windowHeight(19),
-    width: '100%',
-    borderRadius: windowHeight(1),
-    resizeMode: 'stretch',
-  },
-  subBalance: {
-    position: 'absolute',
-    height: windowHeight(6),
-    width: '100%',
+
+  topRow: {
+    alignItems: 'center',
     justifyContent: 'space-between',
   },
-  balanceView: {
-    borderRadius: windowHeight(1),
-    justifyContent: 'center',
-    marginVertical: windowHeight(1.4),
-  },
   balanceTitle: {
-    color: appColors.value,
-    fontSize: fontSizes.FONT4,
-    marginBottom: windowHeight(0.1),
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: fontSizes.FONT3HALF,
     fontFamily: appFonts.regular,
   },
-  totalBalance: {
-    fontSize: fontSizes.FONT6,
-    color: appColors.white,
-    fontFamily: appFonts.bold,
-  },
-  topupBtn: {
-    height: windowHeight(5),
-    width: windowWidth(20),
-    backgroundColor: appColors.white,
-    borderRadius: windowHeight(1),
+  eyeButton: {
+    height: windowHeight(4),
+    width: windowHeight(4),
+    borderRadius: windowHeight(2),
+    backgroundColor: 'rgba(255,255,255,0.18)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: windowHeight(3),
-    marginHorizontal: windowWidth(4),
   },
-  topupTitle: {
+  totalBalance: {
+    fontSize: fontSizes.FONT8,
+    color: appColors.white,
+    fontFamily: appFonts.bold,
+    fontWeight: '700',
+    letterSpacing: -1,
+    fontVariant: ['tabular-nums'],
+    marginTop: windowHeight(0.6),
+  },
+
+  actions: {
+    justifyContent: 'space-between',
+    gap: windowWidth(3),
+  },
+  actionButton: {
+    flex: 1,
+    height: windowHeight(5.4),
+    backgroundColor: appColors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: windowWidth(2.8),
+  },
+  actionText: {
     color: appColors.primary,
-    fontFamily: appFonts.medium,
+    marginHorizontal: windowWidth(1.5),
+    fontFamily: appFonts.bold,
+    fontWeight: '700',
+    fontSize: fontSizes.FONT3HALF,
   },
-  dashLine: {
-    borderBottomWidth: windowHeight(0.1),
-    borderStyle: 'dashed',
-    borderColor: appColors.secondaryFont,
-    marginHorizontal: windowWidth(4),
-    bottom: windowHeight(1),
-    width: '88%',
-    alignSelf: 'center',
+
+  footerDate: {
+    color: appColors.secondaryFont,
+    fontFamily: appFonts.regular,
+    fontSize: fontSizes.FONT3HALF,
+    textAlign: 'center',
+    marginTop: windowHeight(1.4),
   },
 })
 

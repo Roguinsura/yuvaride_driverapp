@@ -55,121 +55,126 @@ export const fontSizes = {
   FONT30: windowWidth(30),
 }
 
+// Brand palette, scoped to onboarding only.
+//
+// Deliberately NOT in theme/appColors — that file is still the green Taxido
+// palette used by the other 295 files, and mixing the two there would recolour
+// the whole app. When the global rebrand happens these move into appColors and
+// this block goes away.
+export const BRAND = {
+  primary: '#f86f00',
+  primaryPressed: '#d75f00',
+  onPrimary: '#FFFFFF',
+  dotInactive: '#F6DCC4',
+  cardDark: '#1C1C1E',
+  heroBgLight: '#FFFFFF',
+  heroBgDark: '#241A12',
+  // Card is orange now, so its contents invert: white text, white CTA with
+  // orange label. Without this the CTA and the active dot are orange-on-orange.
+  onCardMuted: 'rgba(255,255,255,0.85)',
+  dotIdleOnCard: 'rgba(255,255,255,0.45)',
+}
+
+// Card overlaps the hero image by this much, so the art bleeds behind it.
+const CARD_OVERLAP = windowHeight(28)
+
 const styles = StyleSheet.create({
-  slideContainer: {
-    flex: 1,
-
-  },
-  languageContainer: {
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    position: 'absolute',
-    top: windowHeight(8),
-    width: '100%',
-    paddingHorizontal: windowWidth(5),
-    zIndex: 1,
-  },
-  imageBackground: {
-    width: '100%',
-    height: Platform.OS === "ios" ? windowHeight(390) : windowHeight(423),
-    resizeMode: 'contain',
-    bottom: windowHeight(20),
-    marginBottom: windowHeight(45)
-  },
-  title: {
-    fontFamily: appFonts.medium,
-    fontSize: fontSizes.FONT24,
-    fontWeight: '500',
-    marginTop: windowHeight(25),
-    textAlign: 'center',
-  },
-  description: {
-    fontFamily: appFonts.regular,
-    color: appColors.secondaryFont,
-    alignSelf: 'center',
-    fontWeight: '400',
-    paddingTop: windowHeight(12),
-    width: '75%',
-    fontSize: fontSizes.FONT19,
-    lineHeight: windowHeight(17),
-    textAlign: 'center',
-  },
-  backArrow: {
-    width: windowHeight(34),
-    height: windowHeight(34),
-    borderRadius: windowHeight(34),
-    backgroundColor: appColors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
-    bottom: windowHeight(0),
-    position: 'absolute',
-  },
-  img: {
-    width: '100%',
-    height: windowHeight(213),
-    marginBottom: windowHeight(30),
-  },
-  activeStyle: {
-    width: '6%',
-    backgroundColor: appColors.primary,
-    height: windowHeight(4.6),
-  },
-  paginationStyle: {
-    height: '25%',
-  },
-  imageBgView: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  flagImage: {
-    height: windowHeight(20),
-    width: windowHeight(20),
-    borderRadius: windowHeight(10),
-  },
-  downArrow: {
-    paddingVertical: windowHeight(4),
-    paddingHorizontal: windowWidth(5),
-  },
-  dropdownManu: {
-    borderRadius: windowHeight(4),
-    borderWidth: windowHeight(0),
-  },
-  dropdownContainer: {
-    width: windowWidth(200),
-    borderWidth: windowHeight(0),
-    color: appColors.alertBg,
-  },
-  labelStyle: {
-    fontFamily: appFonts.medium,
-  },
-  dropdown: {
-    borderWidth: windowHeight(0),
-    backgroundColor: 'transparent',
-    paddingHorizontal: windowWidth(18)
-  },
-  skipText: {
-    color: appColors.secondaryFont,
-    marginTop: windowHeight(2),
-    fontFamily: appFonts.regular,
-    fontSize: fontSizes.FONT19,
-    marginHorizontal: windowHeight(9),
-    borderWidth: windowHeight(1),
-    padding: windowHeight(8),
-    textAlign: 'center',
-    justifyContent: 'center',
-    borderRadius: windowHeight(4),
-  },
-  container: { flex: 1, backgroundColor: '#fff' },
-
   slide: {
     flex: 1,
   },
-
-  image: {
-    width: 85,          // <-- FULL WIDTH FIX
-    height: 80 * 0.6   // <-- Visible area
+  // --- hero (top) ---
+  heroArea: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: windowHeight(52),
   },
-
+  heroImage: {
+    width: '100%',
+    height: '100%',
+  },
+  skipWrap: {
+    position: 'absolute',
+    top: windowHeight(14),
+    right: windowWidth(18),
+    zIndex: 10,
+  },
+  skipText: {
+    color: appColors.secondaryFont,
+    fontFamily: appFonts.medium,
+    fontSize: fontSizes.FONT17,
+    paddingVertical: windowHeight(6),
+    paddingHorizontal: windowWidth(16),
+    borderRadius: windowHeight(20),
+    overflow: 'hidden',
+    textAlign: 'center',
+  },
+  // --- bottom sheet card ---
+  card: {
+    marginTop: -CARD_OVERLAP,
+    borderTopLeftRadius: windowHeight(28),
+    borderTopRightRadius: windowHeight(28),
+    paddingHorizontal: windowWidth(28),
+    paddingTop: windowHeight(22),
+    paddingBottom: windowHeight(26),
+    // lift the card off the art
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 12,
+  },
+  dotsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: windowHeight(18),
+  },
+  dot: {
+    height: windowHeight(5),
+    borderRadius: windowHeight(3),
+    marginRight: windowWidth(6),
+  },
+  dotActive: {
+    width: windowWidth(28),
+    backgroundColor: BRAND.onPrimary,
+  },
+  dotIdle: {
+    width: windowWidth(10),
+    backgroundColor: BRAND.dotIdleOnCard,
+  },
+  title: {
+    fontFamily: appFonts.bold,
+    fontSize: fontSizes.FONT26,
+    fontWeight: '700',
+    textAlign: 'left',
+    marginBottom: windowHeight(8),
+  },
+  description: {
+    fontFamily: appFonts.regular,
+    color: BRAND.onCardMuted,
+    fontWeight: '400',
+    fontSize: fontSizes.FONT17,
+    lineHeight: windowHeight(19),
+    textAlign: 'left',
+    marginBottom: windowHeight(22),
+  },
+  cta: {
+    flexDirection: 'row',
+    height: windowHeight(46),
+    borderRadius: windowHeight(23),
+    backgroundColor: BRAND.onPrimary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaText: {
+    color: BRAND.primary,
+    fontFamily: appFonts.medium,
+    fontSize: fontSizes.FONT19,
+    marginRight: windowWidth(8),
+  },
+  ctaArrow: {
+    transform: [{ scaleX: -1 }],
+  },
 })
+
 export { styles }

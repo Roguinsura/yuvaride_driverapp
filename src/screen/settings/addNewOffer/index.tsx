@@ -55,7 +55,7 @@ export function AddNewOffer() {
             placeholderValue={translateData.selectVehicleType}
             style={[
               {
-                borderColor: isDark ? appColors.darkBorder : appColors.border,
+                borderColor: isDark ? appColors.darkborder : appColors.border,
                 flexDirection: viewRtlStyle,
               },
             ]}

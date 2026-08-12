@@ -1,65 +1,28 @@
 import React from 'react'
-import { View, Text, TouchableOpacity } from 'react-native'
-import Icons from '../../../../../utils/icons/icons'
-import appColors from '../../../../../theme/appColors'
-import appFonts from '../../../../../theme/appFonts'
-import styles from './styles'
-import { ListItem } from '../'
-import { useValues } from '../../../../../utils/context'
+import { Text, TouchableOpacity } from 'react-native'
 import { useSelector } from 'react-redux'
-import { fontSizes, windowHeight } from '../../../../../theme/appConstant'
-import { useTheme } from '@react-navigation/native'
 
+import styles from './styles'
 
-export function AlertZone({ openSheet, openLogoutSheet }: any) {
-  const { textRtlStyle } = useValues()
+const FALLBACK = {
+  logout: 'Log out',
+}
+
+// Delete Account used to live here under an "Alert zone" heading. It now sits
+// on the Profile Settings screen, next to the account it deletes, which leaves
+// this as just the log-out action.
+export function AlertZone({ openLogoutSheet }: any) {
   const { translateData } = useSelector((state: any) => state.setting)
-  const { colors } = useTheme()
 
   return (
-    <>
-      <Text
-        style={[
-          styles.title,
-          {
-            textAlign: textRtlStyle,
-
-          },
-          { color: colors.text, textAlign: textRtlStyle },
-        ]}
-      >
-        {translateData.alertZone}
+    <TouchableOpacity
+      onPress={openLogoutSheet}
+      activeOpacity={0.8}
+      style={styles.logoutButton}
+    >
+      <Text style={styles.logoutText}>
+        {translateData?.logout || FALLBACK.logout}
       </Text>
-
-      <View style={[styles.main, { backgroundColor: colors.card, borderColor: colors.border },]}>
-        <ListItem
-          icon={<Icons.Delete />}
-          text={translateData.deleteAccount}
-          backgroundColor={appColors.alertIconBg}
-          color={appColors.red}
-          onPress={openSheet}
-        />
-      </View>
-
-      <TouchableOpacity
-        onPress={openLogoutSheet}
-        style={{
-          width: '100%',
-          alignItems: 'center',
-          marginTop: windowHeight(1),
-        }}
-      >
-        <Text
-          style={{
-            color: appColors.primary,
-            fontFamily: appFonts.medium,
-            fontSize: fontSizes.FONT4HALF,
-            marginVertical: windowHeight(0.8),
-          }}
-        >
-          {translateData.logout}
-        </Text>
-      </TouchableOpacity>
-    </>
+    </TouchableOpacity>
   )
 }

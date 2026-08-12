@@ -1,6 +1,10 @@
 import appColors from '../../theme/appColors'
 import appFonts from '../../theme/appFonts'
-import { fontSizes } from '../../screen/settings/chat/context'
+// The app-wide scale, not the chat screen's private one. That module also
+// exports a `fontSizes`, but on a different scale — its FONT18 is
+// windowWidth(18), roughly 70dp, which overflowed this toast and made the
+// message unreadable.
+import { fontSizes } from '../../theme/appConstant'
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { Notifier } from 'react-native-notifier'
@@ -84,8 +88,9 @@ const styles = StyleSheet.create({
     marginTop: 50,
   },
   description: {
-    fontSize: fontSizes.FONT18,
+    fontSize: fontSizes.FONT3HALF,
     color: appColors.primaryFont,
     fontFamily: appFonts.medium,
+    lineHeight: fontSizes.FONT3HALF * 1.4,
   },
 })

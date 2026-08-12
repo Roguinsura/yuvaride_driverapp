@@ -1,9 +1,10 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 import React from 'react'
+import { useTheme } from '@react-navigation/native'
+
 import Icons from '../../../../../utils/icons/icons'
 import styles from './styles'
 import ListItemProps from './type'
-import { useTheme } from '@react-navigation/native'
 import { useValues } from '../../../../../utils/context'
 import appColors from '../../../../../theme/appColors'
 
@@ -14,10 +15,10 @@ export function ListItem({
   backgroundColor,
   color,
   showNextIcon,
-  dot
+  dot,
 }: ListItemProps) {
   const { colors } = useTheme()
-  const { viewRtlStyle } = useValues()
+  const { viewRtlStyle, textRtlStyle } = useValues()
 
   return (
     <TouchableOpacity
@@ -26,36 +27,28 @@ export function ListItem({
       style={[styles.main, { flexDirection: viewRtlStyle }]}
     >
       <View style={[styles.alignment, { flexDirection: viewRtlStyle }]}>
-
         <View
           style={[
             styles.iconContain,
-            { backgroundColor: colors.background, backgroundColor },
+            { backgroundColor: backgroundColor || colors.background },
           ]}
         >
-          {dot && <View
-            style={{
-              position: "absolute",
-              bottom: 20,
-              right: 10,
-              width: 8,
-              height: 8,
-              borderRadius: 5,
-              backgroundColor: "red",
-              zIndex: 3
-            }}
-          />}
+          {/* Anchored to the chip's corner instead of the old fixed
+              bottom: 20 / right: 10, which drifted with the chip size. */}
+          {dot ? <View style={styles.dot} /> : null}
           {icon}
         </View>
-        <Text style={[styles.title, { color: colors.text, color }]}>
+        <Text
+          numberOfLines={1}
+          style={[
+            styles.title,
+            { color: color || colors.text, textAlign: textRtlStyle },
+          ]}
+        >
           {text}
         </Text>
       </View>
-      {showNextIcon && (
-        <View>
-          <Icons.NextLarge color={appColors.iconColor} />
-        </View>
-      )}
+      {showNextIcon ? <Icons.NextLarge color={appColors.iconColor} /> : null}
     </TouchableOpacity>
   )
 }

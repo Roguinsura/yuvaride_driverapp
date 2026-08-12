@@ -6,93 +6,99 @@ import {
   View,
   ActivityIndicator,
   Linking,
+  RefreshControl,
 } from 'react-native'
 import React, { useState } from 'react'
+import { useSelector } from 'react-redux'
+
 import Images from '../../../utils/images/images'
 import { styles } from './style'
 import { useValues } from '../../../utils/context'
 import Icons from '../../../utils/icons/icons'
-import { useSelector } from 'react-redux'
-import { useTheme } from '@react-navigation/native'
 import appColors from '../../../theme/appColors'
-import appFonts from '../../../theme/appFonts'
+import brandColors from '../../../theme/brandColors'
 import { LoaderRide } from './loaderRide'
-import {
-  fontSizes,
-  windowHeight,
-  windowWidth,
-} from '../../../theme/appConstant'
+import { windowHeight } from '../../../theme/appConstant'
 import { apiformatDates } from '../../../utils/functions'
 import { useAppNavigation } from '../../../utils/navigation'
+
+const FALLBACK = {
+  pickup: 'Pickup',
+  drop: 'Drop',
+  sendMessage: 'Send a message',
+  noRidesTitle: 'No rides yet',
+  noRidesDesc: 'Your rides will appear here once you start driving.',
+}
+
+// Each ride status gets a label, a foreground and a soft background so the pill
+// reads at a glance. `statusMapping` already existed but was only used to build
+// a navigation param — the card never actually showed the status.
+const STATUS_MAPPING: Record<
+  string,
+  { text: string; color: string; soft: string }
+> = {
+  accepted: { text: 'Pending', color: '#FFB400', soft: '#FFF4DC' },
+  arrived: { text: 'Pending', color: '#FFB400', soft: '#FFF4DC' },
+  started: { text: 'Active', color: '#3F8FDA', soft: '#EAF2FB' },
+  schedule: { text: 'Scheduled', color: '#7F00FF', soft: '#F2E7FF' },
+  cancelled: { text: 'Cancelled', color: brandColors.danger, soft: '#FDECEC' },
+  completed: { text: 'Completed', color: '#20B149', soft: '#E8F7EE' },
+}
 
 export default function RideContainer({
   status,
   scrollEnabled = true,
+  refreshing,
+  onRefresh,
 }: {
   status: any
   scrollEnabled?: boolean
+  refreshing?: boolean
+  onRefresh?: () => void
 }) {
   const { navigate } = useAppNavigation()
   const { viewRtlStyle, textRtlStyle, isDark } = useValues()
-  const { colors } = useTheme()
   const { rideGets } = useSelector((state: any) => state.ride)
   const { allVehicle } = useSelector((state: any) => state.vehicleType)
   const { translateData } = useSelector((state: any) => state.setting)
+  const { zoneValue } = useSelector((state: any) => state.zoneUpdate)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
   const [hasMoreData, setHasMoreData] = useState(true)
-  const { zoneValue } = useSelector((state: any) => state.zoneUpdate)
-  const acceptedRides = rideGets?.data?.filter((ride: any) => {
-    const rideStatus = ride?.ride_status?.slug?.toLowerCase()
-    const categorySlug = ride?.service_category?.name?.toLowerCase()
-    const currentStatus = status?.toLowerCase()?.trim()
-    if (!rideStatus) return false
-    if (currentStatus === 'schedule') {
-      return categorySlug === 'schedule' && rideStatus !== 'cancelled'
-    }
-    if (currentStatus === 'accepted') {
-      return (
-        categorySlug !== 'schedule' &&
-        rideStatus !== 'completed' &&
-        rideStatus !== 'cancelled'
-      )
-    }
-    if (currentStatus === 'past') {
-      return rideStatus === 'completed' || rideStatus === 'cancelled'
-    }
-    return rideStatus === currentStatus
-  })
-  console.log('status', status);
 
-  const statusMapping = {
-    accepted: {
-      text: 'Pending',
-      color: appColors.completeColor,
-    },
-    started: {
-      text: 'Active',
-      color: appColors.activeColor,
-    },
-    schedule: {
-      text: 'Scheduled',
-      color: appColors.scheduleColor,
-    },
-    cancelled: {
-      text: 'Cancel',
-      color: appColors.alertRed,
-    },
-    completed: {
-      text: 'Completed',
-      color: appColors.primary,
-    },
-    arrived: {
-      text: 'Pending',
-      color: appColors.completeColor,
-    },
-  }
-  const paginatedData = acceptedRides?.slice(0, page * 5) || []
+  const cardBg = isDark ? appColors.darkThemeSub : appColors.white
+  const borderColor = isDark ? appColors.darkborder : appColors.border
+  const titleColor = isDark ? appColors.white : brandColors.titleLight
+  const bodyColor = isDark ? appColors.darkText : brandColors.bodyLight
 
-  const gotoMessage = item => {
+  // Defaults to an empty array so the "no rides" branch below is reached while
+  // the request is still in flight, instead of falling through to a FlatList
+  // with nothing in it.
+  const acceptedRides =
+    rideGets?.data?.filter((ride: any) => {
+      const rideStatus = ride?.ride_status?.slug?.toLowerCase()
+      const categorySlug = ride?.service_category?.name?.toLowerCase()
+      const currentStatus = status?.toLowerCase()?.trim()
+      if (!rideStatus) return false
+      if (currentStatus === 'schedule') {
+        return categorySlug === 'schedule' && rideStatus !== 'cancelled'
+      }
+      if (currentStatus === 'accepted') {
+        return (
+          categorySlug !== 'schedule' &&
+          rideStatus !== 'completed' &&
+          rideStatus !== 'cancelled'
+        )
+      }
+      if (currentStatus === 'past') {
+        return rideStatus === 'completed' || rideStatus === 'cancelled'
+      }
+      return rideStatus === currentStatus
+    }) || []
+
+  const paginatedData = acceptedRides.slice(0, page * 5)
+
+  const gotoMessage = (item: any) => {
     navigate('Chat', {
       driverId: item?.driver?.id,
       riderId: item?.rider?.id,
@@ -102,15 +108,15 @@ export default function RideContainer({
     })
   }
 
-  const gotoCall = item => {
+  const gotoCall = (item: any) => {
     const phoneNumber = item?.driver?.phone
-    Linking.openURL(`tel:${phoneNumber}`)
+    if (phoneNumber) Linking.openURL(`tel:${phoneNumber}`)
   }
 
   const loadMoreData = () => {
     if (!loading && hasMoreData) {
       setLoading(true)
-      if (paginatedData?.length < acceptedRides?.length) {
+      if (paginatedData.length < acceptedRides.length) {
         setPage(prevPage => prevPage + 1)
       } else {
         setHasMoreData(false)
@@ -119,8 +125,8 @@ export default function RideContainer({
     }
   }
 
-  const handlePress = (selectedItem, vehicleData) => {
-    let rideStatus = statusMapping[selectedItem?.ride_status?.slug]?.text
+  const handlePress = (selectedItem: any, vehicleData: any) => {
+    const rideStatus = STATUS_MAPPING[selectedItem?.ride_status?.slug]?.text
 
     navigate('PendingDetails', {
       item: selectedItem,
@@ -129,398 +135,248 @@ export default function RideContainer({
     })
   }
 
-  const renderItem = ({ item }) => {
+  const renderItem = ({ item }: { item: any }) => {
     const { vehicle_type_id } = item?.vehicle_type_id || {}
-
     const vehicleData = Array.isArray(allVehicle)
-      ? allVehicle.find(vehicle => vehicle?.id == vehicle_type_id)
+      ? allVehicle.find((vehicle: any) => vehicle?.id == vehicle_type_id)
       : undefined
 
     const formattedDate = apiformatDates(item?.created_at)
-    const hasProfileImage = !!item?.rider?.driver_profile_image_url
+    const profileImage = item?.rider?.driver_profile_image_url
+    const slug = item?.ride_status?.slug
+    const statusInfo = STATUS_MAPPING[slug]
+    const isFinished = slug === 'completed' || slug === 'cancelled'
+
+    // Both the full and the half star used to read from different objects —
+    // `driver` for one, `rider` for the other — so a half star could light up
+    // from a rating the full star never saw. One source now.
+    const rating = Number(item?.driver?.rating_count)
+    const safeRating = isFinite(rating) ? rating : 0
+
+    const locations = Array.isArray(item?.locations) ? item.locations : []
+    const pickup = locations[0]
+    const drop = locations.length > 1 ? locations[locations.length - 1] : null
 
     return (
-      <View style={[styles.container]}>
-        <TouchableOpacity
-          onPress={() => handlePress(item, vehicleData)}
-          activeOpacity={0.7}
-        >
-          <View
-            style={[
-              styles.rideInfoContainer,
-              {
-                backgroundColor: isDark ? colors.card : appColors.white,
-                borderColor: colors.border,
-              },
-            ]}
-          >
-            <View
-              style={[
-                {
-                  flexDirection: viewRtlStyle,
-                  justifyContent: 'space-between',
-                },
-              ]}
-            >
-              <View style={{ flexDirection: viewRtlStyle }}>
-                {hasProfileImage ? (
-                  <Image
-                    style={styles.profileImage}
-                    source={{ uri: item?.rider?.driver_profile_image_url }}
-                  />
-                ) : (
-                  <View
-                    style={{
-                      width: windowWidth(13),
-                      height: windowWidth(13),
-                      borderRadius: windowHeight(10),
-                      backgroundColor: appColors.primary,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: fontSizes.FONT4HALF,
-                        fontFamily: appFonts.bold,
-                        color: appColors.white,
-                      }}
-                    >
-                      {item?.rider?.name?.charAt(0)?.toUpperCase() || 'D'}
-                    </Text>
-                  </View>
-                )}
-                <View style={styles.profileTextContainer}>
-                  <Text
-                    style={[
-                      styles.profileName,
-                      {
-                        color: isDark ? appColors.white : appColors.primaryFont,
-                      },
-                      { textAlign: textRtlStyle },
-                    ]}
-                  >
-                    {item?.rider?.name}
-                  </Text>
-                  <View style={[styles.carInfoContainer]}>
-                    <View style={{ flexDirection: 'row' }}>
-                      {Array.from({ length: 5 }).map((_, index) => {
-                        const fullStarThreshold = index + 1
-                        const halfStarThreshold = index + 0.5
-                        if (item?.driver?.rating_count >= fullStarThreshold) {
-                          return <Icons.RatingStar key={index} />
-                        } else if (
-                          item?.rider?.rating_count >= halfStarThreshold
-                        ) {
-                          return <Icons.RatingHalfStar key={index} />
-                        } else {
-                          return <Icons.RatingEmptyStar key={index} />
-                        }
-                      })}
-                    </View>
-                    <View
-                      style={[
-                        {
-                          flexDirection: viewRtlStyle,
-                          alignSelf: 'flex-end',
-                          marginHorizontal: windowHeight(0.4),
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.rating_count,
-                          {
-                            color: isDark
-                              ? appColors.white
-                              : appColors.primaryFont,
-                          },
-                        ]}
-                      >
-                        {Number(item?.driver?.rating_count).toFixed(1)}
-                      </Text>
-                      <Text style={styles.reviews_count}>
-                        ({item?.driver?.review_count})
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-              <View>
-                <Text
-                  style={[styles.tripCostText, { textAlign: textRtlStyle }]}
-                >
-                  {zoneValue?.currency_symbol}
-                  {item?.total}
-                </Text>
-              </View>
-              {item?.ride_status?.slug === 'accepted' &&
-                item?.ride_status?.slug === 'pending' &&
-                item?.ride_status?.slug === 'arrived' &&
-                item?.ride_status?.slug === 'schedule' && (
-                  <View
-                    style={[
-                      styles.acceptedContainer,
-                      {
-                        flexDirection: viewRtlStyle,
-                      },
-                    ]}
-                  >
-                    <TouchableOpacity
-                      activeOpacity={0.7}
-                      style={[
-                        styles.callContainer,
-                        {
-                          borderColor: colors.border,
-                        },
-                      ]}
-                      onPress={() => gotoMessage(item)}
-                    >
-                      <Icons.Message color={appColors.primary} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      activeOpacity={0.7}
-                      style={[
-                        styles.callContainer,
-                        {
-                          borderColor: colors.border,
-                        },
-                      ]}
-                      onPress={() => gotoCall(item)}
-                    >
-                      <Icons.Call color={appColors.primary} />
-                    </TouchableOpacity>
-                  </View>
-                )}
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => handlePress(item, vehicleData)}
+        style={[styles.card, { backgroundColor: cardBg, borderColor }]}
+      >
+        {/* ---------- rider + status ---------- */}
+        <View style={[styles.topRow, { flexDirection: viewRtlStyle }]}>
+          {profileImage ? (
+            <Image style={styles.avatar} source={{ uri: profileImage }} />
+          ) : (
+            <View style={styles.avatarFallback}>
+              <Text style={styles.avatarLetter}>
+                {item?.rider?.name?.charAt(0)?.toUpperCase() || 'D'}
+              </Text>
             </View>
-            {item?.ride_status?.slug !== 'completed' &&
-              item?.ride_status?.slug !== 'cancelled' && (
-                <View
-                  style={[
-                    styles.acceptedContainer,
-                    {
-                      flexDirection: viewRtlStyle,
-                      marginTop: windowHeight(1.5),
-                      width: '100%',
-                    },
-                  ]}
-                >
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    style={[
-                      styles.callContainer,
-                      {
-                        width: windowWidth(70),
-                        alignItems: 'flex-start',
-                        backgroundColor: isDark
-                          ? appColors.bgDark
-                          : appColors.lightGray,
-                      },
-                    ]}
-                    onPress={() => gotoMessage(item)}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: appFonts.regular,
-                        marginHorizontal: windowWidth(3),
-                        color: isDark ? appColors.white : appColors.primaryFont,
-                      }}
-                    >
-                      {translateData?.sendaMsg}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    style={[
-                      styles.callContainer,
-                      {
-                        borderColor: colors.border,
-                        backgroundColor: appColors.primary,
-                      },
-                    ]}
-                    onPress={() => gotoCall(item)}
-                  >
-                    <Icons.Call color={appColors.white} />
-                  </TouchableOpacity>
-                </View>
-              )}
-            <View
-              style={[
-                styles.dashedLine,
-                {
-                  borderColor: colors.border,
-                },
-              ]}
-            />
-            {item?.locations && item?.locations?.length > 0 && (
-              <View
-                style={{ flexDirection: 'row', justifyContent: 'flex-start' }}
-              >
-                <View
-                  style={{
-                    marginTop: windowHeight(0.3),
-                    marginRight: windowWidth(2),
-                  }}
-                >
-                  <Icons.location
-                    color={
-                      isDark ? appColors.secondaryFont : appColors.primaryFont
-                    }
-                  />
-                </View>
-                <Text
-                  style={{
-                    fontFamily: appFonts.medium,
-                    color: isDark
-                      ? appColors.secondaryFont
-                      : appColors.primaryFont,
-                  }}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {item?.locations[0]?.length > 30
-                    ? `${item?.locations[0].substring(0, 30)}...`
-                    : item?.locations[0] || ''}
-                </Text>
-              </View>
-            )}
-            <View
-              style={[
-                styles.dashedLine,
-                {
-                  borderColor: colors.border,
-                  width: '101%',
-                  alignSelf: 'center',
-                },
-              ]}
-            />{' '}
-            {item?.locations && item?.locations?.length > 1 && (
-              <View
-                style={{ flexDirection: 'row', justifyContent: 'flex-start' }}
-              >
-                <View
-                  style={{
-                    marginTop: windowHeight(0.3),
-                    marginRight: windowWidth(2),
-                  }}
-                >
-                  <Icons.gps
-                    color={
-                      isDark ? appColors.secondaryFont : appColors.primaryFont
-                    }
-                  />
-                </View>
-                <Text
-                  style={{
-                    fontFamily: appFonts.medium,
-                    color: isDark
-                      ? appColors.secondaryFont
-                      : appColors.primaryFont,
-                  }}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {item?.locations[item?.locations?.length - 1]?.length > 30
-                    ? `${item?.locations[item?.locations?.length - 1].substring(
-                      0,
-                      30,
-                    )}...`
-                    : item?.locations[item?.locations?.length - 1] || ''}
-                </Text>
-              </View>
-            )}
-            <View
-              style={{
-                flexDirection: viewRtlStyle,
-                marginHorizontal: windowWidth(0),
-                marginTop: windowHeight(1.2),
-                alignItems: 'center',
-              }}
+          )}
+
+          <View style={styles.nameWrap}>
+            <Text
+              numberOfLines={1}
+              style={[styles.name, { color: titleColor, textAlign: textRtlStyle }]}
             >
-              <View
-                style={{ flexDirection: viewRtlStyle, alignItems: 'center' }}
-              >
-                <Icons.CalanderBig />
-                <Text
-                  style={{
-                    fontFamily: appFonts.regular,
-                    color: appColors.secondaryFont,
-                    marginHorizontal: windowWidth(1),
-                  }}
-                >
-                  {formattedDate.date}
-                </Text>
+              {item?.rider?.name}
+            </Text>
+            <View style={[styles.ratingRow, { flexDirection: viewRtlStyle }]}>
+              <View style={{ flexDirection: 'row' }}>
+                {Array.from({ length: 5 }).map((_, index) => {
+                  if (safeRating >= index + 1) {
+                    return <Icons.RatingStar key={index} />
+                  }
+                  if (safeRating >= index + 0.5) {
+                    return <Icons.RatingHalfStar key={index} />
+                  }
+                  return <Icons.RatingEmptyStar key={index} />
+                })}
               </View>
-              <View
-                style={{
-                  height: windowHeight(1.5),
-                  borderRightWidth: 1,
-                  borderRightColor: isDark
-                    ? appColors.secondaryFont
-                    : appColors.border,
-                  marginHorizontal: windowWidth(2),
-                }}
-              />
-              <View
-                style={{ flexDirection: viewRtlStyle, alignItems: 'center' }}
-              >
-                <Icons.Clock />
-                <Text
-                  style={{
-                    fontFamily: appFonts.regular,
-                    color: appColors.secondaryFont,
-                    marginHorizontal: windowWidth(1),
-                  }}
-                >
-                  {formattedDate.time}
-                </Text>
-              </View>
+              <Text style={[styles.ratingText, { color: titleColor }]}>
+                {safeRating.toFixed(1)}
+              </Text>
+              <Text style={styles.reviewText}>
+                ({item?.driver?.review_count ?? 0})
+              </Text>
             </View>
           </View>
-        </TouchableOpacity>
+
+          {statusInfo && (
+            <View
+              style={[styles.statusPill, { backgroundColor: statusInfo.soft }]}
+            >
+              <Text style={[styles.statusText, { color: statusInfo.color }]}>
+                {statusInfo.text}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View style={[styles.divider, { backgroundColor: borderColor }]} />
+
+        {/* ---------- route ---------- */}
+        {pickup ? (
+          <View style={styles.routeRow}>
+            <View style={styles.rail}>
+              <View
+                style={[
+                  styles.dot,
+                  { borderColor: appColors.primary, backgroundColor: cardBg },
+                ]}
+              />
+              {drop ? (
+                <>
+                  <View
+                    style={[styles.railLine, { backgroundColor: borderColor }]}
+                  />
+                  <View
+                    style={[
+                      styles.dot,
+                      {
+                        borderColor: brandColors.danger,
+                        backgroundColor: cardBg,
+                      },
+                    ]}
+                  />
+                </>
+              ) : null}
+            </View>
+
+            <View style={styles.routeTexts}>
+              <Text style={[styles.routeLabel, { textAlign: textRtlStyle }]}>
+                {translateData?.pickup || FALLBACK.pickup}
+              </Text>
+              <Text
+                numberOfLines={1}
+                style={[
+                  styles.routeAddress,
+                  { color: titleColor, textAlign: textRtlStyle },
+                ]}
+              >
+                {pickup}
+              </Text>
+
+              {drop ? (
+                <>
+                  <View style={styles.routeGap} />
+                  <Text style={[styles.routeLabel, { textAlign: textRtlStyle }]}>
+                    {translateData?.drop || FALLBACK.drop}
+                  </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={[
+                      styles.routeAddress,
+                      { color: titleColor, textAlign: textRtlStyle },
+                    ]}
+                  >
+                    {drop}
+                  </Text>
+                </>
+              ) : null}
+            </View>
+          </View>
+        ) : null}
+
+        <View style={[styles.divider, { backgroundColor: borderColor }]} />
+
+        {/* ---------- date, time, fare ---------- */}
+        <View style={[styles.footerRow, { flexDirection: viewRtlStyle }]}>
+          <View style={[styles.metaRow, { flexDirection: viewRtlStyle }]}>
+            <Icons.CalanderBig />
+            <Text style={styles.metaText}>{formattedDate.date}</Text>
+            <View
+              style={[styles.metaSeparator, { backgroundColor: borderColor }]}
+            />
+            <Icons.Clock color={appColors.secondaryFont} />
+            <Text style={styles.metaText}>{formattedDate.time}</Text>
+          </View>
+          <Text style={styles.fare}>
+            {zoneValue?.currency_symbol}
+            {item?.total}
+          </Text>
+        </View>
+
+        {/* ---------- actions, live rides only ---------- */}
+        {!isFinished && (
+          <View style={[styles.actionRow, { flexDirection: viewRtlStyle }]}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.messageButton}
+              onPress={() => gotoMessage(item)}
+            >
+              <Text style={styles.messageText}>
+                {translateData?.sendaMsg || FALLBACK.sendMessage}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.callButton}
+              onPress={() => gotoCall(item)}
+            >
+              <Icons.Call color={appColors.white} />
+            </TouchableOpacity>
+          </View>
+        )}
+      </TouchableOpacity>
+    )
+  }
+
+  const renderEmpty = () => (
+    <View style={styles.noDataContainer}>
+      <Image source={Images.noRides} style={styles.noDataImage} />
+      <Text style={[styles.noDataText, { color: titleColor }]}>
+        {translateData?.norideTitle || FALLBACK.noRidesTitle}
+      </Text>
+      <Text style={[styles.noDataDesc, { color: bodyColor }]}>
+        {translateData?.norideDescription || FALLBACK.noRidesDesc}
+      </Text>
+    </View>
+  )
+
+  if (loading && acceptedRides.length > 0) {
+    return (
+      <View style={styles.listContainer}>
+        <LoaderRide />
       </View>
     )
   }
 
-
-  console.log('ridestatus', rideGets);
-
-
   return (
     <View style={styles.listContainer}>
-      {loading && acceptedRides?.length > 0 ? (
-        <LoaderRide />
-      ) : acceptedRides?.length === 0 ? (
-        <View style={styles.noDataContainer}>
-          <Image source={Images.noRides} style={styles.noDataImage} />
-          <Text style={styles.noDataText}>{translateData.norideTitle}</Text>
-          <Text style={styles.noDataDesc}>
-            {translateData.norideDescription}
-          </Text>
-        </View>
-      ) : (
-        <>
-          <FlatList
-            data={paginatedData}
-            scrollEnabled={scrollEnabled}
-            keyExtractor={item => item?.id.toString()}
-            renderItem={renderItem}
-            onEndReached={loadMoreData}
-            onEndReachedThreshold={0.9}
-            ListFooterComponent={
-              loading ? (
-                <ActivityIndicator
-                  size="large"
-                  color={appColors.primary}
-                  style={{ marginTop: 10 }}
-                />
-              ) : null
-            }
-          />
-
-          <View style={styles.bottomView} />
-        </>
-      )}
+      <FlatList
+        data={paginatedData}
+        scrollEnabled={scrollEnabled}
+        keyExtractor={item => item?.id.toString()}
+        renderItem={renderItem}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        onEndReached={loadMoreData}
+        onEndReachedThreshold={0.9}
+        // The empty state is a list component rather than an early return, so
+        // pull-to-refresh still works when there is nothing to show.
+        ListEmptyComponent={renderEmpty}
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl
+              refreshing={!!refreshing}
+              onRefresh={onRefresh}
+              colors={[appColors.primary]}
+              tintColor={appColors.primary}
+            />
+          ) : undefined
+        }
+        ListFooterComponent={
+          loading ? (
+            <ActivityIndicator
+              size="large"
+              color={appColors.primary}
+              style={{ marginTop: windowHeight(1.2) }}
+            />
+          ) : null
+        }
+      />
     </View>
   )
 }

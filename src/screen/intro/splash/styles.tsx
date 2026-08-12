@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
   },
   modalImageContainer: {
     padding: windowHeight(0.7),
-    backgroundColor: '#E8F4F1',
+    backgroundColor: '#FFF1E6',
     borderRadius: windowHeight(10),
   },
   modalImage: {

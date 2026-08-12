@@ -2,208 +2,218 @@ import { StyleSheet } from 'react-native'
 import { windowHeight, windowWidth, fontSizes } from '../../../theme/appConstant'
 import appFonts from '../../../theme/appFonts'
 import appColors from '../../../theme/appColors'
+import brandColors from '../../../theme/brandColors'
+
+export const AVATAR = windowWidth(12)
 
 const styles = StyleSheet.create({
-  addressContainer: {
-    backgroundColor: appColors.white,
-    shadowColor: appColors.black,
-    shadowOffset: {
-      width: windowHeight(0),
-      height: 1,
-    },
-    shadowOpacity: 0.18,
-    shadowRadius: 1.0,
-    elevation: 1,
-    borderRadius: 6,
-    paddingHorizontal: windowWidth(12),
-    paddingVertical: windowHeight(6),
+  listContainer: {
+    flex: 1,
   },
-  dashedLine: {
-    height: 0.2,
-    width: '100%',
-    borderBottomWidth: windowHeight(0.2),
-    borderColor: appColors.border,
-    borderStyle: 'dashed',
-    marginVertical: windowHeight(2),
+  listContent: {
+    paddingTop: windowHeight(1.5),
+    // Clears the floating tab bar.
+    paddingBottom: windowHeight(14),
+    flexGrow: 1,
   },
-  iconStar: {
-    marginHorizontal: windowWidth(3),
-    marginVertical: windowHeight(3),
+
+  /* ---------- card ---------- */
+  card: {
+    marginHorizontal: windowWidth(5),
+    marginBottom: windowHeight(1.8),
+    borderRadius: windowWidth(4.5),
+    borderWidth: 1,
+    padding: windowWidth(4),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.05,
+    shadowRadius: 16,
+    elevation: 3,
   },
-  pickUpLocationStyles: {
-    fontFamily: appFonts.regular,
-    fontSize: fontSizes.FONT17,
-    color: appColors.secondaryFont,
-  },
-  itemStyle: {
-    fontFamily: appFonts.regular,
-    fontSize: fontSizes.FONT17,
-    color: appColors.secondaryFont,
-  },
-  container: {
-    marginHorizontal: windowHeight(2),
-    marginTop: windowHeight(2.3),
-  },
-  rideInfoContainer: {
-    width: '100%',
-    borderRadius: 6,
-    paddingHorizontal: windowHeight(1.5),
-    paddingTop: windowHeight(1.8),
-    paddingVertical: windowHeight(1),
-    borderWidth: windowHeight(0.1),
-  },
-  profileImage: {
-    width: windowWidth(13),
-    height: windowWidth(13),
-    resizeMode: 'cover',
-    borderRadius: windowHeight(0.8),
-    overflow: 'hidden',
-  },
-  profileTextContainer: {
-    marginHorizontal: windowWidth(1.5),
-    alignSelf: 'center',
-    height: windowWidth(13),
-    justifyContent: 'space-evenly',
-  },
-  profileName: {
-    fontFamily: appFonts.medium,
-    fontSize: fontSizes.FONT4,
-    color: appColors.primaryFont,
-  },
-  carInfoContainer: {
+
+  /* ---------- top row ---------- */
+  topRow: {
     alignItems: 'center',
-    flexDirection: 'row',
   },
-  carInfoText: {
-    fontFamily: appFonts.regular,
-    fontSize: fontSizes.FONT17,
-    color: appColors.secondaryFont,
+  avatar: {
+    width: AVATAR,
+    height: AVATAR,
+    borderRadius: AVATAR / 2,
+    resizeMode: 'cover',
+  },
+  avatarFallback: {
+    width: AVATAR,
+    height: AVATAR,
+    borderRadius: AVATAR / 2,
+    backgroundColor: appColors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarLetter: {
+    fontSize: fontSizes.FONT4HALF,
+    fontFamily: appFonts.bold,
+    color: appColors.white,
+  },
+  nameWrap: {
+    flex: 1,
+    marginHorizontal: windowWidth(3),
+  },
+  name: {
+    fontFamily: appFonts.bold,
+    fontSize: fontSizes.FONT4,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  ratingRow: {
+    alignItems: 'center',
+    marginTop: windowHeight(0.4),
   },
   ratingText: {
     fontFamily: appFonts.medium,
-    fontSize: fontSizes.FONT17,
-    color: appColors.primaryFont,
+    fontSize: fontSizes.FONT3,
+    marginHorizontal: windowWidth(1.2),
   },
-  tripImage: {
-    width: windowWidth(12),
-    height: windowHeight(4),
-    resizeMode: 'contain',
-  },
-  tripTextContainer: {
-    paddingHorizontal: windowHeight(1.4),
-    flexGrow: 1,
-  },
-  tripIDText: {
-    fontFamily: appFonts.medium,
-    fontSize: fontSizes.FONT17,
-    color: appColors.primaryFont,
-  },
-  tripCostText: {
-    fontFamily: appFonts.medium,
-    fontSize: fontSizes.FONT5,
-    color: appColors.price,
-  },
-  tripDateText: {
+  reviewText: {
     fontFamily: appFonts.regular,
-    fontSize: fontSizes.FONT17,
+    fontSize: fontSizes.FONT3,
     color: appColors.secondaryFont,
   },
-  iconContainer: {
+  statusPill: {
+    paddingHorizontal: windowWidth(2.8),
+    paddingVertical: windowHeight(0.5),
+    borderRadius: windowWidth(5),
+  },
+  statusText: {
+    fontFamily: appFonts.bold,
+    fontSize: fontSizes.FONT3,
+    fontWeight: '700',
+  },
+
+  /* ---------- route ---------- */
+  divider: {
+    height: 1,
+    marginVertical: windowHeight(1.8),
+  },
+  routeRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginHorizontal: windowHeight(14),
   },
-  userImage: {
-    width: windowWidth(11.6),
-    height: windowWidth(12),
-    resizeMode: 'stretch',
+  rail: {
+    width: windowWidth(4),
+    alignItems: 'center',
+    paddingTop: windowHeight(0.7),
   },
-  listContainer: {
+  dot: {
+    width: windowWidth(2.4),
+    height: windowWidth(2.4),
+    borderRadius: windowWidth(1.2),
+    borderWidth: 2,
+  },
+  railLine: {
     flex: 1,
-    bottom: windowHeight(1.8),
+    width: 1.5,
+    marginVertical: windowHeight(0.4),
+    minHeight: windowHeight(2.4),
   },
-  iconContainer1: {
-    height: windowHeight(5.5),
-    alignItems: "flex-end",
-    justifyContent: 'space-between',
-  },
-  clock: {
-    marginHorizontal: windowWidth(1),
-  },
-  calanderSmall: {
-    marginHorizontal: windowWidth(1),
-  },
-  containerIcon: {
-    alignItems: 'center',
-  },
-  service_category_Container: {
-    backgroundColor: appColors.lightPurpal,
-    paddingHorizontal: windowWidth(3),
-    paddingVertical: windowHeight(0.3),
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: windowHeight(2),
+  routeTexts: {
+    flex: 1,
     marginHorizontal: windowWidth(3),
-    alignSelf: 'center',
-    alignContent: "center",
   },
-  serviceName: {
-    color: appColors.primary,
+  routeLabel: {
     fontFamily: appFonts.regular,
+    fontSize: fontSizes.FONT3,
+    color: appColors.secondaryFont,
   },
-  serviceContainer: {
-    backgroundColor: appColors.primaryBg,
-    paddingHorizontal: windowWidth(3),
-    paddingVertical: windowHeight(0.3),
+  routeAddress: {
+    fontFamily: appFonts.medium,
+    fontSize: fontSizes.FONT3HALF,
+    marginTop: windowHeight(0.2),
+  },
+  routeGap: {
+    height: windowHeight(2),
+  },
+
+  /* ---------- footer ---------- */
+  footerRow: {
     alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: windowHeight(2),
-  },
-  containerService: {
-    marginTop: windowHeight(2),
-    paddingHorizontal: windowHeight(0.5),
-  },
-  callContainer: {
-    borderRadius: windowWidth(2),
-    height: windowHeight(5),
-    width: windowHeight(5),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  acceptedContainer: {
-    width: windowWidth(23),
     justifyContent: 'space-between',
   },
-  reviews_count: {
+  metaRow: {
+    alignItems: 'center',
+  },
+  metaText: {
+    fontFamily: appFonts.regular,
+    fontSize: fontSizes.FONT3,
     color: appColors.secondaryFont,
-    fontFamily: appFonts.regular,
+    marginHorizontal: windowWidth(1.2),
   },
-  rating_count: {
-    fontFamily: appFonts.regular,
+  metaSeparator: {
+    height: windowHeight(1.4),
+    width: 1,
+    marginHorizontal: windowWidth(2),
   },
-  noDataContainer: {
+  fare: {
+    fontFamily: appFonts.bold,
+    fontSize: fontSizes.FONT5,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+    color: appColors.primary,
+  },
+
+  /* ---------- actions ---------- */
+  actionRow: {
+    alignItems: 'center',
+    marginTop: windowHeight(1.8),
+  },
+  messageButton: {
     flex: 1,
+    height: windowHeight(5.4),
+    borderRadius: windowWidth(2.8),
+    borderWidth: 1.5,
+    borderColor: appColors.primary,
+    backgroundColor: brandColors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  messageText: {
+    fontFamily: appFonts.medium,
+    fontSize: fontSizes.FONT3HALF,
+    color: appColors.primary,
+  },
+  callButton: {
+    height: windowHeight(5.4),
+    width: windowHeight(5.4),
+    borderRadius: windowWidth(2.8),
+    backgroundColor: appColors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: windowWidth(2.5),
+  },
+
+  /* ---------- empty state ---------- */
+  noDataContainer: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    height: windowHeight(65),
+    paddingHorizontal: windowWidth(10),
+    paddingVertical: windowHeight(8),
   },
   noDataImage: {
-    width: windowHeight(33),
+    width: windowWidth(55),
     height: windowWidth(55),
     resizeMode: 'contain',
   },
   noDataText: {
     fontSize: fontSizes.FONT4HALF,
     fontFamily: appFonts.bold,
-    color: appColors.primaryFont,
+    fontWeight: '700',
+    marginTop: windowHeight(1),
+    textAlign: 'center',
   },
   noDataDesc: {
     fontFamily: appFonts.regular,
-    color: appColors.darkBorderBlack,
+    fontSize: fontSizes.FONT3HALF,
     marginTop: windowHeight(1),
-  },
-  bottomView: {
-    marginBottom: windowHeight(50),
+    textAlign: 'center',
   },
 })
 

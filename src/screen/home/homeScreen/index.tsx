@@ -178,9 +178,25 @@ export function Home() {
   } | null>(null)
   const { isDark, viewRtlStyle, rtl } = useValues()
   const { dashBoardList } = useSelector((state: any) => state.dashboard)
-  const TodayIncome = `${zoneValue?.currency_symbol} ${
-    dashBoardList?.day?.dayRevenues?.revenues?.slice(-1)[0]
-  }`
+  // Today's income is the sum of every revenue entry for the day. This used to
+  // take only the last element of the array, so a driver with several completed
+  // rides saw just the most recent fare labelled as the day's income.
+  // Shared with maskedAmount below so the visible and masked figures can never
+  // disagree.
+  const todayRevenue = Array.isArray(dashBoardList?.day?.dayRevenues?.revenues)
+    ? dashBoardList.day.dayRevenues.revenues.reduce(
+        (sum: number, value: any) => sum + (Number(value) || 0),
+        0,
+      )
+    : null
+
+  // Both halves need a fallback. `zoneValue` is empty until the zone lookup
+  // resolves, and a template literal stringifies undefined rather than skipping
+  // it — which is where the literal "undefined" came from. The revenue side is
+  // null before any ride completes, which would print "null".
+  const TodayIncome = `${zoneValue?.currency_symbol ?? ''} ${
+    todayRevenue ?? 0
+  }`.trim()
   const { start, canStart, stop } = useTourGuideController()
   const [noservice, setNodervice] = useState<boolean>(false)
   const mapRef = useRef<MapRef>(null)
@@ -219,14 +235,9 @@ export function Home() {
       .join('')
   }
 
-  const lastRevenue =
-    dashBoardList?.day?.dayRevenues?.revenues?.length > 0
-      ? dashBoardList.day.dayRevenues.revenues.slice(-1)[0]
-      : null
-
   const maskedAmount = `${zoneValue?.currency_symbol ?? ''} ${maskValue(
-    lastRevenue,
-  )}`
+    todayRevenue,
+  )}`.trim()
 
   useEffect(() => {
     if (isFocused && !hasShownTour) {
@@ -1484,6 +1495,14 @@ export function Home() {
           alignItems: 'center',
         }}
       >
+        {/*
+          Profile avatar button (opens ProfileSetting) — hidden for now.
+          The spacer keeps the row's space-between layout unchanged so the
+          status pill does not slide to the screen edge. Uncomment the block
+          below and delete the spacer to bring it back.
+        */}
+        <View style={{ width: windowHeight(5.5) }} />
+        {/*
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={() => navigate('ProfileSetting')}
@@ -1524,6 +1543,7 @@ export function Home() {
             </View>
           )}
         </TouchableOpacity>
+        */}
 
         <TourGuideZone
           zone={4}
@@ -1611,34 +1631,39 @@ export function Home() {
           style={{
             height: windowHeight(5.5),
             width: windowHeight(5.5),
-            backgroundColor: isDark ? appColors.darkThemeSub : appColors.white,
+            backgroundColor: appColors.primary,
             borderRadius: windowHeight(15),
             alignItems: 'center',
             justifyContent: 'center',
             right: windowHeight(2),
-            borderColor: isDark ? appColors.darkBorderBlack : appColors.white,
+            borderColor: appColors.greenborder,
             borderWidth: 1,
           }}
         >
-          <Icons.Notification
-            color={isDark ? appColors.white : appColors.primaryFont}
-          />
+          <Icons.Notification color={appColors.white} />
         </TouchableOpacity>
       </View>
+      {/*
+        Ride-requests toggle. Moved out of the top-left corner to sit directly
+        above the recentre button: the location button is windowHeight(7) tall
+        at bottom windowHeight(10), so this clears it with a small gap. Size,
+        border and background match it so the two read as one control stack.
+      */}
       <TouchableOpacity
         activeOpacity={0.9}
         style={{
-          height: windowHeight(5.5),
-          width: windowHeight(5.5),
+          position: 'absolute',
+          bottom: windowHeight(18.5),
+          height: windowHeight(7),
+          width: windowHeight(7),
+          borderRadius: windowHeight(4),
+          borderWidth: windowHeight(0.15),
+          borderColor: isDark ? appColors.darkBorderBlack : appColors.border,
           backgroundColor: isDark ? appColors.darkThemeSub : appColors.white,
-          borderRadius: windowHeight(15),
           alignItems: 'center',
           justifyContent: 'center',
-          left: rtl ? windowHeight(-2) : windowHeight(2),
-          top: windowHeight(4),
-          position: 'relative',
-          alignSelf: rtl ? 'flex-end' : 'flex-start',
-          borderColor: isDark ? appColors.darkBorderBlack : appColors.white,
+          zIndex: 0,
+          [rtl ? 'left' : 'right']: windowWidth(4),
         }}
         onPress={handlePresentModalPress}
       >

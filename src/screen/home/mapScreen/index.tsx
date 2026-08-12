@@ -980,7 +980,7 @@ window.onload = initMap;
               left: windowHeight(3),
               bottom: windowHeight(58),
               backgroundColor: selectedTypes.includes("garage")
-                ? "#CCF5EB"
+                ? "#FFE7D3"
                 : isDark
                   ? appColors.bgDark
                   : appColors.white,

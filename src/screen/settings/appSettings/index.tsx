@@ -111,23 +111,37 @@ export function AppSettings() {
     <View style={[styles.main, { backgroundColor: colors.background }]}>
       <Header title={translateData.appSetting} />
       <View style={styles.container}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          {translateData?.appPagesTheme || 'Appearance'}
+        </Text>
         <View
           style={[
             styles.listContainer,
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
-          <>
-            <DarkTheme />
-            <Rtl />
-            <LanguageModal
-              openSheet={openSheet}
-              tempSelectedLanguage={selectedLanguage}
-            />
-          </>
+          <DarkTheme />
         </View>
+        <Text style={[styles.hint, { color: appColors.secondaryFont }]}>
+          {translateData?.themeHint ||
+            'Choose how the app looks. This applies everywhere straight away.'}
+        </Text>
+
+        {/*
+          RTL and Change Language are hidden for now at the client's request.
+          All of their logic below (the language BottomSheet, the AsyncStorage
+          reads, closeModal) is left intact — to bring them back, uncomment
+          these two rows and the BottomSheet at the bottom of this file.
+
+          <Rtl />
+          <LanguageModal
+            openSheet={openSheet}
+            tempSelectedLanguage={selectedLanguage}
+          />
+        */}
       </View>
 
+      {/* Hidden along with the Change Language row — see the comment above.
       <BottomSheet
         ref={bottomSheetRef}
         index={-1}
@@ -205,6 +219,7 @@ export function AppSettings() {
           </View>
         </BottomSheetView>
       </BottomSheet>
+      */}
     </View>
   )
 }

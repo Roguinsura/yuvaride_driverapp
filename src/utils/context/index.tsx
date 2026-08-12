@@ -2,7 +2,7 @@ import React, { useState, createContext, useContext, useEffect } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { textRtlStyle, imageRtlStyle, viewRtlStyle, viewSelfRtlStyle } from '../../style/rtlStyles'
 import { ContextType } from './types'
-import { Platform } from 'react-native'
+import { GOOGLE_MAP_KEY } from '../../api/config'
 
 const initialContextVal = {
   isDark: false,
@@ -38,9 +38,7 @@ export const AppContextProvider = (props: any) => {
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
   const [notificationValue, setNotificationValues] = useState(false);
   const [categoryIndex, setCategoryIndex] = useState<number>(null)
-  const Google_Map_Key = Platform.OS == 'android'
-    ? 'Enter Your Google Map Keye Here'
-    : 'Enter Your Google Map Keye Here'
+  const Google_Map_Key = GOOGLE_MAP_KEY
 
   useEffect(() => {
     const fetchFromStorage = async () => {

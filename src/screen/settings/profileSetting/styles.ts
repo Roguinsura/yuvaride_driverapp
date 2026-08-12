@@ -26,12 +26,22 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
   },
+  scrollArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: windowHeight(2),
+  },
   profileView: {
     marginHorizontal: windowWidth(4),
     marginTop: windowHeight(10),
     borderWidth: windowHeight(0.1),
     borderRadius: windowHeight(1),
-    height: '80%',
+    // Was height: '80%'. A percentage height inside a ScrollView resolves
+    // against an indefinite container, so it could not be relied on; the card
+    // now sizes to its own content and the delete row below it lands where it
+    // should.
+    paddingBottom: windowHeight(2),
   },
   profileImageView: {
     position: 'absolute',
@@ -132,6 +142,67 @@ const styles = StyleSheet.create({
   errorText: {
     color: appColors.red,
     fontSize: fontSizes.FONT3HALF,
+  },
+
+  /* ---------- delete account (moved off the Settings menu) ---------- */
+  deleteRow: {
+    alignItems: 'center',
+    marginHorizontal: windowWidth(4),
+    marginTop: windowHeight(2),
+    marginBottom: windowHeight(3),
+    paddingHorizontal: windowWidth(4),
+    paddingVertical: windowHeight(1.8),
+    borderRadius: windowWidth(4),
+    borderWidth: 1,
+  },
+  deleteIcon: {
+    height: windowHeight(5.2),
+    width: windowHeight(5.2),
+    borderRadius: windowWidth(3),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deleteTextWrap: {
+    flex: 1,
+    marginHorizontal: windowWidth(3.5),
+  },
+  deleteTitle: {
+    fontFamily: appFonts.bold,
+    fontSize: fontSizes.FONT4,
+    fontWeight: '700',
+  },
+  sheetTitle: {
+    fontFamily: appFonts.bold,
+    fontSize: fontSizes.FONT4HALF,
+    fontWeight: '700',
+    marginTop: windowHeight(1),
+    textAlign: 'center',
+  },
+  sheetBody: {
+    fontFamily: appFonts.regular,
+    fontSize: fontSizes.FONT3HALF,
+    color: appColors.secondaryFont,
+    textAlign: 'center',
+    width: '88%',
+    marginTop: windowHeight(1.2),
+  },
+  sheetActions: {
+    width: '90%',
+    marginTop: windowHeight(3),
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  sheetButton: {
+    flex: 1,
+    height: windowHeight(6.2),
+    borderRadius: windowWidth(3),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sheetButtonText: {
+    fontFamily: appFonts.bold,
+    fontSize: fontSizes.FONT4,
+    fontWeight: '700',
   },
 })
 

@@ -7,15 +7,19 @@ const styles = StyleSheet.create({
   main: {
     flex: 1,
     width: '100%',
-    marginBottom: windowHeight(10),
+  },
+  // Padding rather than a margin on the scroll view, so the content clears the
+  // floating tab bar without shortening the scrollable area itself.
+  scrollContent: {
+    paddingBottom: windowHeight(13),
   },
   container: {
-    paddingHorizontal: windowWidth(4),
+    paddingHorizontal: windowWidth(5),
   },
   version: {
     color: appColors.iconColor,
     textAlign: 'center',
-    marginTop: windowHeight(0.5),
+    marginTop: windowHeight(3),
     marginBottom: windowHeight(1.5),
     fontSize: fontSizes.FONT3HALF,
     fontFamily: appFonts.regular,
