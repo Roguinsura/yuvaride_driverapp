@@ -219,12 +219,12 @@ console.log();
         isVisible={showUpdateModal}
         value={
           <View style={styles.modalContent}>
-            <View style={styles.modalImageContainer}>
-              <Image
-                source={images.splash}
-                style={styles.modalImage}
-              />
-            </View>
+            {/*
+              Logo image removed — this modal is text only now. The brand name
+              carries it instead, so the modal does not depend on a bundled
+              wordmark asset.
+            */}
+            <Text style={styles.modalBrand}>YuvaRide</Text>
             <Text style={styles.modalTitle}>{translateData?.updateRequired}</Text>
             <Text style={styles.modalMessage}>{translateData?.newVersions}</Text>
             <TouchableOpacity

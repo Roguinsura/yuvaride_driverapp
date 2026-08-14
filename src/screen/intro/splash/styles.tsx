@@ -44,15 +44,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: windowHeight(0.5),
   },
-  modalImageContainer: {
-    padding: windowHeight(0.7),
-    backgroundColor: '#FFF1E6',
-    borderRadius: windowHeight(10),
-  },
-  modalImage: {
-    width: windowHeight(6),
-    height: windowHeight(6),
-    resizeMode: 'contain',
+  // Replaced the logo image in the force-update modal.
+  modalBrand: {
+    fontFamily: appFonts.bold,
+    fontWeight: '700',
+    fontSize: fontSizes.FONT5HALF,
+    letterSpacing: 0.4,
+    color: appColors.primary,
+    marginBottom: windowHeight(0.5),
   },
   modalTitle: {
     fontSize: fontSizes.FONT4HALF,
