@@ -1,7 +1,5 @@
 import { StyleSheet } from 'react-native'
-import { fontSizes, windowHeight, windowWidth } from '../../../theme/appConstant'
-import appColors from '../../../theme/appColors'
-import appFonts from '../../../theme/appFonts'
+import { windowHeight, windowWidth } from '../../../theme/appConstant'
 
 const styles = StyleSheet.create({
   main: {
@@ -15,14 +13,6 @@ const styles = StyleSheet.create({
   },
   container: {
     paddingHorizontal: windowWidth(5),
-  },
-  version: {
-    color: appColors.iconColor,
-    textAlign: 'center',
-    marginTop: windowHeight(3),
-    marginBottom: windowHeight(1.5),
-    fontSize: fontSizes.FONT3HALF,
-    fontFamily: appFonts.regular,
   },
   cancelButton: {
     height: windowHeight(5.7),

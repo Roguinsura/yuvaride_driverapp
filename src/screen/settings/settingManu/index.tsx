@@ -17,7 +17,6 @@ import {
   AlertZone,
 } from './component/'
 import { useTheme } from '@react-navigation/native'
-import DeviceInfo from 'react-native-device-info'
 import {
   currentZone,
   fleetVehicleList,
@@ -55,7 +54,6 @@ export function Settings() {
   const dispatch = useDispatch<AppDispatch>()
   const { translateData } = useSelector((state: any) => state.setting)
   const { colors } = useTheme()
-  const [versionCode, setVersionCode] = useState<string>('')
   const { viewRtlStyle } = useValues()
   const { isDark } = useValues()
   const { selfDriver } = useSelector((state: any) => state.account)
@@ -63,10 +61,6 @@ export function Settings() {
 
 
   useEffect(() => {
-    const fetchVersion = async () => {
-      const version = await DeviceInfo.getVersion()
-      setVersionCode(version)
-    }
     if (selfDriver?.role == 'fleet_manager') {
       dispatch(fleetWalletData())
       dispatch(fleetVehicleList())
@@ -86,7 +80,6 @@ export function Settings() {
 
     dispatch(incentivesValue({ incentivedate: formattedToday }))
     dispatch(serviceDataGet())
-    fetchVersion()
   }, [])
 
 
@@ -158,9 +151,6 @@ export function Settings() {
             <General />
             <RegistrationDetails />
             <AlertZone openLogoutSheet={openLogoutSheet} />
-            <Text style={styles.version}>
-              {translateData.settingTextVersion}: {versionCode}
-            </Text>
           </View>
         </ScrollView>
       </View>
