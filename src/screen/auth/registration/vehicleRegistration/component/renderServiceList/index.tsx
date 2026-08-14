@@ -16,6 +16,7 @@ import { serviceDataGet } from '../../../../../../api/store/action/serviceAction
 import { useValues } from '../../../../../../utils/context'
 import { AppDispatch } from '../../../../../../api/store'
 import Icons from '../../../../../../utils/icons/icons'
+import { visibleServices } from '../../../../../../utils/hiddenServices'
 
 export function RenderServiceList({
   selectedItemIndex: propSelectedItemIndex,
@@ -152,7 +153,7 @@ export function RenderServiceList({
 
       <FlatList
         ref={flatListRef}
-        data={serviceData?.data || []}
+        data={visibleServices(serviceData?.data)}
         horizontal
         showsHorizontalScrollIndicator={false}
         keyExtractor={(_, index) => index.toString()}

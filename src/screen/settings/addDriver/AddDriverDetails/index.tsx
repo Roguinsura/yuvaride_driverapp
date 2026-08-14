@@ -9,6 +9,7 @@ import styles from './styles'
 import { useAppNavigation } from '../../../../utils/navigation'
 import { windowWidth, windowHeight } from '../../../../theme/appConstant'
 import CountrySelect from 'react-native-country-select'
+import { visibleServices } from '../../../../utils/hiddenServices'
 import { countrySelectProps } from '../../../../utils/countrySelect'
 import type { ICountry as CountryType } from 'react-native-country-select/lib/interface'
 import { getAllCountries } from 'react-native-country-select/lib/utils/countryHelpers';
@@ -137,10 +138,10 @@ export function AddDriverDetails({ route }: any) {
         }
     }, [type, driverData]);
 
-    const serviceList = serviceData?.data?.map((service: any) => ({
+    const serviceList = visibleServices(serviceData?.data).map((service: any) => ({
         label: service?.name,
         value: service?.id,
-    })) || []
+    }))
 
     const handleCountrySelect = (selectedCountry: Country) => {
         setCountry(selectedCountry)
