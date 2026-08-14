@@ -210,6 +210,11 @@ console.log();
           }}
         />
       </View>
+      <View style={styles.taglineWrap}>
+        <Text style={styles.tagline}>
+          <Text style={styles.taglineHash}>#</Text>RideYourWay
+        </Text>
+      </View>
       <CommonModal
         isVisible={showUpdateModal}
         value={

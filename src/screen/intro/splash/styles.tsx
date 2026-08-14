@@ -1,8 +1,7 @@
-import { StyleSheet, Dimensions } from 'react-native'
+import { StyleSheet } from 'react-native'
 import appColors from '../../../theme/appColors'
-import { fontSizes, windowHeight } from '../../../theme/appConstant'
+import { fontSizes, windowHeight, windowWidth } from '../../../theme/appConstant'
 import appFonts from '../../../theme/appFonts'
-const { width, height } = Dimensions.get('window')
 
 const styles = StyleSheet.create({
   container: {
@@ -14,10 +13,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flex: 1,
   },
+  /*
+    Was the full screen width and height. The splash art is a near-square logo,
+    and `contain` fits a square into a portrait box by its width — so the logo
+    rendered as wide as the display. A square box sizes it as a logo instead,
+    and `contain` still letterboxes safely if a wider image is ever configured.
+  */
   img: {
-    width: width,
-    height: height,
+    width: windowWidth(48),
+    height: windowWidth(48),
     resizeMode: 'contain',
+  },
+  taglineWrap: {
+    alignItems: 'center',
+    paddingBottom: windowHeight(7),
+  },
+  // Brand orange dropped to a low alpha so it reads as a watermark rather than
+  // a second headline; the hash sits a little stronger than the words.
+  tagline: {
+    fontFamily: appFonts.bold,
+    fontWeight: '700',
+    fontSize: fontSizes.FONT4HALF,
+    letterSpacing: 2.6,
+    color: 'rgba(248,111,0,0.38)',
+  },
+  taglineHash: {
+    color: 'rgba(248,111,0,0.62)',
   },
   modalContent: {
     alignItems: 'center',
