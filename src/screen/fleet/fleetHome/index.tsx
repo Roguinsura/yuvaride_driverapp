@@ -719,6 +719,8 @@ export function FleetHome() {
                     alignItems: 'center',
                 }}
             >
+            <View style={{ width: windowHeight(5.5) }} />
+            {/* Hidden for now — uncomment to restore. Profile avatar: navigates to ProfileSetting.
                 <TouchableOpacity
                     activeOpacity={0.9}
                     onPress={() => navigate('ProfileSetting')}
@@ -759,6 +761,7 @@ export function FleetHome() {
                         </View>
                     )}
                 </TouchableOpacity>
+            */}
                 <TourGuideZone
                     zone={4}
                     text={`${translateData.fleetData1} 💰.\n${translateData.fleetData2}\n${translateData.fleetData3}`}
@@ -858,6 +861,7 @@ export function FleetHome() {
                     />
                 </TouchableOpacity>
             </View>
+            {/* Hidden for now — uncomment to restore. Map filter: opens the vehicle picker that filters map markers.
             <TouchableOpacity
                 activeOpacity={0.9}
                 style={{
@@ -892,6 +896,7 @@ export function FleetHome() {
 
                 </TourGuideZone>
             </TouchableOpacity>
+            */}
             <Modal
                 transparent
                 visible={modalVisible}
