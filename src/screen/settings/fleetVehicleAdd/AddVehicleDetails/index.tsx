@@ -1,4 +1,4 @@
-import { View, ScrollView, Text } from 'react-native'
+import { View, ScrollView, Text, Keyboard} from 'react-native'
 import React, { useState } from 'react'
 import { useValues } from '../../../../utils/context'
 import { useTheme } from '@react-navigation/native'
@@ -49,6 +49,7 @@ export function AddVehicleDetails({ route }: any) {
             setShowWarning(true);
         } else {
             setShowWarning(false);
+            Keyboard.dismiss()
             navigate('AddDocument', {
                 formDatas: { ...formDatas, selectedVehicleID },
                 vehicleData,

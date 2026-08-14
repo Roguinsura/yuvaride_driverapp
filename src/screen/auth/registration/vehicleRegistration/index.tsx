@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, ScrollView } from 'react-native'
+import { View, Text, ScrollView, Keyboard} from 'react-native'
 import styles from './styles'
 import appColors from '../../../../theme/appColors'
 import { CustomCheckbox, ProgressBar } from '../component'
@@ -373,6 +373,7 @@ export function VehicleRegistration() {
         if (data?.is_verified == 1) {
           navigation.replace('TabNav')
         } else if (data?.is_verified == 0) {
+          Keyboard.dismiss()
           navigation.navigate('Verification')
         }
       } else {

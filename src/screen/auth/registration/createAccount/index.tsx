@@ -6,6 +6,7 @@ import {
   TextInput,
   ScrollView,
   BackHandler,
+  Keyboard,
 } from 'react-native'
 import appColors from '../../../../theme/appColors'
 import { ProgressBar } from '../component'
@@ -245,6 +246,7 @@ export function CreateAccount() {
     setError({ phoneNumber: '', email: '', password: '', confirmPassword: '' })
     setShowWarning(false)
     setAccountDetail(formData)
+    Keyboard.dismiss()
     navigation.navigate('UploadedDocument', { type: userType })
   }
 
@@ -260,6 +262,7 @@ export function CreateAccount() {
 
   useEffect(() => {
     const backAction = () => {
+      Keyboard.dismiss()
       navigation.navigate('Login')
       return true
     }

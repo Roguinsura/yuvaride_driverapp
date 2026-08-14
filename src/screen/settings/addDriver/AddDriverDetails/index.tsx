@@ -1,4 +1,4 @@
-import { View, ScrollView, TouchableOpacity, Text } from 'react-native'
+import { View, ScrollView, TouchableOpacity, Text, Keyboard} from 'react-native'
 import React, { useState, useEffect, useRef } from 'react'
 import { useValues } from '../../../../utils/context'
 import { useTheme } from '@react-navigation/native'
@@ -230,6 +230,7 @@ export function AddDriverDetails({ route }: any) {
             setShowWarning(true);
         } else {
             setShowWarning(false);
+            Keyboard.dismiss()
             navigate('AddDriverDocument', {
                 formDatas,
                 selectedService,

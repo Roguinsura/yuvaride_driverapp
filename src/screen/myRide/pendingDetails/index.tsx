@@ -1,4 +1,4 @@
-import { View, ScrollView, TouchableOpacity, Text, ActivityIndicator, TextInput, Image } from 'react-native'
+import { View, ScrollView, TouchableOpacity, Text, ActivityIndicator, TextInput, Image, Keyboard} from 'react-native'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Header, Button, notificationHelper } from '../../../commonComponents'
 import appColors from '../../../theme/appColors'
@@ -101,6 +101,7 @@ export function PendingDetails() {
   }
 
   const gotoPickup = () => {
+    Keyboard.dismiss()
     navigation.navigate('RideComplete', { rideData: item })
   }
 
@@ -132,6 +133,7 @@ export function PendingDetails() {
     if (response.status == 200) {
       setLoaderInvoice(false)
 
+      Keyboard.dismiss()
       navigation.navigate('PdfViewer', {
         pdfUrl: response?.url,
         token: token,
@@ -152,6 +154,7 @@ export function PendingDetails() {
       } as any),
     ).then(async (res: any) => {
       if (res?.payload?.ride_status?.slug == 'completed') {
+        Keyboard.dismiss()
         navigation.navigate('TabNav')
         dispatch(rideDataGets())
         notificationHelper('', translateData.rideComplete, 'success')
@@ -176,6 +179,7 @@ export function PendingDetails() {
       rideDataPut({ data: payloadData, ride_id: item?.id }),
     ).then(async (res: any) => {
       if (res?.payload?.ride_status?.slug == 'completed') {
+        Keyboard.dismiss()
         navigation.navigate('TabNav')
         dispatch(rideDataGets())
         notificationHelper('', translateData.rideComplete, 'success')
@@ -185,10 +189,12 @@ export function PendingDetails() {
   }
 
   const gotoStart = () => {
+    Keyboard.dismiss()
     navigation.navigate('AcceptFare', { ride_Id: item?.id, ride_Details: item })
   }
 
   const gotoVerify = () => {
+    Keyboard.dismiss()
     navigation.navigate('OtpRide', { rideData: item, ride_Id: item?.id })
   }
 

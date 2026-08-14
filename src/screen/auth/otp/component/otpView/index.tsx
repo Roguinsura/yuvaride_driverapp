@@ -344,6 +344,7 @@ const OtpView: React.FC = () => {
 
         <View style={styles.inputContainer}>
           <OTPTextView
+            autoFocus
             containerStyle={[
               styles.otpContainer,
               { flexDirection: viewRtlStyle },

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { BackHandler, ScrollView, Text, TextInput, View } from "react-native";
+import { BackHandler, Keyboard, ScrollView, Text, TextInput, View } from "react-native";
 import styles from "./styles";
 import { Header, TitleView } from "../../component";
 import { ProgressBar } from "../component";
@@ -129,6 +129,7 @@ export function FleetDetails() {
                 if (data?.is_verified == 1) {
                     navigation.replace('TabNav');
                 } else if (data?.is_verified == 0) {
+                    Keyboard.dismiss()
                     navigation.navigate('Verification');
                 }
             } else {

@@ -1,4 +1,4 @@
-import { View, ScrollView, BackHandler } from 'react-native'
+import { View, ScrollView, BackHandler, Keyboard} from 'react-native'
 import React, { useEffect, useState } from 'react'
 import styles from './styles'
 import appColors from '../../../../theme/appColors'
@@ -147,6 +147,7 @@ export function BankDetail() {
         if (data?.is_verified == 1) {
           navigation.replace('TabNav');
         } else {
+          Keyboard.dismiss()
           navigation.navigate('Verification');
         }
       } else {

@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   TextInput,
   StatusBar,
+  Keyboard,
 } from 'react-native'
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useTheme, useRoute, useFocusEffect } from '@react-navigation/native'
@@ -135,6 +136,7 @@ export function RideComplete() {
           otpBottomSheetRef.current?.close()
           return true
         } else {
+          Keyboard.dismiss()
           navigation.navigate('TabNav')
           return true
         }
@@ -314,6 +316,7 @@ export function RideComplete() {
         if (res?.payload?.id) {
           dispatch(selfDriverData())
           dispatch(rideDataGets())
+          Keyboard.dismiss()
           navigation.navigate('RideDetails', { ride_Id: rideData?.id })
         } else {
           notificationHelper('', translateData.failedComplet, 'error')
@@ -357,6 +360,7 @@ export function RideComplete() {
   }, [])
 
   const gotoOtherMap = (maptype: any) => {
+    Keyboard.dismiss()
     navigation.navigate('MapWebView', {
       lat: rideDataState?.location_coordinates?.[
         rideDataState?.location_coordinates?.length - 1

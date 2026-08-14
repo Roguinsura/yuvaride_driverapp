@@ -7,6 +7,7 @@ import {
   Text,
   Image,
   BackHandler,
+  Keyboard,
 } from 'react-native'
 import React, {
   useState,
@@ -354,6 +355,7 @@ export function ProfileSetting() {
   }, [navigation])
 
   const gotoEdit = (field: string) => {
+    Keyboard.dismiss()
     navigation.navigate('EditDetails' as any, { field, formData })
   }
 

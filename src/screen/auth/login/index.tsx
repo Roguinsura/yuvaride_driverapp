@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react'
 import {
   BackHandler,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -84,6 +85,13 @@ export function Login() {
         const res = await dispatch(userLogin(payload)).unwrap()
         if (res?.success) {
           await setValue('userType', userType)
+          /*
+            The phone field keeps focus while this screen stays mounted under
+            the OTP screen, so Android keeps the window resized for a keyboard
+            that is now hidden behind the pushed screen — a blank band its
+            exact height. Dismissing before navigating releases the inset.
+          */
+          Keyboard.dismiss()
           navigation.navigate('Otp', {
             countryCode,
             phoneNumber,
@@ -152,6 +160,13 @@ export function Login() {
         const res = await dispatch(fleetsLogin(payload)).unwrap()
         if (res?.success) {
           await setValue('userType', userType)
+          /*
+            The phone field keeps focus while this screen stays mounted under
+            the OTP screen, so Android keeps the window resized for a keyboard
+            that is now hidden behind the pushed screen — a blank band its
+            exact height. Dismissing before navigating releases the inset.
+          */
+          Keyboard.dismiss()
           navigation.navigate('Otp', {
             countryCode,
             phoneNumber,

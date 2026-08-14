@@ -7,6 +7,7 @@ import {
   NativeModules,
   Alert,
   StatusBar,
+  Keyboard,
 } from 'react-native'
 import React, { useState, useEffect, useMemo } from 'react'
 import appColors from '../../../theme/appColors'
@@ -140,9 +141,11 @@ export function Ride() {
                   data?.service_category?.service_category_type === 'schedule'
 
                 if (isSchedule) {
+                  Keyboard.dismiss()
                   navigation.navigate('TabNav')
                 } else {
                   playRingtone()
+                  Keyboard.dismiss()
                   navigation.navigate('AcceptFare', {
                     ride_Id: bidData.ride_id || bidData.id,
                   })

@@ -105,6 +105,7 @@ export function OtpVerify() {
       />
       <View style={[style.otpContainer, { flexDirection: viewRtlStyle }]}>
         <OTPTextView
+          autoFocus
           containerStyle={[style.otpContainer, { flexDirection: viewRtlStyle }]}
           textInputStyle={[
             style.otpInput,

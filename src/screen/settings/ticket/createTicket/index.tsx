@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
+  Keyboard,
 } from 'react-native'
 import { useSelector, useDispatch } from 'react-redux'
 import { Input, Header, Button } from '../../../../commonComponents'
@@ -178,6 +179,7 @@ export function CreateTicket() {
 
       if (response.ok) {
         if (responseData.id) {
+          Keyboard.dismiss()
           navigation.navigate('SupportTicket')
           dispatch(ticketDataGet())
         } else {

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react'
-import { View } from 'react-native'
+import { Keyboard, View } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { useDispatch, useSelector } from 'react-redux'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
@@ -40,6 +40,7 @@ export function LoginMail() {
       .unwrap()
       .then(res => {
         if (res?.success) {
+          Keyboard.dismiss()
           navigation.navigate('OtpVerify', { email, demouser })
           notificationHelper('', translateData?.otpSend, 'success')
         }
