@@ -40,6 +40,7 @@ const FALLBACK = {
   notSet: 'Not set',
   readOnly:
     'These details were submitted during registration. Contact support if anything needs to change.',
+  rentalTitle: 'Rental vehicles',
   rentalNotice:
     'Rental vehicles are managed individually. Open Vehicle List to see and manage them.',
   emptyTitle: 'No vehicle registered',
@@ -171,6 +172,15 @@ export function VehicleDetail() {
   const isFindDriver = serviceSlug === 'finddriver'
   const isRental = categoryName === 'Rental'
 
+  /*
+    A Rental registration has no single vehicle — the fleet is added one by one
+    under Vehicle List — so any vehicle_info left on the account describes a
+    record the driver never filled in. Showing its artwork produced a bike on
+    an account registered as Cab / Rental, so the hero drops anything
+    vehicle-specific here and identifies the service instead.
+  */
+  const showVehicleArt = showArt && !isRental
+
   const dash = translateData?.notSet || FALLBACK.notSet
   const show = (value: any) =>
     value === null || value === undefined || value === '' ? dash : String(value)
@@ -282,9 +292,11 @@ export function VehicleDetail() {
 
   /* ---------------- screen ---------------- */
 
-  const heroName = isAmbulance
-    ? vehicle?.name || vehicle?.model
-    : vehicle?.model || vehicle?.name
+  const heroName = isRental
+    ? translateData?.rentalVehicle || FALLBACK.rentalTitle
+    : isAmbulance
+      ? vehicle?.name || vehicle?.model
+      : vehicle?.model || vehicle?.name
 
   const heroMeta = [service?.name, categoryName].filter(Boolean).join('  ·  ')
 
@@ -321,7 +333,7 @@ export function VehicleDetail() {
                 { backgroundColor: 'rgba(255,255,255,0.18)' },
               ]}
             >
-              {showArt ? (
+              {showVehicleArt ? (
                 <Image
                   source={{ uri: vehicleArt }}
                   style={styles.heroImage}
@@ -359,8 +371,8 @@ export function VehicleDetail() {
             </View>
           </View>
 
-          {/* Ambulance and Find Driver registrations carry no plate. */}
-          {!isAmbulance && !isFindDriver && vehicle?.plate_number ? (
+          {/* Ambulance, Find Driver and Rental registrations carry no plate. */}
+          {!isAmbulance && !isFindDriver && !isRental && vehicle?.plate_number ? (
             <View
               style={[
                 styles.plate,
