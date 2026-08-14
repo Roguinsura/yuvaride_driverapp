@@ -178,7 +178,7 @@ export function BankDetails() {
         { backgroundColor: colors.background, marginBottom: windowWidth(5) },
       ]}
     >
-      <Header title={translateData?.bankDetails} />
+      <Header variant="brand" title={translateData?.bankDetails} />
 
       <View style={[styles.subView, { backgroundColor: colors.background }]}>
         <View style={styles.inputfildView}>

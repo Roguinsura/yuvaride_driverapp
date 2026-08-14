@@ -79,7 +79,7 @@ export function AddVehicleDetails({ route }: any) {
 
     return (
         <View style={{ flex: 1 }}>
-            <Header title={translateData?.addVehicle} backgroundColor={isDark ? colors.card : appColors.white} />
+            <Header variant="brand" title={translateData?.addVehicle} backgroundColor={isDark ? colors.card : appColors.white} />
             <View style={{ backgroundColor: isDark ? colors.card : appColors.white }}>
                 <View style={[styles.container, { flexDirection: viewRtlStyle }]}>
                     {bars?.map((_, index) => (

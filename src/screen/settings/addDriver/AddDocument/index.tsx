@@ -304,7 +304,7 @@ export function AddDriverDocument() {
     return (
         <BottomSheetModalProvider>
             <View style={{ flex: 1 }}>
-                <Header title={translateData?.AddDriver} backgroundColor={isDark ? colors.card : appColors.white} />
+                <Header variant="brand" title={translateData?.AddDriver} backgroundColor={isDark ? colors.card : appColors.white} />
                 <View style={{ backgroundColor: isDark ? colors.card : appColors.white }}>
                     <View style={[styles.container, { flexDirection: viewRtlStyle }]}>
                         {bars?.map((_, index) => (

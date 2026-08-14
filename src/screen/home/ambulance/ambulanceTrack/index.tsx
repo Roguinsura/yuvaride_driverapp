@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { StatusBar } from 'react-native'
 import { View, Alert, PermissionsAndroid, Platform, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Geolocation from '@react-native-community/geolocation';
@@ -481,6 +482,10 @@ export function AmbulanceTrack() {
 
   return (
     <View style={[commanStyles.main, { backgroundColor: colors.background }]}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={isDark ? appColors.darkThemeSub : appColors.primary}
+      />
       <WebView
         key={mapType}
         ref={webViewRef}

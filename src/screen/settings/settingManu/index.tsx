@@ -140,12 +140,12 @@ export function Settings() {
   return (
     <GestureHandlerRootView>
       <View style={{ flex: 1 }}>
-        {/* The header is brand orange, so the system bar above it has to be
-            too — without this the screen inherits whatever the last screen
-            left behind. */}
+        {/* The system bar has to track the header — without this the screen
+            inherits whatever the last screen left behind. Orange in light
+            mode, dark surface in dark mode, same as the header. */}
         <StatusBar
           barStyle="light-content"
-          backgroundColor={appColors.primary}
+          backgroundColor={isDark ? appColors.darkThemeSub : appColors.primary}
         />
         <ScrollView
           style={[styles.main, { backgroundColor: colors.background }]}

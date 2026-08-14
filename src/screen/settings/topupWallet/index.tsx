@@ -72,7 +72,7 @@ export function TopupWallet() {
 
   return (
     <View style={styles.main}>
-      <Header title={translateData.topupWallet} />
+      <Header variant="brand" title={translateData.topupWallet} />
 
       <View style={styles.listView}>
         <AddTopUp ref={formRef} />

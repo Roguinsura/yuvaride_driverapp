@@ -89,7 +89,7 @@ export function ReferralList() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Header title={translateData.referralsList} />
+      <Header variant="brand" title={translateData.referralsList} />
       <FlatList
         data={referralDataArray}
         keyExtractor={item => item.id?.toString()}

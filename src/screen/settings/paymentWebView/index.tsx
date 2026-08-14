@@ -8,7 +8,9 @@ import styles from './styles';
 import { useNavigation } from '@react-navigation/native';
 import { notificationHelper } from '../../../commonComponents';
 import { AppDispatch } from '../../../api/store';
-import { Alert } from 'react-native';
+import { Alert, StatusBar } from 'react-native';
+import appColors from '../../../theme/appColors';
+import { useValues } from '../../../utils/context';
 
 export function PaymentWebView({ route }: any) {
   const [hasVerified, setHasVerified] = useState<boolean>(false);
@@ -17,6 +19,7 @@ export function PaymentWebView({ route }: any) {
   const { url, selectedPaymentMethod, dataValue } = route.params || {};
   const { translateData } = useSelector((state: any) => state.setting)
   const navigation = useNavigation();
+  const { isDark } = useValues();
 
 
   const handleResponse = async (navState: any) => {
@@ -145,15 +148,23 @@ export function PaymentWebView({ route }: any) {
 
 
   return (
-    <WebView
-      style={styles.modalview}
-      startInLoadingState
-      incognito
-      androidLayerType="hardware"
-      cacheEnabled={false}
-      cacheMode={'LOAD_NO_CACHE'}
-      source={{ uri: url }}
-      onNavigationStateChange={handleResponse}
-    />
+    <>
+      {/* The WebView is the whole screen, so only the system bar carries the
+          brand colour here — orange in light mode, dark surface in dark. */}
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={isDark ? appColors.darkThemeSub : appColors.primary}
+      />
+      <WebView
+        style={styles.modalview}
+        startInLoadingState
+        incognito
+        androidLayerType="hardware"
+        cacheEnabled={false}
+        cacheMode={'LOAD_NO_CACHE'}
+        source={{ uri: url }}
+        onNavigationStateChange={handleResponse}
+      />
+    </>
   );
 }

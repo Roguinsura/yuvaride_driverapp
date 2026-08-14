@@ -1,3 +1,4 @@
+import { StatusBar } from 'react-native'
 import { View, Text, Image, TouchableOpacity, BackHandler, Platform } from 'react-native'
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useTheme, useRoute, useFocusEffect } from '@react-navigation/native'
@@ -240,6 +241,10 @@ export function AcceptFare() {
   return (
     <BottomSheetModalProvider>
       <View style={styles.container}>
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor={isDark ? appColors.darkThemeSub : appColors.primary}
+        />
         <View style={styles.mapSection}>
           <ArrivedMap
             Pickuplocation={rideData?.location_coordinates[0]}

@@ -157,7 +157,7 @@ export function MyWallet() {
 
   return (
     <View style={[styles.main, { backgroundColor: colors.background }]}>
-      <Header title={translateData.myWallet} />
+      <Header variant="brand" title={translateData.myWallet} />
 
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}

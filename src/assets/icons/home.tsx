@@ -2,14 +2,33 @@ import * as React from 'react'
 import Svg, { Path } from 'react-native-svg'
 import SvgComponentProps from './type'
 
+/*
+  Pitched-roof house with an arched door. Replaces the original rounded-blob
+  outline, which read as a shield more than a house at tab size. Stroke weight
+  and joins match the other tab icons (dashboard, car, settings).
+*/
 const SvgComponent: React.FC<SvgComponentProps> = ({ color }) => (
-  <Svg width={24} height={24} fill="none">
+  <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
     <Path
       stroke={color}
       strokeLinecap="round"
       strokeLinejoin="round"
-      strokeWidth={1.5}
-      d="M12 18v-3M10.07 2.82 3.14 8.37c-.78.62-1.28 1.93-1.11 2.91l1.33 7.96c.24 1.42 1.6 2.57 3.04 2.57h11.2c1.43 0 2.8-1.16 3.04-2.57l1.33-7.96c.16-.98-.34-2.29-1.11-2.91l-6.93-5.54c-1.07-.86-2.8-.86-3.86-.01Z"
+      strokeWidth={1.6}
+      d="M2.75 10.4 10.87 3.4a1.73 1.73 0 0 1 2.26 0l8.12 7"
+    />
+    <Path
+      stroke={color}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.6}
+      d="M4.6 9v10.3c0 1 .8 1.8 1.8 1.8h11.2c1 0 1.8-.8 1.8-1.8V9"
+    />
+    <Path
+      stroke={color}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.6}
+      d="M9.5 21.1v-4.9a2.5 2.5 0 0 1 5 0v4.9"
     />
   </Svg>
 )

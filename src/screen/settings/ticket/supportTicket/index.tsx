@@ -7,6 +7,7 @@ import {
   Image,
   BackHandler,
   RefreshControl,
+  StatusBar,
 } from 'react-native'
 import React, { useEffect } from 'react'
 import appColors from '../../../../theme/appColors'
@@ -30,6 +31,15 @@ export function SupportTicket() {
     (state: any) => state.tickets,
   )
   const { translateData } = useSelector((state: any) => state.setting)
+
+  // This screen builds its own header rather than using commonComponents/Header
+  // (it carries an extra "add ticket" action), so the brand treatment is
+  // applied here by hand. Orange in light mode only, matching the shared one.
+  const isBrandHeader = !isDark
+  const headerBg = isBrandHeader ? appColors.primary : colors.card
+  const headerFg = isBrandHeader ? appColors.white : colors.text
+  const chipBg = isBrandHeader ? 'rgba(255,255,255,0.18)' : 'transparent'
+  const chipBorder = isBrandHeader ? 'rgba(255,255,255,0.35)' : colors.border
 
   const gotoAdd = () => {
     navigation.navigate('CreateTicket')
@@ -152,33 +162,31 @@ export function SupportTicket() {
 
   return (
     <View style={styles.mainContainer}>
-      <View style={{ backgroundColor: colors.card }}>
+      <StatusBar barStyle="light-content" backgroundColor={headerBg} />
+      <View style={{ backgroundColor: headerBg }}>
         <View style={[styles.headerContainer, { flexDirection: viewRtlStyle }]}>
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => navigation.goBack()}
-            style={[styles.header, { borderColor: colors.border }]}
-          >
-            <Icons.Back
-              color={isDark ? appColors.white : appColors.primaryFont}
-            />
-          </TouchableOpacity>
-          <Text
             style={[
-              styles.text,
-              { color: isDark ? colors.text : appColors.primaryFont },
+              styles.header,
+              { backgroundColor: chipBg, borderColor: chipBorder },
             ]}
           >
+            <Icons.Back color={headerFg} />
+          </TouchableOpacity>
+          <Text style={[styles.text, { color: headerFg }]}>
             {translateData.supportTicket}
           </Text>
           <TouchableOpacity
             activeOpacity={0.7}
-            style={[styles.header, { borderColor: colors.border }]}
+            style={[
+              styles.header,
+              { backgroundColor: chipBg, borderColor: chipBorder },
+            ]}
             onPress={gotoAdd}
           >
-            <Icons.Add
-              color={isDark ? appColors.white : appColors.primaryFont}
-            />
+            <Icons.Add color={headerFg} />
           </TouchableOpacity>
         </View>
       </View>

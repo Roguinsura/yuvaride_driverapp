@@ -63,7 +63,7 @@ export function IncentiveTask() {
         },
       ]}
     >
-      <Header title={translateData.incentiveTask} />
+      <Header variant="brand" title={translateData.incentiveTask} />
 
       {incentiveTasks.length > 0 ? (
         <ScrollView

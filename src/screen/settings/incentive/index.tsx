@@ -149,7 +149,7 @@ export function Incentive() {
         backgroundColor: isDark ? appColors.bgDark : appColors.lightGray,
       }}
     >
-      <Header title={translateData?.incentive} />
+      <Header variant="brand" title={translateData?.incentive} />
       <ScrollView showsVerticalScrollIndicator={false}>
         <Text
           style={[

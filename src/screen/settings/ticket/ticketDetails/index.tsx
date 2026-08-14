@@ -305,7 +305,7 @@ export function TicketDetails({ route }: any) {
   }, [dispatch])
   return (
     <View style={styles.screenMainContainer}>
-      <Header title={translateData.ticketDetails} />
+      <Header variant="brand" title={translateData.ticketDetails} />
       <View style={styles.list}>
         {loading ? (
           <View style={styles.loaderContainer}>

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import { StatusBar } from 'react-native'
 import { View, Text, TouchableOpacity, Image, ScrollView, BackHandler, ImageBackground } from 'react-native'
 import appColors from '../../theme/appColors'
 import { fontSizes, windowHeight, windowWidth } from '../../theme/appConstant'
@@ -64,8 +65,14 @@ export function FleetDriverDashBoard() {
             style={{ backgroundColor: isDark ? appColors.bgDark : appColors.graybackground, flex: 1 }}
         >
             <View>
+                {/* Brand orange in light mode, dark surface in dark mode —
+                    the same rule the shared Header follows. */}
+                <StatusBar
+                    barStyle="light-content"
+                    backgroundColor={isDark ? appColors.darkThemeSub : appColors.primary}
+                />
                 <View
-                    style={{ backgroundColor: isDark ? appColors.darkThemeSub : appColors.white, height: windowHeight(10) }}
+                    style={{ backgroundColor: isDark ? appColors.darkThemeSub : appColors.primary, height: windowHeight(10) }}
                 >
                     <View
                         style={{

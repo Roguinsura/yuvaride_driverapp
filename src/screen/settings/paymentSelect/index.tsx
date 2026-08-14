@@ -160,7 +160,7 @@ export function PaymentSelect() {
 
   return (
     <View style={styles.container}>
-      <Header title={translateData.PaymentTextMethod} />
+      <Header variant="brand" title={translateData.PaymentTextMethod} />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.selectContainer}>
           <Text style={[styles.selectText, { textAlign: textRtlStyle }]}>

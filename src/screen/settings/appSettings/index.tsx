@@ -109,7 +109,7 @@ export function AppSettings() {
 
   return (
     <View style={[styles.main, { backgroundColor: colors.background }]}>
-      <Header title={translateData.appSetting} />
+      <Header variant="brand" title={translateData.appSetting} />
       <View style={styles.container}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
           {translateData?.appPagesTheme || 'Appearance'}

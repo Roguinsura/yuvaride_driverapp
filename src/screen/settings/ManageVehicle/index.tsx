@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useCallback, memo, useRef, useState } from "react";
-import { BackHandler, Image, FlatList, Text, TouchableOpacity, View, RefreshControl } from "react-native";
+import { BackHandler, Image, FlatList, Text, TouchableOpacity, View, RefreshControl, StatusBar } from "react-native";
 import { BottomSheetModal, BottomSheetModalProvider, BottomSheetView } from '@gorhom/bottom-sheet';
 import Icons from "../../../utils/icons/icons";
 import appColors from "../../../theme/appColors";
@@ -292,12 +292,22 @@ export function ManageVehicle() {
         };
     }, []);
 
+    // This screen builds its own header (it carries an "add vehicle" action),
+    // so the brand treatment is applied here rather than through
+    // commonComponents/Header. Orange in light mode only, same rule as the
+    // shared header.
+    const isBrandHeader = !isDark;
+    const chipBg = isBrandHeader ? "rgba(255,255,255,0.18)" : appColors.bgDark;
+    const chipBorder = isBrandHeader
+        ? "rgba(255,255,255,0.35)"
+        : appColors.darkborder;
+
     const headerStyle = useMemo(() => ([
         styles.header,
         {
-            backgroundColor: isDark ? appColors.bgDark : appColors.white,
+            backgroundColor: isDark ? appColors.bgDark : appColors.primary,
             flexDirection: rtl ? "row-reverse" as const : "row" as const,
-            borderColor: isDark ? appColors.darkborder : appColors.border,
+            borderColor: isDark ? appColors.darkborder : appColors.primary,
         },
     ]), [isDark, rtl]);
 
@@ -306,16 +316,16 @@ export function ManageVehicle() {
         width: windowHeight(4.7),
         borderWidth: 1,
         borderRadius: windowHeight(0.9),
-        borderColor: isDark ? appColors.darkborder : appColors.border,
+        borderColor: chipBorder,
         alignItems: "center" as const,
-        backgroundColor: isDark ? appColors.bgDark : appColors.white,
+        backgroundColor: chipBg,
         justifyContent: "center" as const,
-    }), [isDark]);
+    }), [chipBg, chipBorder]);
 
     const titleStyle = useMemo(() => ([
         styles.activeRide,
-        { color: isDark ? appColors.white : appColors.primaryFont },
-    ]), [isDark]);
+        { color: appColors.white },
+    ]), []);
 
     const renderVehicleCard = useCallback(({ item }: { item: any }) => {
         const statusStyle = getStatusStyle(item.status);
@@ -345,8 +355,16 @@ export function ManageVehicle() {
     return (
         <BottomSheetModalProvider>
             <View style={{ flex: 1 }}>
+                <StatusBar
+                    barStyle="light-content"
+                    backgroundColor={isDark ? appColors.bgDark : appColors.primary}
+                />
                 <View style={headerStyle}>
-                    <BackButton />
+                    <BackButton
+                        color={appColors.white}
+                        backgroundColor={chipBg}
+                        borderColor={chipBorder}
+                    />
                     <View style={styles.headerTitle}>
                         <Text style={titleStyle}>
                             {translateData?.manageVehicle}
@@ -356,7 +374,7 @@ export function ManageVehicle() {
                         style={addButtonStyle}
                         onPress={gotoAddVehicle}
                     >
-                        <Icons.plus color={isDark ? appColors.white : appColors.black} />
+                        <Icons.plus color={appColors.white} />
                     </TouchableOpacity>
                 </View>
 

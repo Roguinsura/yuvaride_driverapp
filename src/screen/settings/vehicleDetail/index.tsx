@@ -191,7 +191,7 @@ export function VehicleDetail() {
   }, [navigation])
   return (
     <ScrollView style={styles.main} showsVerticalScrollIndicator={false}>
-      <Header title={translateData.vehicleRegistration} />
+      <Header variant="brand" title={translateData.vehicleRegistration} />
       <View style={[styles.subView, { backgroundColor: colors.background }]}>
         <View style={styles.subContainer}>
           <TitleView

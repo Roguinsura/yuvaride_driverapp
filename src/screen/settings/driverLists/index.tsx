@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Image, FlatList, BackHandler, StyleSheet, RefreshControl } from 'react-native'
+import { View, Text, TouchableOpacity, Image, FlatList, BackHandler, StyleSheet, RefreshControl, StatusBar } from 'react-native'
 import React, { useEffect, useMemo, useCallback, memo, useRef, useState } from 'react'
 import { BottomSheetModal, BottomSheetModalProvider, BottomSheetView } from '@gorhom/bottom-sheet'
 import { BackButton, notificationHelper } from '../../../commonComponents'
@@ -329,11 +329,21 @@ const DriverList = () => {
     }
   }, [dispatch])
 
+  // This screen builds its own header (it carries an "add driver" action), so
+  // the brand treatment is applied here rather than through
+  // commonComponents/Header. Orange in light mode only, same rule as the
+  // shared header.
+  const isBrandHeader = !isDark
+  const chipBg = isBrandHeader ? 'rgba(255,255,255,0.18)' : 'transparent'
+  const chipBorder = isBrandHeader
+    ? 'rgba(255,255,255,0.35)'
+    : appColors.darkborder
+
   const headerStyle = useMemo(
     () => [
       styles.header,
       {
-        backgroundColor: isDark ? appColors.bgDark : appColors.white,
+        backgroundColor: isDark ? appColors.bgDark : appColors.primary,
         flexDirection: rtl ? ('row-reverse' as const) : ('row' as const),
       },
     ],
@@ -346,19 +356,17 @@ const DriverList = () => {
       width: windowHeight(4.7),
       borderWidth: 1,
       borderRadius: windowHeight(0.9),
-      borderColor: isDark ? appColors.darkborder : appColors.border,
+      borderColor: chipBorder,
+      backgroundColor: chipBg,
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
     }),
-    [isDark],
+    [chipBg, chipBorder],
   )
 
   const titleStyle = useMemo(
-    () => [
-      styles.activeRide,
-      { color: isDark ? appColors.white : appColors.primaryFont },
-    ],
-    [isDark],
+    () => [styles.activeRide, { color: appColors.white }],
+    [],
   )
 
   const getStatusStyle = useCallback((status: string) => {
@@ -422,13 +430,21 @@ const DriverList = () => {
   return (
     <BottomSheetModalProvider>
       <View style={{ flex: 1 }}>
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor={isDark ? appColors.bgDark : appColors.primary}
+        />
         <View style={headerStyle}>
-          <BackButton />
+          <BackButton
+            color={appColors.white}
+            backgroundColor={chipBg}
+            borderColor={chipBorder}
+          />
           <View style={styles.headerTitle}>
             <Text style={titleStyle}>{translateData?.driverList}</Text>
           </View>
           <TouchableOpacity style={addButtonStyle} onPress={gotoAddDriver}>
-            <Icons.plus color={isDark ? appColors.white : appColors.black} />
+            <Icons.plus color={appColors.white} />
           </TouchableOpacity>
         </View>
 

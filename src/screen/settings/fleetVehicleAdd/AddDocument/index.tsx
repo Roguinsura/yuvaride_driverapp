@@ -359,7 +359,7 @@ export function AddDocument({ route }: { route: AddDocumentRouteProp }) {
     return (
         <BottomSheetModalProvider>
             <View>
-                <Header title={translateData?.addVehicle} backgroundColor={isDark ? colors.card : appColors.white} />
+                <Header variant="brand" title={translateData?.addVehicle} backgroundColor={isDark ? colors.card : appColors.white} />
                 <View style={{ backgroundColor: isDark ? colors.card : appColors.white }}>
                     <View style={[styles.container, { flexDirection: viewRtlStyle }]}>
                         {bars?.map((_, index) => (

@@ -129,7 +129,7 @@ export function RentalDetails({ route }: any) {
 
   return (
     <View style={styles.container}>
-      <Header title={translateData.rentalDetails} />
+      <Header variant="brand" title={translateData.rentalDetails} />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.detailContainer}>
           <View

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { StatusBar } from 'react-native'
 import { View, Platform, PermissionsAndroid, Alert } from 'react-native'
 import Geolocation from '@react-native-community/geolocation'
 import WebView from 'react-native-webview'
@@ -605,6 +606,10 @@ ${(mapType === "google_map" || mapType === "google")
 
   return (
     <View style={{ flex: 1 }}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={isDark ? appColors.darkThemeSub : appColors.primary}
+      />
       <WebView
         ref={webViewRef}
         originWhitelist={['*']}

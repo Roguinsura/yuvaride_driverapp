@@ -525,7 +525,7 @@ export function DocumentDetail() {
 
   return (
     <View style={documentstyles.container}>
-      <Header title={translateData.documentRegistration} />
+      <Header variant="brand" title={translateData.documentRegistration} />
       <ScrollView style={styles.main} showsVerticalScrollIndicator={false}>
         <View style={[styles.sub, { backgroundColor: colors.background }]}>
           <View style={styles.spaceHorizantal}>

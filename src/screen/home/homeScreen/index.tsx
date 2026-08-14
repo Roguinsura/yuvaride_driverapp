@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   NativeModules,
   AppState,
+  StatusBar,
 } from 'react-native'
 import appColors from '../../../theme/appColors'
 import {
@@ -1435,6 +1436,14 @@ export function Home() {
 
   return (
     <View style={{ flex: 1 }}>
+      {/* App.tsx sets a white system bar as the app-wide default, which is what
+          this screen inherited on launch. The map is full-bleed, so the bar
+          sits as a solid band above it — brand orange in light mode, the dark
+          surface in dark mode, same as Dashboard and Settings. */}
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={isDark ? appColors.darkThemeSub : appColors.primary}
+      />
       {mapLoaded && (
         <MapScreen
           key={mapKey}

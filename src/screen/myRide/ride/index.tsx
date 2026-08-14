@@ -56,9 +56,13 @@ export function MyRide() {
         },
       ]}
     >
-      {/* Matches the orange header; without it the screen keeps whatever the
-          previously focused tab set. */}
-      <StatusBar barStyle="light-content" backgroundColor={appColors.primary} />
+      {/* Matches the header; without it the screen keeps whatever the
+          previously focused tab set. Orange in light mode, dark surface in
+          dark mode — same rule the header itself follows. */}
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={isDark ? appColors.darkThemeSub : appColors.primary}
+      />
       <Header />
       {/*
         The list used to sit inside a ScrollView, which nests a VirtualizedList

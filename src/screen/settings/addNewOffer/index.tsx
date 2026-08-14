@@ -34,7 +34,7 @@ export function AddNewOffer() {
       style={[styles.main, { backgroundColor: colors.background }]}
       showsVerticalScrollIndicator={false}
     >
-      <Header title={translateData.titleAddNewOffer} />
+      <Header variant="brand" title={translateData.titleAddNewOffer} />
       <View style={[styles.container, { backgroundColor: colors.card }]}>
         <Text
           style={[

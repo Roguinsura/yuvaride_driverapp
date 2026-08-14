@@ -1,3 +1,4 @@
+import { StatusBar } from 'react-native'
 import { View, Text, TouchableOpacity, Image, FlatList } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import Icons from '../../../utils/icons/icons'
@@ -21,6 +22,11 @@ export function VehicleList() {
   const dispatch = useDispatch<AppDispatch>()
   const { viewRtlStyle, isDark, rtl } = useValues()
   const { colors } = useTheme()
+  // Brand orange in light mode, the dark surface in dark mode — the same rule
+  // the shared Header follows.
+  const headerBg = isDark ? appColors.darkThemeSub : appColors.primary
+  const chipBg = isDark ? 'transparent' : 'rgba(255,255,255,0.18)'
+  const chipBorder = isDark ? appColors.darkborder : 'rgba(255,255,255,0.35)'
   const { translateData } = useSelector((state: any) => state.setting)
   const { zoneValue } = useSelector((state: any) => state.zoneUpdate)
 
@@ -295,29 +301,36 @@ export function VehicleList() {
     <View
       style={[styles.mainContainer, { backgroundColor: colors.background }]}
     >
+      <StatusBar barStyle="light-content" backgroundColor={headerBg} />
       <View
         style={[
           styles.main,
           { flexDirection: viewRtlStyle },
-          { backgroundColor: colors.card },
+          { backgroundColor: headerBg },
         ]}
       >
         <TouchableOpacity
           activeOpacity={0.7}
-          style={[styles.backIcon, { borderColor: colors.border }]}
+          style={[
+            styles.backIcon,
+            { backgroundColor: chipBg, borderColor: chipBorder },
+          ]}
           onPress={() => navigation.goBack()}
         >
-          <Icons.Back color={colors.text} />
+          <Icons.Back color={appColors.white} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={[styles.title, { color: appColors.white }]}>
           {translateData.vehicleList}
         </Text>
         <TouchableOpacity
           onPress={gotoAdd}
           activeOpacity={0.7}
-          style={[styles.backIcon, { borderColor: colors.border }]}
+          style={[
+            styles.backIcon,
+            { backgroundColor: chipBg, borderColor: chipBorder },
+          ]}
         >
-          <Icons.Add color={colors.text} />
+          <Icons.Add color={appColors.white} />
         </TouchableOpacity>
       </View>
 

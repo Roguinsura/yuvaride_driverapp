@@ -176,7 +176,7 @@ export function EditDetails() {
           backgroundColor: isDark ? appColors.bgDark : appColors.lightGray,
         }}
       >
-        <Header
+        <Header variant="brand"
           title={
             field === 'email'
               ? translateData.email

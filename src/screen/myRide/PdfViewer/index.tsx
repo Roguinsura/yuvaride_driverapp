@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, ActivityIndicator, Platform, Alert, Text, TouchableOpacity } from 'react-native';
+import { View, ActivityIndicator, Platform, Alert, Text, TouchableOpacity, StatusBar } from 'react-native';
 import { WebView } from 'react-native-webview';
 import appColors from '../../../theme/appColors';
 import { fontSizes, windowHeight } from '../../../theme/appConstant';
@@ -16,6 +16,9 @@ import { useSelector } from 'react-redux';
 export function PdfViewer({ route }: any) {
     const { pdfUrl, rideNumber } = route?.params || {};
     const { isDark } = useValues();
+    const headerBg = isDark ? appColors.darkThemeSub : appColors.primary;
+    const chipBg = isDark ? 'transparent' : 'rgba(255,255,255,0.18)';
+    const chipBorder = isDark ? appColors.darkborder : 'rgba(255,255,255,0.35)';
     const [loading, setLoading] = useState<boolean>(true);
     const pdfGoogleViewer = `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(pdfUrl)}`;
     const { translateData } = useSelector((state: any) => state.setting);
@@ -65,24 +68,27 @@ export function PdfViewer({ route }: any) {
 
     return (
         <View style={{ flex: 1, backgroundColor: isDark ? appColors.darkThemeSub : appColors.white }}>
-            <View style={[styles.headerView, { backgroundColor: isDark ? appColors.darkThemeSub : appColors.white }]}>
+            {/* Brand orange in light mode, dark surface in dark mode — the
+                same rule the shared Header follows. */}
+            <StatusBar barStyle="light-content" backgroundColor={headerBg} />
+            <View style={[styles.headerView, { backgroundColor: headerBg }]}>
 
-                <TouchableOpacity style={{ borderWidth: 1, borderColor: isDark ? appColors.darkborder : appColors.border, borderRadius: windowHeight(0.9), height: windowHeight(5), width: windowHeight(5), alignItems: 'center', justifyContent: 'center' }}
+                <TouchableOpacity style={{ borderWidth: 1, borderColor: chipBorder, backgroundColor: chipBg, borderRadius: windowHeight(0.9), height: windowHeight(5), width: windowHeight(5), alignItems: 'center', justifyContent: 'center' }}
                     onPress={() => navigation.goBack()}
                 >
-                    <Icons.Back color={isDark ? appColors.darkText : appColors.black} />
+                    <Icons.Back color={appColors.white} />
                 </TouchableOpacity>
-                <Text style={{ fontFamily: appFonts.medium, fontSize: fontSizes?.FONT4HALF, color: isDark ? appColors.white : appColors.black }}>Invoice</Text>
+                <Text style={{ fontFamily: appFonts.medium, fontSize: fontSizes?.FONT4HALF, color: appColors.white }}>Invoice</Text>
                 <TouchableOpacity onPress={() => {
                     if (loading) {
                         return;
                     }
                     downloadPdf();
                 }}
-                    style={{ borderWidth: 1, borderColor: isDark ? appColors.darkborder : appColors.border, borderRadius: windowHeight(0.9), height: windowHeight(5), width: windowHeight(5), alignItems: 'center', justifyContent: 'center' }}
+                    style={{ borderWidth: 1, borderColor: chipBorder, backgroundColor: chipBg, borderRadius: windowHeight(0.9), height: windowHeight(5), width: windowHeight(5), alignItems: 'center', justifyContent: 'center' }}
                     disabled={loading}
                 >
-                    <Icons.Download color={isDark ? appColors.darkText : appColors.black} />
+                    <Icons.Download color={appColors.white} />
                 </TouchableOpacity>
             </View>
             {loading && (

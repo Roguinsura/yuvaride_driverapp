@@ -7,6 +7,7 @@ import {
   Modal,
   TouchableOpacity,
   TextInput,
+  StatusBar,
 } from 'react-native'
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useTheme, useRoute, useFocusEffect } from '@react-navigation/native'
@@ -394,6 +395,10 @@ export function RideComplete() {
 
   return (
     <View style={commanStyles.main}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={isDark ? appColors.darkThemeSub : appColors.primary}
+      />
       {rideDataState?.service_category?.service_category_type !== 'rental' ? (
         <View style={styles.mapSection}>
           <Map

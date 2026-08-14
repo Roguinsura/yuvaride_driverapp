@@ -64,7 +64,7 @@ export function CompanyDetails() {
 
     return (
         <View style={{ flex: 1 }}>
-            <Header backgroundColor={isDark ? colors.card : appColors.white} title={translateData.companyDetails || "Company Details"} />
+            <Header variant="brand" backgroundColor={isDark ? colors.card : appColors.white} title={translateData.companyDetails || "Company Details"} />
             <ScrollView style={[styles.subView, { backgroundColor: colors.background }]} showsVerticalScrollIndicator={false}>
                 <View style={styles.space}>
                     <Input

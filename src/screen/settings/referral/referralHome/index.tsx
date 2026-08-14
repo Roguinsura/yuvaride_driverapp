@@ -86,7 +86,7 @@ export function ReferralHome() {
 
   return (
     <View style={[styles.screen, { backgroundColor: pageBg }]}>
-      <Header title={translateData?.referralHeader || FALLBACK.header} />
+      <Header variant="brand" title={translateData?.referralHeader || FALLBACK.header} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}

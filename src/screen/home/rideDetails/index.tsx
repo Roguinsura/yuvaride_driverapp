@@ -1,3 +1,4 @@
+import { StatusBar } from 'react-native'
 import { View, Text, ScrollView, TouchableOpacity, BackHandler } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigation, useRoute, useTheme } from '@react-navigation/native'
@@ -77,13 +78,19 @@ export function RideDetails() {
 
   return (
     <ScrollView style={commanStyle.main} showsVerticalScrollIndicator={false}>
+      {/* Brand orange in light mode, dark surface in dark mode — the same
+          rule the shared Header follows. */}
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={isDark ? appColors.darkThemeSub : appColors.primary}
+      />
       <View
         style={{
           height: windowHeight(9.5),
-          backgroundColor: isDark ? appColors.darkThemeSub : appColors.white,
+          backgroundColor: isDark ? appColors.darkThemeSub : appColors.primary,
         }}
       >
-        <Text style={[styles.activeRide, { color: colors.text }]}>
+        <Text style={[styles.activeRide, { color: appColors.white }]}>
           {translateData.rideDetails}
         </Text>
       </View>

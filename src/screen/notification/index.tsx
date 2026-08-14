@@ -97,6 +97,7 @@ export function Notification() {
   return (
     <View style={styles.container}>
       <Header
+        variant="brand"
         title={translateData.notification}
         backgroundColor={
           isDark ? appColors.darkThemeSub : appColors.graybackground

@@ -80,7 +80,7 @@ export function RideInfo({ route }) {
 
   return (
     <View style={styles.container}>
-      <Header
+      <Header variant="brand"
         title={`${ride?.service?.name}  ${translateData.rideInfoHeaderDetails}`}
       />
       <ScrollView showsVerticalScrollIndicator={false}>

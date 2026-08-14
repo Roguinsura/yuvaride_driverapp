@@ -54,6 +54,12 @@ export function DashBoard() {
   const navigation = useNavigation<any>()
 
   const pageBg = isDark ? appColors.bgDark : appColors.graybackground
+  // The header is brand orange in light mode only. In dark mode it takes the
+  // same dark surface the inner pages use, so the bar doesn't stay orange.
+  const headerBg = isDark ? appColors.darkThemeSub : appColors.primary
+  const headerChipBorder = isDark
+    ? appColors.darkborder
+    : appColors.greenborder
   const cardBg = isDark ? appColors.darkThemeSub : appColors.white
   const borderColor = isDark ? appColors.darkborder : appColors.border
   const titleColor = isDark ? appColors.white : brandColors.titleLight
@@ -166,16 +172,13 @@ export function DashBoard() {
 
   return (
     <View style={[styles.screen, { backgroundColor: pageBg }]}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor={appColors.primary}
-      />
+      <StatusBar barStyle="light-content" backgroundColor={headerBg} />
 
       {/*
         A fixed header, outside the ScrollView. It stays put while the content
         scrolls under it and it never overlaps the cards below.
       */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: headerBg }]}>
         <View style={[styles.headerRow, { flexDirection: viewRtlStyle }]}>
           <View>
             <Text style={[styles.headerTitle, { textAlign: textRtlStyle }]}>
@@ -186,7 +189,7 @@ export function DashBoard() {
             </Text>
           </View>
           <TouchableOpacity
-            style={styles.bellButton}
+            style={[styles.bellButton, { borderColor: headerChipBorder }]}
             activeOpacity={0.7}
             onPress={() => navigate('Notification')}
           >

@@ -6,7 +6,19 @@ import commanStyles from '../../style/commanStyles'
 import { useValues } from '../../utils/context'
 import appColors from '../../theme/appColors'
 
-export function BackButton() {
+interface BackButtonProps {
+  /* Arrow colour. Defaults to the theme text colour. */
+  color?: string
+  /* Chip fill. Defaults to the theme card colour. */
+  backgroundColor?: string
+  borderColor?: string
+}
+
+export function BackButton({
+  color,
+  backgroundColor,
+  borderColor,
+}: BackButtonProps): React.ReactElement {
   const navigation = useNavigation()
   const { colors } = useTheme()
   const { isDark } = useValues()
@@ -20,12 +32,13 @@ export function BackButton() {
       style={[
         commanStyles.backButtonMain,
         {
-          backgroundColor: colors.card,
-          borderColor: isDark ? appColors.darkborder : appColors.border,
+          backgroundColor: backgroundColor ?? colors.card,
+          borderColor:
+            borderColor ?? (isDark ? appColors.darkborder : appColors.border),
         },
       ]}
     >
-      <Icons.Back color={colors.text} />
+      <Icons.Back color={color ?? colors.text} />
     </TouchableOpacity>
   )
 }

@@ -246,7 +246,7 @@ export function PendingDetails() {
 
   return (
     <View style={styles.main}>
-      <Header title={`${rideStatus} Ride`} />
+      <Header variant="brand" title={`${rideStatus} Ride`} />
       <ScrollView showsVerticalScrollIndicator={false}>
         <>
           <Details rideDetails={item} vehicleDetail={vehicleDetail} status={status} />

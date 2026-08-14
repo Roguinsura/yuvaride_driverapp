@@ -247,7 +247,7 @@ export function AddDriverDetails({ route }: any) {
 
     return (
         <View style={{ flex: 1 }}>
-            <Header title={translateData?.addDriver} backgroundColor={isDark ? colors.card : appColors.white} />
+            <Header variant="brand" title={translateData?.addDriver} backgroundColor={isDark ? colors.card : appColors.white} />
             <View style={{ backgroundColor: isDark ? colors.card : appColors.white }}>
                 <View style={[styles.container, { flexDirection: viewRtlStyle }]}>
                     {bars.map((_, index) => (

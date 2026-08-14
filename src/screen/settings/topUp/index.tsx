@@ -173,7 +173,7 @@ export function TopUp() {
 
   return (
     <View style={styles.main}>
-      <Header title={translateData.topupWallettttt} />
+      <Header variant="brand" title={translateData.topupWallettttt} />
       <View style={styles.listView}>
         <Text style={[styles.amount, { textAlign: textRtlStyle }]}>
           {translateData.amount}

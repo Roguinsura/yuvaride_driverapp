@@ -233,7 +233,7 @@ export function Subscription() {
 
   return (
     <View style={[styles.MainContainer, { backgroundColor: pageBg }]}>
-      <Header
+      <Header variant="brand"
         title={translateData?.planDetails || FALLBACK.planDetails}
         backgroundColor={cardBg}
       />

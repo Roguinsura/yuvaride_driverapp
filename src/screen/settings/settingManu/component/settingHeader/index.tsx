@@ -18,15 +18,20 @@ const FALLBACK = {
 }
 
 export function SettingHeader() {
-  const { viewRtlStyle, textRtlStyle } = useValues()
+  const { viewRtlStyle, textRtlStyle, isDark } = useValues()
   const { navigate } = useNavigation<navigation>()
   const { translateData } = useSelector((state: any) => state.setting)
+
+  // Brand orange in light mode only. In dark mode the bar takes the same dark
+  // surface the inner pages use, matching the shared Header's rule.
+  const headerBg = isDark ? appColors.darkThemeSub : appColors.primary
+  const chipBorder = isDark ? appColors.darkborder : appColors.greenborder
 
   const gotoNotification = () => navigate('Notification')
   const myWallet = () => navigate('MyWallet')
 
   return (
-    <View style={[styles.main, { backgroundColor: appColors.primary }]}>
+    <View style={[styles.main, { backgroundColor: headerBg }]}>
       <View style={[styles.row, { flexDirection: viewRtlStyle }]}>
         <View>
           <Text
@@ -50,14 +55,14 @@ export function SettingHeader() {
         <View style={[styles.actions, { flexDirection: viewRtlStyle }]}>
           <TouchableOpacity
             onPress={gotoNotification}
-            style={[styles.iconView, { borderColor: appColors.greenborder }]}
+            style={[styles.iconView, { borderColor: chipBorder }]}
             activeOpacity={0.7}
           >
             <Icons.Notification color={appColors.white} />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={myWallet}
-            style={[styles.iconView, { borderColor: appColors.greenborder }]}
+            style={[styles.iconView, { borderColor: chipBorder }]}
             activeOpacity={0.7}
           >
             <Icons.WalletSetting color={appColors.white} />

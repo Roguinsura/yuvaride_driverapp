@@ -1,3 +1,4 @@
+import { StatusBar } from 'react-native'
 import { View, Text, Image, Platform, PermissionsAndroid, Keyboard, TouchableOpacity, Alert, BackHandler } from 'react-native'
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import appColors from '../../../theme/appColors'
@@ -387,6 +388,10 @@ export function OtpRide() {
 
   return (
     <View style={styles.container}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={isDark ? appColors.darkThemeSub : appColors.primary}
+      />
       <View style={styles.mapSection}>
         <ArrivedMap
           Pickuplocation={rideData?.location_coordinates[0]}

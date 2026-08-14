@@ -18,7 +18,7 @@ export function EndRide() {
       style={[styles.main, { backgroundColor: colors.background }]}
       showsVerticalScrollIndicator={false}
     >
-      <Header title={translateData.completeRides} />
+      <Header variant="brand" title={translateData.completeRides} />
       <View style={[styles.contain, { backgroundColor: colors.background }]}>
         <View
           style={[

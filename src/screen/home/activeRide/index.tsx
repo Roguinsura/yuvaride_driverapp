@@ -1,4 +1,4 @@
-import { View, Image, Text } from 'react-native'
+import { View, Image, Text, StatusBar } from 'react-native'
 import React, { useState } from 'react'
 import appColors from '../../../theme/appColors'
 import { useNavigation, useTheme, useRoute } from '@react-navigation/native'
@@ -35,13 +35,18 @@ export function ActiveRide() {
     }, 5000)
   }
 
+  // Brand orange in light mode, the dark surface in dark mode — the same rule
+  // the shared Header follows.
+  const headerBg = isDark ? appColors.darkThemeSub : appColors.primary
+
   return (
     <View style={commanStyle.main}>
+      <StatusBar barStyle="light-content" backgroundColor={headerBg} />
       <View
         style={[
           styles.header,
           {
-            backgroundColor: colors.card,
+            backgroundColor: headerBg,
             flexDirection: viewRtlStyle,
           },
         ]}
@@ -53,7 +58,7 @@ export function ActiveRide() {
             width: '100%',
           }}
         >
-          <Text style={[styles.activeRide, { color: colors.text }]}>
+          <Text style={[styles.activeRide, { color: appColors.white }]}>
             {translateData.activeRide}
           </Text>
         </View>

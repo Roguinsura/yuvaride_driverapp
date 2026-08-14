@@ -199,7 +199,7 @@ export function CreateTicket() {
 
   return (
     <View>
-      <Header title={translateData.createTicket} />
+      <Header variant="brand" title={translateData.createTicket} />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.inputContainer}>
           <View>

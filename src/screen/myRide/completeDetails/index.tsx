@@ -11,7 +11,7 @@ export function CompleteDetails() {
 
   return (
     <View style={styles.main}>
-      <Header title={translateData.titleCompletedRide} />
+      <Header variant="brand" title={translateData.titleCompletedRide} />
       <Details />
       <View style={styles.buttonView}>
         <Button

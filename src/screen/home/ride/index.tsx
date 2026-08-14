@@ -6,6 +6,7 @@ import {
   Vibration,
   NativeModules,
   Alert,
+  StatusBar,
 } from 'react-native'
 import React, { useState, useEffect, useMemo } from 'react'
 import appColors from '../../../theme/appColors'
@@ -565,6 +566,10 @@ export function Ride() {
 
   return (
     <View style={commanStyles.main}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={isDark ? appColors.darkThemeSub : appColors.primary}
+      />
       <View style={styles.mapSection}>
         <WebView
           originWhitelist={['*']}

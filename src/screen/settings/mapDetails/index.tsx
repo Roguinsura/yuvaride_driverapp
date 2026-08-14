@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View } from 'react-native'
+import { View, StatusBar } from 'react-native'
 import { useRoute } from '@react-navigation/native'
 import { WebView } from 'react-native-webview'
 import { useSelector } from 'react-redux'
@@ -13,7 +13,7 @@ export function MapDetails() {
   const route = useRoute<any>()
   const { location } = route.params
   const { translateData, taxidoSettingData } = useSelector((state: any) => state.setting)
-  const { Google_Map_Key } = useValues()
+  const { Google_Map_Key, isDark } = useValues()
   const mapType = taxidoSettingData?.cabbooking_values?.location?.map_provider;
 
   const pickupPoint =
@@ -174,6 +174,13 @@ export function MapDetails() {
 
   return (
     <View style={styles.main}>
+      {/* Full-bleed WebView map with a floating back button rather than a
+          header bar, so only the system bar carries the brand colour here —
+          the button keeps its themed chip to stay legible over the map. */}
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={isDark ? appColors.darkThemeSub : appColors.primary}
+      />
       <View style={{ position: 'absolute', left: windowHeight(1), zIndex: 1 }}>
         <BackButton />
       </View>

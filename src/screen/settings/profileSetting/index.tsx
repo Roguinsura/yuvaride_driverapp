@@ -392,7 +392,7 @@ export function ProfileSetting() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : -200}
     >
-      <Header title={translateData.profileSettings} />
+      <Header variant="brand" title={translateData.profileSettings} />
       {/*
         Without flex: 1 the ScrollView sizes itself to its content rather than
         to the space available, so anything past the first screenful — the

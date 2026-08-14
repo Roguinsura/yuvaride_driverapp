@@ -886,7 +886,7 @@ export function AddVehicle() {
   return (
     <View>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Header title={isEditMode ? "Edit Vehicle" : translateData.addVehicle} />
+        <Header variant="brand" title={isEditMode ? "Edit Vehicle" : translateData.addVehicle} />
         <View style={styles.mainContainer}>
           <View style={styles.subContainer}>
             <Text

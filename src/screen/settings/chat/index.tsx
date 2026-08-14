@@ -13,6 +13,7 @@ import {
   Pressable,
   Platform,
   RefreshControl,
+  StatusBar,
 } from 'react-native'
 import appColors from '../../../theme/appColors'
 import { getValue } from '../../../utils/localstorage'
@@ -47,6 +48,16 @@ export function Chat() {
   const { viewRtlStyle, textRtlStyle, rtl, isDark } = useValues()
   const { translateData } = useSelector((state: any) => state.setting)
   const navigation = useNavigation()
+
+  // Chat rolls its own header (name + online status), so the brand treatment
+  // is applied here rather than through commonComponents/Header. Light mode
+  // only, same rule as the shared header.
+  const isBrandHeader = !isDark
+  const headerBg = isBrandHeader ? appColors.primary : colors.card
+  const headerFg = isBrandHeader ? appColors.white : colors.text
+  const chipBg = isBrandHeader ? 'rgba(255,255,255,0.18)' : colors.card
+  const chipBorder = isBrandHeader ? 'rgba(255,255,255,0.35)' : colors.border
+  const onlineColor = isBrandHeader ? 'rgba(255,255,255,0.85)' : appColors.primary
 
   useEffect(() => {
     const backAction = () => {
@@ -300,10 +311,11 @@ export function Chat() {
   return (
     <View style={styles.containerMain}>
       {/* Header */}
+      <StatusBar barStyle="light-content" backgroundColor={headerBg} />
       <View
         style={[
           styles.view_Main,
-          { backgroundColor: colors.card, flexDirection: viewRtlStyle },
+          { backgroundColor: headerBg, flexDirection: viewRtlStyle },
         ]}
       >
         <View style={{ flexDirection: viewRtlStyle }}>
@@ -311,22 +323,27 @@ export function Chat() {
             activeOpacity={0.7}
             style={[
               styles.backButton,
-              { backgroundColor: colors.card, borderColor: colors.border },
+              { backgroundColor: chipBg, borderColor: chipBorder },
             ]}
             onPress={goBack}
           >
-            <Icons.Back color={colors.text} />
+            <Icons.Back color={headerFg} />
           </TouchableOpacity>
           <View style={styles.riderContainer}>
             <Text
               style={[
                 styles.templetionStyle,
-                { textAlign: textRtlStyle, color: colors.text },
+                { textAlign: textRtlStyle, color: headerFg },
               ]}
             >
               {from && from === 'help' ? 'Administrator' : riderName}
             </Text>
-            <Text style={[styles.onlineText, { textAlign: textRtlStyle }]}>
+            <Text
+              style={[
+                styles.onlineText,
+                { textAlign: textRtlStyle, color: onlineColor },
+              ]}
+            >
               {translateData.online}
             </Text>
           </View>

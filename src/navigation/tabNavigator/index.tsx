@@ -2,7 +2,7 @@ import React, { useMemo, useCallback } from 'react'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { Home } from '../../screen/home'
 import { MyRide, Settings } from '../../screen'
-import { Text, TouchableOpacity, Vibration } from 'react-native'
+import { Text, TouchableOpacity, Vibration, View } from 'react-native'
 import appColors from '../../theme/appColors'
 import Icons from '../../utils/icons/icons'
 import styles from './styles'
@@ -14,29 +14,80 @@ import { useTabGuard } from '../../utils/hooks'
 
 const Tab = createBottomTabNavigator()
 
-const TabLabel = React.memo(({ focused, label, rtl }: { focused: boolean; label: string; rtl: boolean }) => (
-  <Text
-    style={[
-      styles.tabBarLabelStyle,
-      {
-        color: focused ? appColors.white : appColors.categoryTitle,
-        textAlign: rtl ? 'right' : 'left',
-        writingDirection: rtl ? 'rtl' : 'ltr',
-      },
-    ]}
-  >
-    {label}
-  </Text>
-))
+/*
+  Tab bar palette. Light mode keeps the brand orange bar, so the active pill is
+  a translucent white lozenge. Dark mode takes the same surface as the headers,
+  where a solid orange pill is what carries the brand instead.
+*/
+const tabPalette = (isDark: boolean) => ({
+  bar: isDark ? appColors.darkThemeSub : appColors.primary,
+  border: isDark ? appColors.darkborder : 'transparent',
+  activePill: isDark ? appColors.primary : appColors.white,
+  // The icon has to invert against its own pill: orange on the white pill,
+  // white on the orange one. Using white for both would make the light-mode
+  // icon vanish into the pill.
+  activeIcon: isDark ? appColors.white : appColors.primary,
+  // The label sits below the pill, directly on the bar, so it stays white in
+  // both modes.
+  activeLabel: appColors.white,
+  inactive: isDark ? appColors.categoryTitle : 'rgba(255,255,255,0.72)',
+})
 
-const TabIcon = React.memo(({ Icon, focused }: { Icon: any; focused: boolean }) => (
-  <Icon color={focused ? appColors.white : appColors.categoryTitle} />
-))
+type Palette = ReturnType<typeof tabPalette>
+
+const TabLabel = React.memo(
+  ({
+    focused,
+    label,
+    rtl,
+    palette,
+  }: {
+    focused: boolean
+    label: string
+    rtl: boolean
+    palette: Palette
+  }) => (
+    <Text
+      style={[
+        styles.tabBarLabelStyle,
+        {
+          color: focused ? palette.activeLabel : palette.inactive,
+          textAlign: rtl ? 'right' : 'left',
+          writingDirection: rtl ? 'rtl' : 'ltr',
+        },
+      ]}
+    >
+      {label}
+    </Text>
+  ),
+)
+
+const TabIcon = React.memo(
+  ({
+    Icon,
+    focused,
+    palette,
+  }: {
+    Icon: any
+    focused: boolean
+    palette: Palette
+  }) => (
+    <View
+      style={[
+        styles.iconWrap,
+        focused && { backgroundColor: palette.activePill },
+      ]}
+    >
+      <Icon color={focused ? palette.activeIcon : palette.inactive} />
+    </View>
+  ),
+)
 
 export default function App() {
   const { translateData } = useSelector((state: any) => state.setting)
-  const { rtl } = useValues()
+  const { rtl, isDark } = useValues()
   const { selfDriver } = useSelector((state: any) => state.account)
+  const palette = useMemo(() => tabPalette(isDark), [isDark])
 
   const defaultTranslations = useMemo(() => ({
     home: 'Home',
@@ -130,9 +181,16 @@ export default function App() {
 
   // Memoize screen options to prevent recreation on every render
   const screenOptions = useMemo(() => ({
-    tabBarStyle: styles.tabBarContainer,
+    tabBarStyle: [
+      styles.tabBarContainer,
+      {
+        backgroundColor: palette.bar,
+        borderTopWidth: isDark ? 1 : 0,
+        borderTopColor: palette.border,
+      },
+    ],
     headerShown: false,
-  }), [])
+  }), [palette, isDark])
 
   return (
     <Tab.Navigator
@@ -148,14 +206,23 @@ export default function App() {
           options={{
             unmountOnBlur: false,
             lazy: true,
-            tabBarIcon: ({ focused }) => <TabIcon Icon={Icon} focused={focused} />,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon Icon={Icon} focused={focused} palette={palette} />
+            ),
             tabBarButton: (props: any) => (
               <TouchableOpacity
                 {...props}
                 onPress={() => handleTabPress(name, props.onPress, props.accessibilityState?.selected)}
               />
             ),
-            tabBarLabel: ({ focused }) => <TabLabel focused={focused} label={label} rtl={rtl} />,
+            tabBarLabel: ({ focused }) => (
+              <TabLabel
+                focused={focused}
+                label={label}
+                rtl={rtl}
+                palette={palette}
+              />
+            ),
           }}
         />
       ))}

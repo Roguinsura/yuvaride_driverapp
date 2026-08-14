@@ -152,7 +152,7 @@ export function TotalEarnings() {
 
   return (
     <View style={localStyles.screen}>
-      <Header title={translateData?.totalEarning || FALLBACK.totalEarning} />
+      <Header variant="brand" title={translateData?.totalEarning || FALLBACK.totalEarning} />
 
       <ScrollView
         style={[localStyles.body, { backgroundColor: pageBg }]}

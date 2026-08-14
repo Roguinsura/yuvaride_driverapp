@@ -15,8 +15,9 @@ const styles = StyleSheet.create({
   },
 
   /* ---------- header ---------- */
+  // Background is passed in by the screen — brand orange in light mode, the
+  // dark card surface in dark mode, matching the shared Header's rule.
   header: {
-    backgroundColor: appColors.primary,
     paddingTop: windowHeight(2),
     paddingBottom: windowHeight(2),
     paddingHorizontal: windowWidth(5),
@@ -43,7 +44,6 @@ const styles = StyleSheet.create({
     width: windowHeight(5.2),
     borderRadius: windowHeight(1.4),
     borderWidth: windowHeight(0.1),
-    borderColor: appColors.greenborder,
     alignItems: 'center',
     justifyContent: 'center',
   },
