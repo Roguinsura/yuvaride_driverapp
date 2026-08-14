@@ -24,6 +24,7 @@ import {
   ValidatePhoneNumber,
 } from '../../../../../utils/validation'
 import CountrySelect from 'react-native-country-select'
+import { countrySelectProps } from '../../../../../utils/countrySelect'
 
 export function LoginView({
   gotoOTP,
@@ -292,6 +293,7 @@ export function LoginView({
 
       {pickerVisible && (
         <CountrySelect
+          {...countrySelectProps(isDark)}
           visible={pickerVisible}
           onSelect={country => {
             const callingCode = country.idd.root + (country.idd.suffixes[0] || '')

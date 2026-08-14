@@ -9,6 +9,7 @@ import styles from './styles'
 import { useAppNavigation } from '../../../../utils/navigation'
 import { windowWidth, windowHeight } from '../../../../theme/appConstant'
 import CountrySelect from 'react-native-country-select'
+import { countrySelectProps } from '../../../../utils/countrySelect'
 import type { ICountry as CountryType } from 'react-native-country-select/lib/interface'
 import { getAllCountries } from 'react-native-country-select/lib/utils/countryHelpers';
 
@@ -590,12 +591,10 @@ export function AddDriverDetails({ route }: any) {
             </View>
 
             <CountrySelect
+                {...countrySelectProps(isDark)}
                 visible={visible}
                 onClose={() => setVisible(false)}
                 onSelect={handleCountrySelect}
-                showSearchInput={true}
-                showCloseButton={true}
-                showAlphabetFilter={true}
             />
         </View>
     )

@@ -25,6 +25,7 @@ import {
 } from '../../../theme/appConstant'
 import appFonts from '../../../theme/appFonts'
 import CountrySelect from 'react-native-country-select'
+import { countrySelectProps } from '../../../utils/countrySelect'
 import { ICountry } from 'react-native-country-select/lib/interface/country'
 import {
   BottomSheetModal,
@@ -325,12 +326,10 @@ export function EditDetails() {
 
           {countryPickerVisible && (
             <CountrySelect
+              {...countrySelectProps(isDark)}
               visible={true}
               onClose={handleCloseCountryPicker}
               onSelect={handleCountrySelect}
-              theme={isDark ? 'dark' : 'light'}
-              showAlphabetFilter={true}
-              showSearchInput={true}
             />
           )}
 

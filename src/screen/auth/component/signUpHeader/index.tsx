@@ -1,7 +1,6 @@
 import React from 'react'
-import { View, TouchableOpacity, Image } from 'react-native'
+import { View, TouchableOpacity, Text } from 'react-native'
 import styles from './styles'
-import images from '../../../../utils/images/images'
 import Icons from '../../../../utils/icons/icons'
 import { useNavigation, useTheme } from '@react-navigation/native'
 import { useValues } from '../../../../utils/context/index'
@@ -41,10 +40,15 @@ export function Header({
         </TouchableOpacity>
       )}
       <View style={[styles.header, { flexDirection: viewRtlStyle }]}>
-        <Image
-          source={isDark ? images.splashDark : images.splash}
-          style={styles.imageLogo}
-        />
+        {/*
+          Was the Taxido wordmark PNG. Drawn as a pill instead of swapping the
+          asset, so the brand is right now rather than waiting on artwork. The
+          pill is sized to the old logo's footprint so the header keeps its
+          height and the back button keeps its position.
+        */}
+        <View style={styles.brandPill}>
+          <Text style={styles.brandPillText}>YuvaRide</Text>
+        </View>
       </View>
     </View>
   )

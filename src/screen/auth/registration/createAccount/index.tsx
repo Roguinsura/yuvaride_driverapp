@@ -7,8 +7,10 @@ import {
   ScrollView,
   BackHandler,
   Keyboard,
+  ActivityIndicator,
 } from 'react-native'
 import appColors from '../../../../theme/appColors'
+import brandColors from '../../../../theme/brandColors'
 import { ProgressBar } from '../component'
 import { Input, Button } from '../../../../commonComponents'
 import {
@@ -16,13 +18,12 @@ import {
   useNavigation,
   useTheme,
 } from '@react-navigation/native'
-import { Header, TitleView } from '../../component'
+import { Header } from '../../component'
 import styles from './styles'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { RootStackParamList } from '../../../../navigation/main/types'
 import Icons from '../../../../utils/icons/icons'
 import { useValues } from '../../../../utils/context'
-import { windowWidth } from '../../../intro/onBoarding/styles'
 import { useDispatch, useSelector } from 'react-redux'
 import { useAppRoute } from '../../../../utils/navigation'
 import { ValidatePhoneNumber } from '../../../../utils/validation'
@@ -31,6 +32,7 @@ import { AppDispatch } from '../../../../api/store'
 import { countryData, preferenceData } from '../../../../api/store/action'
 import DropDownPicker from 'react-native-dropdown-picker'
 import CountrySelect from 'react-native-country-select'
+import { countrySelectProps } from '../../../../utils/countrySelect'
 
 type navigation = NativeStackNavigationProp<RootStackParamList>
 
@@ -309,21 +311,56 @@ export function CreateAccount() {
   }, [countryList, countryCode])
   const [isFocused, setIsFocused] = useState(false)
 
+  const pageBg = isDark ? appColors.bgDark : appColors.graybackground
+  const cardBg = isDark ? appColors.darkThemeSub : appColors.white
+  const borderColor = isDark ? appColors.darkborder : appColors.border
+  const titleColor = isDark ? appColors.white : brandColors.titleLight
+  const bodyColor = isDark ? appColors.darkText : brandColors.bodyLight
+  const fieldBg = isDark ? appColors.bgDark : brandColors.fieldLight
+  // The list arrives from the countryData thunk. Until it does the picker
+  // shows a spinner instead of an empty dropdown. Derived, not state, so the
+  // hook order is untouched.
+  const isCountryLoading = !countryList?.data?.length
+
   return (
-    <View style={{ flex: 1 }}>
+    <View style={[styles.screen, { backgroundColor: pageBg }]}>
       <Header backgroundColor={isDark ? colors.card : appColors.white} />
       <ProgressBar fill={1} />
-      <ScrollView
-        style={[styles.subView, { backgroundColor: colors.background }]}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.space}>
-          <TitleView
-            title={translateData.createAccount}
-            subTitle={translateData.registerContent}
-          />
 
-          <View style={styles.name}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.stepPill}>
+          <Text style={styles.stepPillText}>STEP 1 OF 3</Text>
+        </View>
+        <Text
+          style={[styles.title, { color: titleColor, textAlign: textRtlStyle }]}
+        >
+          {translateData.createAccount}
+        </Text>
+        <Text
+          style={[
+            styles.subtitle,
+            { color: bodyColor, textAlign: textRtlStyle },
+          ]}
+        >
+          {translateData.registerContent}
+        </Text>
+
+        {/* ---------------- personal details ---------------- */}
+        <Text
+          style={[
+            styles.sectionTitle,
+            { color: bodyColor, textAlign: textRtlStyle },
+          ]}
+        >
+          {translateData?.personalDetails || 'YOUR DETAILS'}
+        </Text>
+        <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
+          <View style={styles.field}>
             <Input
               title={translateData.name}
               titleShow={true}
@@ -332,78 +369,47 @@ export function CreateAccount() {
               onChangeText={text => handleChange('name', text)}
               showWarning={showWarning && formData.name === ''}
               warning={translateData.pleaseEnterYourName}
-              backgroundColor={
-                isDark ? appColors.darkThemeSub : appColors.white
-              }
-              borderColor={colors.border}
+              backgroundColor={fieldBg}
+              borderColor={borderColor}
             />
           </View>
-          <Text
-            style={[
-              styles.mobileNumber,
-              {
-                color: isDark ? appColors.white : appColors.primaryFont,
 
-                textAlign: textRtlStyle,
-              },
-            ]}
-          >
-            {translateData.mobileNumber}
-          </Text>
-
-          <View style={styles.country}>
-            <View style={{ flexDirection: viewRtlStyle, width: '100%' }}>
-              <View
+          <View style={styles.field}>
+            <Text
+              style={[
+                styles.label,
+                { color: titleColor, textAlign: textRtlStyle },
+              ]}
+            >
+              {translateData.mobileNumber}
+            </Text>
+            <View style={[styles.phoneRow, { flexDirection: viewRtlStyle }]}>
+              <TouchableOpacity
                 style={[
-                  styles.codeComponent,
-                  { right: rtl ? windowWidth(12) : windowWidth(0.5) },
-                ]}
-              >
-                <TouchableOpacity
-                  style={[
-                    styles.countryCode,
-                    {
-                      backgroundColor: isDark
-                        ? appColors.darkThemeSub
-                        : appColors.white,
-                      borderColor: isFocused ? colors.primary : colors.border,
-                    },
-                  ]}
-                  activeOpacity={0.7}
-                  onPress={() => {
-                    setIsFocused(true)
-                    setPickerVisible(true)
-                  }}
-                  disabled={!isEmailUser}
-                >
-                  <TouchableOpacity
-                    style={styles.pickerButton}
-                    disabled={!isEmailUser}
-                    activeOpacity={0.9}
-                    onPress={() => {
-                      setIsFocused(true)
-                      setPickerVisible(true)
-                    }}
-                  >
-                    <Text
-                      style={[
-                        styles.codeText,
-                        { color: isDark ? appColors.white : appColors.black },
-                      ]}
-                    >
-                      +{countryCode.callingCode[0]}
-                    </Text>
-                  </TouchableOpacity>
-                </TouchableOpacity>
-              </View>
-              <View
-                style={[
-                  styles.phone,
+                  styles.codeChip,
                   {
-                    backgroundColor: colors.card,
-                    borderColor: colors.border,
-                    flexDirection: viewRtlStyle,
+                    backgroundColor: fieldBg,
+                    borderColor: isFocused ? appColors.primary : borderColor,
                   },
+                ]}
+                activeOpacity={0.7}
+                disabled={!isEmailUser}
+                onPress={() => {
+                  setIsFocused(true)
+                  setPickerVisible(true)
+                }}
+              >
+                <View style={styles.pickerButton}>
+                  <Text style={[styles.codeText, { color: titleColor }]}>
+                    +{countryCode.callingCode[0]}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <View
+                style={[
+                  styles.phoneField,
+                  { backgroundColor: fieldBg, borderColor },
                 ]}
               >
                 <TextInput
@@ -414,9 +420,6 @@ export function CreateAccount() {
                   }
                   value={phoneNumber}
                   onChangeText={text => {
-                    const phoneNoError = ValidatePhoneNumber(text)
-                    // setError(phoneNoError)
-
                     setPhoneNumber(text)
                     setFormData(prev => ({
                       ...prev,
@@ -426,145 +429,158 @@ export function CreateAccount() {
                   keyboardType="phone-pad"
                   style={[
                     styles.number,
-                    {
-                      backgroundColor: isEmailUser
-                        ? isDark
-                          ? appColors.darkThemeSub
-                          : appColors.white
-                        : isDark
-                          ? appColors.darkThemeSub
-                          : appColors.loaderBackground,
-                    },
-                    { color: isDark ? appColors.white : appColors.black },
-                    { textAlign: rtl ? 'right' : 'left' },
+                    { color: titleColor, textAlign: rtl ? 'right' : 'left' },
                   ]}
                 />
               </View>
             </View>
-
             {isEmailUser && error.phoneNumber ? (
               <Text style={[styles.errorText, { textAlign: textRtlStyle }]}>
                 {error.phoneNumber}
               </Text>
             ) : null}
           </View>
-          <Text
-            style={[
-              styles.mobileNumber,
-              {
-                color: isDark ? appColors.white : appColors.primaryFont,
 
-                textAlign: textRtlStyle,
-                marginBottom: windowHeight(0.5),
-                marginTop: windowHeight(2),
-              },
-            ]}
-          >
-            {translateData?.country}
-          </Text>
-          <DropDownPicker
-            open={open}
-            value={value}
-            items={items}
-            setOpen={setOpen}
-            setValue={callback => {
-              const newValue =
-                typeof callback === 'function' ? callback(value) : callback
-              setValue(newValue)
-
-              if (newValue) {
-                const selectedItem = items.find(
-                  (item: any) => item.value === newValue,
-                )
-                setSelectedCountryName(selectedItem?.label ?? null)
-              } else {
-                setSelectedCountryName(null)
-              }
-            }}
-            setItems={setItems}
-            searchable={true}
-            searchPlaceholder={translateData?.searchCounty}
-            searchTextInputStyle={{
-              color: colors.text,
-              borderColor: colors.border,
-              backgroundColor: isDark
-                ? appColors.darkThemeSub
-                : appColors.white,
-            }}
-            searchContainerStyle={{
-              borderBottomColor: colors.border,
-            }}
-            searchPlaceholderTextColor={appColors.secondaryFont}
-            placeholder={
-              items.length > 0
-                ? translateData?.selectCountry
-                : translateData?.noCountryAvilbel
-            }
-            containerStyle={styles.container}
-            placeholderStyle={[
-              styles.placeholderStyles,
-              { color: isDark ? appColors.darkText : appColors.secondaryFont },
-            ]}
-            style={{
-              backgroundColor: isDark
-                ? appColors.darkThemeSub
-                : appColors.white,
-              borderColor: open ? appColors.primary : colors.border,
-              flexDirection: viewRtlStyle,
-              paddingHorizontal: windowHeight(1.9),
-            }}
-            dropDownContainerStyle={{
-              backgroundColor: isDark ? colors.card : appColors.dropDownColor,
-              borderColor: colors.border,
-              marginTop: windowHeight(0.5),
-            }}
-            textStyle={[styles.text, { color: colors.text }]}
-            labelStyle={[
-              styles.text,
-              { color: isDark ? appColors.white : appColors.black },
-            ]}
-            listItemLabelStyle={{
-              color: isDark ? appColors.white : appColors.black,
-            }}
-            scrollViewProps={{
-              showsVerticalScrollIndicator: false,
-              nestedScrollEnabled: true,
-            }}
-            zIndex={2}
-            listMode="SCROLLVIEW"
-            dropDownDirection="AUTO"
-            ListEmptyComponent={() => (
-              <View
-                style={{
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingVertical: windowHeight(1.3),
-                }}
-              >
-                <Text style={{ color: colors.text }}>
-                  {translateData?.noCountryAvilbel}
-                </Text>
-              </View>
-            )}
-            ArrowDownIconComponent={() => (
-              <View style={{ transform: [{ rotate: '-90deg' }] }}>
-                <Icons.Back color={colors.text} />
-              </View>
-            )}
-            ArrowUpIconComponent={() => (
-              <View style={{ transform: [{ rotate: '90deg' }] }}>
-                <Icons.Back color={colors.text} />
-              </View>
-            )}
-          />
-
-          {countryError !== '' && (
-            <Text style={[styles.errorText, { textAlign: textRtlStyle }]}>
-              {countryError}
+          <View style={styles.field}>
+            <Text
+              style={[
+                styles.label,
+                { color: titleColor, textAlign: textRtlStyle },
+              ]}
+            >
+              {translateData?.country}
             </Text>
-          )}
+            <DropDownPicker
+              open={open}
+              value={value}
+              items={items}
+              setOpen={setOpen}
+              setValue={callback => {
+                const newValue =
+                  typeof callback === 'function' ? callback(value) : callback
+                setValue(newValue)
 
-          <View style={styles.email}>
+                if (newValue) {
+                  const selectedItem = items.find(
+                    (item: any) => item.value === newValue,
+                  )
+                  setSelectedCountryName(selectedItem?.label ?? null)
+                } else {
+                  setSelectedCountryName(null)
+                }
+              }}
+              setItems={setItems}
+              searchable={true}
+              searchPlaceholder={translateData?.searchCounty}
+              searchTextInputStyle={[
+                styles.modalSearch,
+                {
+                  color: titleColor,
+                  borderColor: borderColor,
+                  backgroundColor: fieldBg,
+                },
+              ]}
+              searchPlaceholderTextColor={appColors.secondaryFont}
+              placeholder={
+                isCountryLoading
+                  ? translateData?.loading || 'Loading countries...'
+                  : translateData?.selectCountry
+              }
+              containerStyle={styles.container}
+              placeholderStyle={[
+                styles.placeholderStyles,
+                {
+                  color: isDark ? appColors.darkText : appColors.secondaryFont,
+                },
+              ]}
+              style={[
+                styles.dropdown,
+                {
+                  backgroundColor: fieldBg,
+                  borderColor: open ? appColors.primary : borderColor,
+                  flexDirection: viewRtlStyle,
+                },
+              ]}
+              dropDownContainerStyle={{
+                backgroundColor: isDark ? colors.card : appColors.white,
+                borderColor: borderColor,
+                marginTop: windowHeight(0.5),
+              }}
+              textStyle={[styles.text, { color: titleColor }]}
+              labelStyle={[styles.text, { color: titleColor }]}
+              listItemLabelStyle={{ color: titleColor }}
+              scrollViewProps={{ showsVerticalScrollIndicator: false }}
+              /*
+                MODAL rather than SCROLLVIEW: the list opens as a full sheet
+                with a full-width search field, instead of expanding inline
+                under the field where the search box was cramped. It also
+                removes the need for the tail spacer the inline list required.
+              */
+              listMode="MODAL"
+              modalAnimationType="slide"
+              modalTitle={translateData?.selectCountry || 'Select country'}
+              modalTitleStyle={[styles.modalTitle, { color: titleColor }]}
+              modalContentContainerStyle={[
+                styles.modalContent,
+                { backgroundColor: pageBg },
+              ]}
+              loading={isCountryLoading}
+              ActivityIndicatorComponent={() => (
+                <ActivityIndicator size="small" color={appColors.primary} />
+              )}
+              searchContainerStyle={{
+                borderBottomColor: borderColor,
+                paddingHorizontal: 0,
+                paddingBottom: 12,
+              }}
+              CloseIconComponent={() => (
+                <Text style={[styles.modalClose, { color: appColors.primary }]}>
+                  {translateData?.cancel || 'Close'}
+                </Text>
+              )}
+              ListEmptyComponent={() => (
+                <View
+                  style={{
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingVertical: windowHeight(1.3),
+                  }}
+                >
+                  <Text style={{ color: titleColor }}>
+                    {translateData?.noCountryAvilbel}
+                  </Text>
+                </View>
+              )}
+              ArrowDownIconComponent={() => (
+                <View style={{ transform: [{ rotate: '-90deg' }] }}>
+                  <Icons.Back color={titleColor} />
+                </View>
+              )}
+              ArrowUpIconComponent={() => (
+                <View style={{ transform: [{ rotate: '90deg' }] }}>
+                  <Icons.Back color={titleColor} />
+                </View>
+              )}
+            />
+            {countryError !== '' && (
+              <Text style={[styles.errorText, { textAlign: textRtlStyle }]}>
+                {countryError}
+              </Text>
+            )}
+          </View>
+        </View>
+
+        {/* ---------------- sign-in details ---------------- */}
+        <Text
+          style={[
+            styles.sectionTitle,
+            { color: bodyColor, textAlign: textRtlStyle },
+          ]}
+        >
+          {translateData?.loginDetails || 'SIGN-IN DETAILS'}
+        </Text>
+        <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
+          <View style={styles.field}>
             <Input
               editable={!isEmailUser}
               title={translateData.email}
@@ -577,19 +593,11 @@ export function CreateAccount() {
                 setEmail(text)
                 handleChange('email', text)
               }}
-              backgroundColor={
-                !isEmailUser
-                  ? isDark
-                    ? appColors.darkThemeSub
-                    : appColors.white
-                  : appColors.loaderBackground
-              }
+              backgroundColor={fieldBg}
               showWarning={!!error.email}
               warning={error.email}
-              borderColor={colors.border}
+              borderColor={borderColor}
             />
-          </View>
-          <View style={{ bottom: windowHeight(0.8) }}>
             {!isEmailUser && emailFormatWarning !== '' && (
               <Text style={[styles.errorText, { textAlign: textRtlStyle }]}>
                 {emailFormatWarning}
@@ -597,44 +605,46 @@ export function CreateAccount() {
             )}
           </View>
 
-          <Input
-            title={translateData.createaccount}
-            titleShow={true}
-            placeholder={translateData.password}
-            value={formData.password}
-            warning={
-              showWarning && formData.password === ''
-                ? translateData.password
-                : formData.password.length > 0 && formData.password.length < 8
-                  ? translateData.passwordMinLength
-                  : ''
-            }
-            onChangeText={text => handleChange('password', text)}
-            showWarning={
-              showWarning &&
-              (formData.password === '' || formData.password.length < 8)
-            }
-            backgroundColor={isDark ? appColors.darkThemeSub : appColors.white}
-            borderColor={colors.border}
-            rightIcon={
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-              >
-                {isPasswordVisible ? (
-                  <Icons.EyeOpen />
-                ) : (
-                  <Icons.EyeClose
-                    color={isDark ? appColors.white : appColors.secondaryFont}
-                  />
-                )}
-              </TouchableOpacity>
-            }
-            secureText={!isPasswordVisible}
-            style={rtl ? styles.view : null}
-          />
+          <View style={styles.field}>
+            <Input
+              title={translateData.createaccount}
+              titleShow={true}
+              placeholder={translateData.password}
+              value={formData.password}
+              warning={
+                showWarning && formData.password === ''
+                  ? translateData.password
+                  : formData.password.length > 0 && formData.password.length < 8
+                    ? translateData.passwordMinLength
+                    : ''
+              }
+              onChangeText={text => handleChange('password', text)}
+              showWarning={
+                showWarning &&
+                (formData.password === '' || formData.password.length < 8)
+              }
+              backgroundColor={fieldBg}
+              borderColor={borderColor}
+              rightIcon={
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                >
+                  {isPasswordVisible ? (
+                    <Icons.EyeOpen />
+                  ) : (
+                    <Icons.EyeClose
+                      color={isDark ? appColors.white : appColors.secondaryFont}
+                    />
+                  )}
+                </TouchableOpacity>
+              }
+              secureText={!isPasswordVisible}
+              style={rtl ? styles.view : null}
+            />
+          </View>
 
-          <View style={styles.password}>
+          <View style={styles.field}>
             <Input
               title={translateData.cPw}
               titleShow={true}
@@ -643,10 +653,8 @@ export function CreateAccount() {
               onChangeText={text => handleChange('confirmPassword', text)}
               showWarning={!!error.confirmPassword}
               warning={error.confirmPassword}
-              backgroundColor={
-                isDark ? appColors.darkThemeSub : appColors.white
-              }
-              borderColor={colors.border}
+              backgroundColor={fieldBg}
+              borderColor={borderColor}
               rightIcon={
                 <TouchableOpacity
                   activeOpacity={0.7}
@@ -667,34 +675,46 @@ export function CreateAccount() {
               style={rtl ? styles.view : null}
             />
           </View>
-          {taxidoSettingData?.cabbooking_values?.activation?.referral_enable == 1 &&
-            userType == 'driver' && (
-              <View style={styles.password}>
-                <Input
-                  title={translateData?.referaalId}
-                  placeholder={translateData?.enterreferaalId}
-                  titleShow={true}
-                  Optional={true}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  value={referral}
-                  onChangeText={text => {
-                    setReferral(text)
-                    handleChange('referral', text)
-                  }}
-                  backgroundColor={
-                    !isEmailUser
-                      ? isDark
-                        ? appColors.darkThemeSub
-                        : appColors.white
-                      : appColors.loaderBackground
-                  }
-                  borderColor={colors.border}
-                />
-              </View>
-            )}
         </View>
-        <View style={styles.margin}>
+
+        {/* ---------------- referral ---------------- */}
+        {taxidoSettingData?.cabbooking_values?.activation?.referral_enable ==
+          1 &&
+          userType == 'driver' && (
+            <>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  { color: bodyColor, textAlign: textRtlStyle },
+                ]}
+              >
+                {translateData?.referaalId || 'REFERRAL'}
+              </Text>
+              <View
+                style={[styles.card, { backgroundColor: cardBg, borderColor }]}
+              >
+                <View style={styles.field}>
+                  <Input
+                    title={translateData?.referaalId}
+                    placeholder={translateData?.enterreferaalId}
+                    titleShow={true}
+                    Optional={true}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={referral}
+                    onChangeText={text => {
+                      setReferral(text)
+                      handleChange('referral', text)
+                    }}
+                    backgroundColor={fieldBg}
+                    borderColor={borderColor}
+                  />
+                </View>
+              </View>
+            </>
+          )}
+
+        <View style={styles.footer}>
           <Button
             onPress={gotoDocument}
             title={translateData.next}
@@ -702,18 +722,17 @@ export function CreateAccount() {
             color={appColors.white}
           />
         </View>
-        <View style={{ height: windowHeight(45) }} />
       </ScrollView>
+
       {pickerVisible && (
         <CountrySelect
+          {...countrySelectProps(isDark)}
           visible={pickerVisible}
           onSelect={onSelectCountry}
           onClose={() => {
             setPickerVisible(false)
             setIsFocused(false)
           }}
-          theme={isDark ? 'dark' : 'light'}
-          modalType="bottomSheet"
         />
       )}
     </View>
