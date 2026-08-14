@@ -76,45 +76,62 @@ export function RenderServiceList({
     })
   }
 
-  const renderItem = ({ item, index }: any) => (
-    <TouchableOpacity
-      activeOpacity={0.8}
-      style={[
-        styles.listView,
-        {
-          backgroundColor:
-            selectedItemIndex === index
-              ? appColors.subPrimary
-              : isDark
-              ? appColors.primaryFont
-              : appColors.white,
-          borderColor:
-            selectedItemIndex === index
-              ? appColors.subPrimary
-              : appColors.border,
-        },
-      ]}
-      onPress={() => {
-        setSelectedItemIndex(index)
-        handleItemPress(index, item.slug, item.id, item.name)
-      }}
-    >
-      <View style={styles.iconAndTextContainer}>
-        <SvgUri width={42} height={42} uri={item?.service_icon_url} />
-        <Text
-          style={[
-            styles.serviceTitle,
-            {
-              color:
-                selectedItemIndex === index ? appColors.black : colors.text,
-            },
-          ]}
-        >
-          {item.name}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  )
+  const renderItem = ({ item, index }: any) => {
+    const selected = selectedItemIndex === index
+
+    /*
+      Glass palette: a translucent tinted pane with a lit edge. A white sheen
+      overlay was tried and removed — on a near-square card any highlight
+      strong enough to see read as a white block sitting behind the icon,
+      rather than as light on glass.
+    */
+    const glassFill = selected
+      ? isDark
+        ? 'rgba(248,111,0,0.30)'
+        : 'rgba(248,111,0,0.26)'
+      : isDark
+        ? 'rgba(255,255,255,0.08)'
+        : 'rgba(255,255,255,0.92)'
+
+    const glassBorder = selected
+      ? isDark
+        ? 'rgba(248,111,0,0.75)'
+        : 'rgba(248,111,0,0.85)'
+      : isDark
+        ? 'rgba(255,255,255,0.16)'
+        : 'rgba(20,22,26,0.10)'
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.85}
+        style={[
+          styles.listView,
+          {
+            backgroundColor: glassFill,
+            borderColor: glassBorder,
+            borderWidth: selected ? 1.8 : 1.2,
+            shadowOpacity: selected ? 0.2 : 0.07,
+          },
+        ]}
+        onPress={() => {
+          setSelectedItemIndex(index)
+          handleItemPress(index, item.slug, item.id, item.name)
+        }}
+      >
+        <View style={styles.iconAndTextContainer}>
+          <SvgUri width={42} height={42} uri={item?.service_icon_url} />
+          <Text
+            style={[
+              styles.serviceTitle,
+              { color: selected ? appColors.primary : colors.text },
+            ]}
+          >
+            {item.name}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    )
+  }
 
   return (
     <View style={{ position: 'relative' }}>
