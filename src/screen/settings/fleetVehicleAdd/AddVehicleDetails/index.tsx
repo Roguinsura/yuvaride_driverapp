@@ -126,12 +126,16 @@ export function AddVehicleDetails({ route }: any) {
                 </View>
                 <View style={styles.accNumber}>
                     <Text style={[styles.title, { color: isDark ? appColors.white : appColors.black }]}>{translateData?.selectedVehicleType}</Text>
+                    {/*
+                        A fleet manager has no service or category, so the
+                        scoped list came back empty and the dropdown told the
+                        user to select a service this screen does not have.
+                        The fleet vehicle payload only needs vehicle_type_id.
+                    */}
                     <RenderVehicleList
+                        unscoped
                         vehicleIndex={vehicleIndex}
                         handleItemPress={handleVehiclePress}
-                        selectedCategory={''}
-                        serviceId={''}
-                        categoryId={''}
                         selectedVehicle={selectedVehicleID}
                     />
                 </View>

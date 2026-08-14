@@ -4,7 +4,10 @@ import DropDownPicker from 'react-native-dropdown-picker'
 import appColors from '../../../../../../theme/appColors'
 import { useTheme } from '@react-navigation/native'
 import { useDispatch, useSelector } from 'react-redux'
-import { vehicleTypeDataGet } from '../../../../../../api/store/action/vehicleTypeAction'
+import {
+  vehicleData,
+  vehicleTypeDataGet,
+} from '../../../../../../api/store/action/vehicleTypeAction'
 import { useValues } from '../../../../../../utils/context'
 import { fontSizes, windowHeight } from '../../../../../../theme/appConstant'
 import styles from './styles'
@@ -27,9 +30,21 @@ export function RenderVehicleList({
   serviceId,
   categoryId,
   selectedVehicle,
-  editable
+  editable,
+  unscoped,
 }: RenderItemsProps | any) {
-  const { vehicleTypedata } = useSelector((state: any) => state.vehicleType)
+  /*
+    `unscoped` sources every vehicle type instead of the ones tied to a service
+    and category. A fleet manager never picks a service — fleet signup goes to
+    FleetDetails, not VehicleRegistration — and the fleet vehicle payload only
+    needs vehicle_type_id. Without this the caller had to pass empty ids, the
+    scoped fetch returned nothing, and the empty-list text told the user to
+    "select service first" on a screen with no service field.
+  */
+  const { vehicleTypedata, allVehicle } = useSelector(
+    (state: any) => state.vehicleType,
+  )
+  const sourceData = unscoped ? allVehicle : vehicleTypedata
   const dispatch = useDispatch<AppDispatch>()
   const { colors } = useTheme()
   const { rtl, isDark, viewRtlStyle } = useValues()
@@ -43,21 +58,26 @@ export function RenderVehicleList({
   const lastFetchRef = React.useRef<string>("")
 
   useEffect(() => {
+    if (unscoped) {
+      if (lastFetchRef.current !== 'all') {
+        lastFetchRef.current = 'all'
+        dispatch(vehicleData())
+      }
+      return
+    }
     const fetchKey = `${serviceId}-${categoryId}`
     if (serviceId && fetchKey !== lastFetchRef.current) {
       lastFetchRef.current = fetchKey
       getService()
     }
-  }, [serviceId, categoryId])
+  }, [serviceId, categoryId, unscoped])
 
   useEffect(() => {
-    if (
-      vehicleTypedata &&
-      vehicleTypedata?.data &&
-      vehicleTypedata?.data.length > 0
-    ) {
+    // `allVehicle` comes back as a bare array, `vehicleTypedata` as { data }.
+    const rows = Array.isArray(sourceData) ? sourceData : sourceData?.data
+    if (rows && rows.length > 0) {
       setLoading(false)
-      const dropdownItems = vehicleTypedata.data.map((vehicle: any) => ({
+      const dropdownItems = rows.map((vehicle: any) => ({
         label: vehicle.name,
         value: vehicle.id,
       }))
@@ -69,7 +89,15 @@ export function RenderVehicleList({
         handleValueChange(dropdownItems[0].value)
       }
     }
-  }, [vehicleTypedata, value])
+    /*
+      `value` was in this dependency array. Selecting an option set `value`,
+      which re-ran this effect, which forced `value` back to the
+      `selectedVehicle` prop — and since the parent updates that prop a render
+      later, the two fought each other. That is the tick flicking between the
+      first two options and the choice never sticking. The effect only needs to
+      run when the data or the incoming selection changes.
+    */
+  }, [sourceData, selectedVehicle])
 
   const getService = () => {
     dispatch(
@@ -84,13 +112,15 @@ export function RenderVehicleList({
 
   const handleValueChange = (itemValue: any) => {
     setValue(itemValue)
-    const selectedItem = vehicleTypedata.data.find(
-      (item: any) => item.id === itemValue,
-    )
-    if (selectedItem) {
-      const selectedIndex = vehicleTypedata.data.findIndex(
-        (item: any) => item.id === itemValue,
-      )
+    // Was `vehicleTypedata.data.find(...)` unguarded, which threw whenever the
+    // list had not loaded — and read the wrong source in unscoped mode, where
+    // the rows live on `allVehicle` as a bare array.
+    const rows = Array.isArray(sourceData) ? sourceData : sourceData?.data
+    if (!Array.isArray(rows)) return
+
+    const selectedIndex = rows.findIndex((item: any) => item.id === itemValue)
+    if (selectedIndex !== -1) {
+      const selectedItem = rows[selectedIndex]
       handleItemPress(selectedIndex, selectedItem.name, selectedItem.id)
     }
   }
@@ -107,7 +137,9 @@ export function RenderVehicleList({
         setItems={setItems}
         disabled={editable}
         onChangeValue={handleValueChange}
-        placeholder={translateData.selectCategory}
+        /* This list is vehicle types; selectCategory belongs to the category
+           picker and read as "Select Category" above a type dropdown. */
+        placeholder={translateData?.selectVehicle || 'Select vehicle type'}
         containerStyle={styles.container}
         placeholderStyle={[
           styles.placeholderStyles,
