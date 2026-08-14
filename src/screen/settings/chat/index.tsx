@@ -201,7 +201,9 @@ export function Chat() {
         return
       }
       if (response.assets && response.assets?.length > 0) {
-        setSelectedImages(prev => [...prev, ...response.assets!])
+        // Straight out, rather than staging into selectedImages for the
+        // preview strip and waiting for the send arrow.
+        sendMessage(response.assets)
       }
     })
   }
@@ -210,11 +212,26 @@ export function Chat() {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true })
   }
 
-  const sendMessage = async () => {
-    if (!input.trim() && selectedImages.length === 0) return
+  /*
+    `immediateImages` is passed by the picker so attachments send on selection.
+    They cannot be read from state there: setSelectedImages has not committed
+    by the time this runs, so `selectedImages` would still be the old array.
 
-    const messageText = input.trim()
-    const imagesToSend = [...selectedImages]
+    A picked batch sends on its own and deliberately leaves whatever is typed
+    in the box alone — there is no longer a staging step where text and images
+    could be sent together.
+  */
+  const sendMessage = async (immediateImages?: any[]) => {
+    const sendingPicked =
+      Array.isArray(immediateImages) && immediateImages.length > 0
+
+    const messageText = sendingPicked ? '' : input.trim()
+    const imagesToSend = sendingPicked
+      ? (immediateImages as any[])
+      : [...selectedImages]
+
+    if (!messageText && imagesToSend.length === 0) return
+
     const tempId = `temp_${Date.now()}`
 
     // 1. Optimistic Update: Add message immediately
@@ -229,7 +246,9 @@ export function Chat() {
     }
 
     setMessages(prev => [optimisticMessage, ...prev])
-    setInput('')
+    if (!sendingPicked) {
+      setInput('')
+    }
     setSelectedImages([])
 
     try {
@@ -535,7 +554,7 @@ export function Chat() {
           />
           <TouchableOpacity
             style={styles.sendButton}
-            onPress={sendMessage}
+            onPress={() => sendMessage()}
             activeOpacity={0.7}
           >
             <Icons.SendChat />
