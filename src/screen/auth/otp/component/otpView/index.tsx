@@ -37,6 +37,18 @@ const RESEND_DELAY_SECONDS = 30
 // the screen sit there unchanged.
 const FALLBACK_VERIFY_ERROR = 'Invalid OTP. Please try again.'
 
+// The API answers a wrong code with "Invalid token", which is developer
+// wording — a driver has no idea what a token is. Messages matching these are
+// swapped for the friendly copy. Anything else the server says is still shown
+// verbatim, because it carries information this screen cannot infer (rate
+// limits, expiry, account locks).
+const UNHELPFUL_VERIFY_MESSAGES = [
+  'invalid token',
+  'token invalid',
+  'invalid otp',
+  'otp invalid',
+]
+
 const OtpView: React.FC = () => {
   const route = useRoute()
   const demouser = route.params || {}
@@ -57,6 +69,15 @@ const OtpView: React.FC = () => {
   const [success, setSuccess] = useState<boolean>(false)
   const dispatch = useDispatch<AppDispatch>()
   const { navigate } = useNavigation<navigation>()
+
+  const resolveVerifyError = (serverMessage?: string): string => {
+    const raw = (serverMessage || '').trim().toLowerCase()
+    const unhelpful =
+      raw === '' || UNHELPFUL_VERIFY_MESSAGES.some(m => raw.includes(m))
+    return unhelpful
+      ? translateData?.verifyWarn || FALLBACK_VERIFY_ERROR
+      : (serverMessage as string)
+  }
   const [loading, setLoading] = useState(false)
   const emailOrPhone = demouser?.email_or_phone ?? phoneNumber
   const isEmail = emailOrPhone.includes('@')
@@ -132,6 +153,10 @@ const OtpView: React.FC = () => {
       .then((res: any) => {
         setLoading(false)
         if (res?.success && res?.is_registered) {
+          // The screen stays mounted under whatever is pushed next, so any
+          // earlier failure text has to be cleared or a back-press reveals it.
+          setMessage('')
+          setWarning('')
           messaging()
             .subscribeToTopic(`user_${res?.id}`)
             .then(() => {
@@ -147,6 +172,8 @@ const OtpView: React.FC = () => {
           }
           dispatch(selfDriverData())
         } else if (res.success && !res.is_registered) {
+          setMessage('')
+          setWarning('')
           messaging()
             .subscribeToTopic(`user_${res?.id}`)
             .then(() => {
@@ -160,16 +187,9 @@ const OtpView: React.FC = () => {
             userType
           })
           dispatch(settingDataGet())
-          setSuccess(false)
-          setMessage(translateData?.noLinkAccount)
         } else if (!res.success) {
           setSuccess(false)
-          // Falls back twice: the server's own message ("Invalid token") is
-          // preferred, then the translated string, then a literal — otherwise a
-          // missing translation key leaves the user with a silent failure.
-          setMessage(
-            res?.message || translateData?.verifyWarn || FALLBACK_VERIFY_ERROR,
-          )
+          setMessage(resolveVerifyError(res?.message))
         }
       })
       .catch((error: any) => {
@@ -210,6 +230,8 @@ const OtpView: React.FC = () => {
         setLoading(false)
 
         if (res.success && res.is_registered) {
+          setMessage('')
+          setWarning('')
           messaging()
             .subscribeToTopic(`user_${res?.id}`)  // or 'users', 'offers', etc.
             .then(() => {
@@ -225,6 +247,8 @@ const OtpView: React.FC = () => {
           dispatch(selfDriverData()).then((res) => {
           })
         } else if (res.success && !res.is_registered) {
+          setMessage('')
+          setWarning('')
           messaging()
             .subscribeToTopic(`user_${res?.id}`)
             .then(() => {
@@ -238,13 +262,9 @@ const OtpView: React.FC = () => {
             userType
           })
           dispatch(settingDataGet())
-          setSuccess(false)
-          setMessage(translateData?.noLinkAccount)
         } else if (!res.success) {
           setSuccess(false)
-          setMessage(
-            res?.message || translateData?.verifyWarn || FALLBACK_VERIFY_ERROR,
-          )
+          setMessage(resolveVerifyError(res?.message))
         }
       })
       .catch((error: any) => {
