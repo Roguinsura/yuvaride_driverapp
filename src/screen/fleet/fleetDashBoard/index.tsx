@@ -1,5 +1,5 @@
 import React from 'react'
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { fontSizes, windowHeight, windowWidth } from '../../../theme/appConstant'
 import appColors from '../../../theme/appColors'
 import appFonts from '../../../theme/appFonts'
@@ -141,8 +141,14 @@ export function FleetDashBoard() {
       style={{ marginBottom: windowHeight(0), backgroundColor: isDark ? appColors.bgDark : appColors.lightGray }}
     >
       <View>
+        {/* Brand orange in light mode, dark surface in dark mode — the same
+            rule the shared Header and the other dashboards follow. */}
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor={isDark ? appColors.darkThemeSub : appColors.primary}
+        />
         <View
-          style={{ backgroundColor: isDark ? appColors.darkThemeSub : appColors.white, height: windowHeight(10) }}
+          style={{ backgroundColor: isDark ? appColors.darkThemeSub : appColors.primary, height: windowHeight(10) }}
         >
           <View
             style={{
@@ -156,7 +162,7 @@ export function FleetDashBoard() {
             
             <Text
               style={{
-                color: isDark ? appColors.white : appColors.primaryFont,
+                color: appColors.white,
                 fontFamily: appFonts.medium,
                 fontSize: fontSizes.FONT5,
               }}
@@ -165,8 +171,12 @@ export function FleetDashBoard() {
             </Text>
             <TouchableOpacity
               style={{
-                backgroundColor: isDark ? appColors.darkThemeSub : appColors.white,
-                borderColor: isDark ? appColors.darkBorderBlack : appColors.border,
+                backgroundColor: isDark
+                  ? appColors.darkThemeSub
+                  : 'rgba(255,255,255,0.18)',
+                borderColor: isDark
+                  ? appColors.darkBorderBlack
+                  : 'rgba(255,255,255,0.35)',
                 borderWidth: windowHeight(0.1),
                 width: windowHeight(5.5),
                 height: windowHeight(5.5),
@@ -176,7 +186,7 @@ export function FleetDashBoard() {
               }}
               onPress={()=>{navigate('Notification')}}
             >
-              <Icons.Notification color={isDark ? appColors.white : appColors.black} />
+              <Icons.Notification color={appColors.white} />
             </TouchableOpacity>
           </View>
         </View>

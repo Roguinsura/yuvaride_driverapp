@@ -11,6 +11,7 @@ import {
     Modal,
     FlatList,
     NativeModules,
+    StatusBar,
 } from 'react-native'
 import appColors from '../../../theme/appColors'
 import { fontSizes, windowHeight, windowWidth } from '../../../theme/appConstant'
@@ -663,6 +664,14 @@ export function FleetHome() {
 
     return (
         <View style={{ flex: 1 }}>
+            {/* Full-bleed map, so the system bar is the only brand surface
+                here — orange in light mode, dark surface in dark, same as the
+                driver Home tab. Without this the screen inherits App.tsx's
+                app-wide default, which is white in light mode. */}
+            <StatusBar
+                barStyle="light-content"
+                backgroundColor={isDark ? appColors.darkThemeSub : appColors.primary}
+            />
             <MapScreenFleet
                 key={mapKey}
                 ref={mapRef}
