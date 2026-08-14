@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, ScrollView, Share } from 'react-native'
+import DeviceInfo from 'react-native-device-info'
 import React from 'react'
 import { useSelector } from 'react-redux'
 import Clipboard from '@react-native-clipboard/clipboard'
@@ -72,13 +73,20 @@ export function ReferralHome() {
     )
   }
 
+  /*
+    The link was hardcoded to com.taxidouserui — Taxido's own Play Store id, so
+    every referral sent people to their app. It now uses this build's package
+    id. Note the original pointed at Taxido's *rider* app: if referrals are
+    meant to invite riders rather than drivers, this needs the YuvaRide rider
+    app's package id instead.
+  */
   const handleShareReferral = async () => {
     try {
       const message = `${translateData?.referralShare1 ?? ''} *${referralCode}* ${
         translateData?.referralShare2 ?? ''
       }\n\n ${
         translateData?.referralShare3 ?? ''
-      }\n👉 https://play.google.com/store/apps/details?id=com.taxidouserui&hl=en_IN`
+      }\n👉 https://play.google.com/store/apps/details?id=${DeviceInfo.getBundleId()}&hl=en_IN`
 
       await Share.share({ message, title: 'Invite to YuvaRide' })
     } catch (error) {}
