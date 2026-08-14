@@ -1,177 +1,110 @@
-import React, { useEffect, useState } from 'react'
-import { View, Text, ScrollView, BackHandler } from 'react-native'
-import { useSelector } from 'react-redux'
-import { useNavigation, useTheme } from '@react-navigation/native'
-import styles from '../../auth/registration/vehicleRegistration/styles'
-import vehicleStyles from './styles'
+import React, { useEffect, useMemo, useState } from 'react'
+import { View, Text, ScrollView, BackHandler, Image } from 'react-native'
+import { useDispatch, useSelector } from 'react-redux'
+import { useNavigation } from '@react-navigation/native'
+
+import styles from './styles'
 import appColors from '../../../theme/appColors'
-import { Input, Header } from '../../../commonComponents'
-import { TitleView } from '../../auth/component'
-import {
-  RenderCategoryList,
-  RenderVehicleList,
-} from '../../auth/registration/vehicleRegistration/component'
-import { windowHeight } from '../chat/context'
+import brandColors from '../../../theme/brandColors'
+import Icons from '../../../utils/icons/icons'
+import { Header } from '../../../commonComponents'
 import { useValues } from '../../../utils/context'
-import { RenderServiceList } from './renderServiceList'
-import { windowWidth } from '../../../theme/appConstant'
-import DropDownPicker from 'react-native-dropdown-picker'
-import { CustomCheckbox } from '../../../screen/auth/registration/component'
+import { AppDispatch } from '../../../api/store'
+import {
+  categoryDataGet,
+  serviceDataGet,
+  vehicleTypeDataGet,
+} from '../../../api/store/action'
+
+const FALLBACK = {
+  title: 'Vehicle Details',
+  registration: 'REGISTRATION',
+  vehicle: 'VEHICLE',
+  driverProfile: 'DRIVER PROFILE',
+  pricing: 'PRICING',
+  ambulance: 'AMBULANCE',
+  service: 'Service',
+  category: 'Category',
+  vehicleType: 'Vehicle type',
+  vehicleName: 'Vehicle name',
+  colour: 'Colour',
+  seats: 'Maximum seats',
+  experience: 'Experience',
+  gearType: 'Gear type',
+  description: 'Description',
+  name: 'Name',
+  years: 'years',
+  perDay: 'Per day',
+  perHour: 'Per hour',
+  perKm: 'Per km',
+  notSet: 'Not set',
+  readOnly:
+    'These details were submitted during registration. Contact support if anything needs to change.',
+  rentalNotice:
+    'Rental vehicles are managed individually. Open Vehicle List to see and manage them.',
+  emptyTitle: 'No vehicle registered',
+  emptyBody:
+    'Once your vehicle registration is submitted and approved, its details will appear here.',
+}
+
+// A colour arrives as free text ("White", "#1B1B1B", sometimes junk). Feeding
+// an unrecognised string straight to backgroundColor makes the swatch render
+// as transparent, so only known-good values get a dot.
+const NAMED_COLOURS = new Set([
+  'white', 'black', 'red', 'blue', 'green', 'yellow', 'orange', 'grey',
+  'gray', 'silver', 'brown', 'beige', 'maroon', 'navy', 'gold', 'purple',
+  'pink', 'cyan', 'teal', 'ivory', 'tan',
+])
+
+const toSwatch = (raw?: string): string | null => {
+  if (!raw) return null
+  const value = raw.trim().toLowerCase()
+  if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/.test(value)) return value
+  return NAMED_COLOURS.has(value) ? value : null
+}
 
 export function VehicleDetail() {
-  const { colors } = useTheme()
-  const {
-    isDark,
-    textRtlStyle,
-    viewRtlStyle,
-    categoryIndex,
-    setCategoryIndex,
-  }: any = useValues()
+  const dispatch = useDispatch<AppDispatch>()
+  const navigation = useNavigation()
+  const { isDark, viewRtlStyle, textRtlStyle } = useValues()
+
   const { selfDriver } = useSelector((state: any) => state.account)
   const { translateData } = useSelector((state: any) => state.setting)
   const { vehicleTypedata } = useSelector((state: any) => state.vehicleType)
   const { serviceData } = useSelector((state: any) => state.service)
   const { categoryData } = useSelector((state: any) => state.serviceCategory)
+  const { zoneValue } = useSelector((state: any) => state.zoneUpdate)
 
+  const pageBg = isDark ? appColors.bgDark : appColors.graybackground
+  const cardBg = isDark ? appColors.darkThemeSub : appColors.white
+  const borderColor = isDark ? appColors.darkborder : appColors.border
+  const titleColor = isDark ? appColors.white : brandColors.titleLight
+  const bodyColor = isDark ? appColors.darkText : brandColors.bodyLight
+  const softBg = isDark ? 'rgba(248,111,0,0.16)' : brandColors.primarySoft
 
-  const [formData, setFormData] = useState<any>({
-    serviceName: '',
-    serviceCategory: '',
-    vehicleType: '',
-    vehicleName: '',
-    vehicleNumber: '',
-    maximumSeats: '',
-    vehicleColor: '',
-    model: '',
-    ambulanceName: '',
-    ambulanceDescription: '',
-    experience: '',
-    gear_type: '',
-    price_per_day: '',
-    price_per_hour: '',
-    price_per_km: '',
-  })
+  // `zoneValue` is an empty array until the zone lookup resolves, so an
+  // unguarded currency_symbol prints the literal "undefined".
+  const currency = zoneValue?.currency_symbol ?? ''
 
-  const [selectedServiceID, setSelectedServiceID] = useState<number | null>(
-    null,
-  )
-  const [selectedCategoryID, setSelectedCategoryID] = useState<number | null>(
-    null,
-  )
-  const [selectedVehicleID, setSelectedVehicleID] = useState<number | null>(
-    null,
-  )
-  const [selectedCategory, setSelectedCategory] = useState<string>('')
-  const [selectedVehicle, setSelectedVehicle] = useState<string>('')
-  const [vehicleIndex, setVehicleIndex] = useState<number | null>(null)
-  const [showWarning, setShowWarning] = useState(false)
-  const [loader, setLoader] = useState(false)
-  const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(
-    null,
-  )
-  const [selectedService, setSelectedService] = useState<string>('')
-  const [selectedPriceTypes, setSelectedPriceTypes] = useState<string[]>([])
-  const [openGear, setOpenGear] = useState(false)
-  const [gearItems, setGearItems] = useState([
-    { label: 'Manual', value: 'manual' },
-    { label: 'Automatic', value: 'automatic' }
-  ])
-  const [selectedVehicleSeat, setSelectedVehicleSeat] = useState<number | null>(null)
+  const vehicle = selfDriver?.vehicle_info
+
+  // The list endpoints previously loaded as a side effect of the picker
+  // components this screen used to render. Those are gone, so the screen asks
+  // for what it needs to resolve ids into names.
+  useEffect(() => {
+    dispatch(serviceDataGet())
+    dispatch(categoryDataGet())
+  }, [dispatch])
 
   useEffect(() => {
-    if (selfDriver?.vehicle_info) {
-      const vehicle = selfDriver?.vehicle_info
-
-      setFormData({
-        serviceName: selfDriver?.service_id?.toString() || '',
-        serviceCategory: selfDriver?.service_category_id?.toString() || '',
-        vehicleType: vehicle?.vehicle_type_id?.toString() || '',
-        vehicleName: vehicle?.name || '',
-        model: vehicle?.model || '',
-        vehicleNumber: vehicle?.plate_number || '',
-        vehicleColor: vehicle?.color || '',
-        maximumSeats: vehicle?.seat?.toString() || '',
-        description: vehicle?.description || '',
-        ambulanceDescription: vehicle?.description || '',
-        ambulanceName: vehicle?.name || '',
-        experience: selfDriver?.experience?.toString() || '',
-        gear_type: selfDriver?.gear_type || '',
-        price_per_day: selfDriver?.per_day_charge?.toString() || '',
-        price_per_hour: selfDriver?.per_hour_charge?.toString() || '',
-        price_per_km: selfDriver?.per_km_charge?.toString() || '',
-      })
-      setSelectedServiceID(selfDriver?.service_id || null)
-      setSelectedCategoryID(selfDriver?.service_category_id || null)
-      setSelectedVehicleID(vehicle?.vehicle_type_id || null)
-
-      const prices = []
-      if (selfDriver?.per_day_charge) prices.push('day')
-      if (selfDriver?.per_hour_charge) prices.push('hour')
-      if (selfDriver?.per_km_charge) prices.push('km')
-      setSelectedPriceTypes(prices)
-    }
-  }, [selfDriver])
-
-  useEffect(() => {
-    if (serviceData?.data && selfDriver?.service_id) {
-      const selected = serviceData.data.find((s: any) => s.id === selfDriver.service_id)
-      if (selected) {
-        setSelectedService(selected.slug)
-      }
-    }
-  }, [serviceData, selfDriver?.service_id])
-
-  useEffect(() => {
-    if (categoryData?.data && selfDriver?.service_category_id) {
-      const selected = categoryData.data.find((c: any) => c.id === selfDriver.service_category_id)
-      if (selected) {
-        setSelectedCategory(selected.name)
-      }
-    }
-  }, [categoryData, selfDriver?.service_category_id])
-
-  const foundVehicle = vehicleTypedata?.data?.find(
-    (v: any) =>
-      selfDriver?.vehicle_info.model &&
-      selfDriver?.vehicle_info.model
-        .toLowerCase()
-        .includes(v.name.toLowerCase()),
-  )
-
-  const handleChange = (key: string, value: string) => {
-    setFormData((prev: any) => ({ ...prev, [key]: value }))
-  }
-
-  const handleItemPress = (index: number, slug: string, id: number, name: string) => {
-    setSelectedServiceID(id)
-    setSelectedService(slug)
-    setFormData((prev: any) => ({ ...prev, serviceName: id.toString() }))
-  }
-
-  const handleCategoryPress = (
-    index: number,
-    categoryName: string,
-    categoryId?: string,
-  ) => {
-    setCategoryIndex(index)
-    setSelectedCategory(categoryName)
-    if (categoryId) setSelectedCategoryID(Number(categoryId))
-  }
-
-  const handleVehiclePress = (index: number, name: string, id: string) => {
-    setVehicleIndex(index)
-    setSelectedVehicle(name)
-    setSelectedVehicleID(Number(id))
-
-    const selectedItem = vehicleTypedata?.data?.find(
-      (item: any) => item.id === Number(id),
+    if (!selfDriver?.service_id) return
+    dispatch(
+      vehicleTypeDataGet({
+        service_id: selfDriver.service_id,
+        service_category_id: selfDriver.service_category_id ?? 0,
+      }),
     )
-    if (selectedItem?.seat) {
-      setSelectedVehicleSeat(selectedItem.seat)
-    }
-  }
-
-  const navigation = useNavigation()
+  }, [dispatch, selfDriver?.service_id, selfDriver?.service_category_id])
 
   useEffect(() => {
     const backAction = () => {
@@ -181,346 +114,401 @@ export function VehicleDetail() {
       }
       return false
     }
-
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
       backAction,
     )
-
     return () => backHandler.remove()
   }, [navigation])
-  return (
-    <ScrollView style={styles.main} showsVerticalScrollIndicator={false}>
-      <Header variant="brand" title={translateData.vehicleRegistration} />
-      <View style={[styles.subView, { backgroundColor: colors.background }]}>
-        <View style={styles.subContainer}>
-          <TitleView
-            title={translateData.vehicleRegistration}
-            subTitle={translateData.registerContent}
-          />
 
-          <Text
-            style={[
-              styles.selectTitle,
-              {
-                color: isDark ? appColors.white : appColors.primaryFont,
-                textAlign: textRtlStyle,
-              },
-            ]}
-          >
-            {translateData.selectService}
-          </Text>
-          <View
-            style={{ flexDirection: viewRtlStyle, marginTop: windowHeight(5) }}
-          >
-            <RenderServiceList
-              selectedItemIndex={selectedItemIndex}
-              handleItemPress={handleItemPress}
-              serviceId={selfDriver?.service_id}
-              setSelectedItemIndex={setSelectedItemIndex}
+  const service = useMemo(
+    () =>
+      serviceData?.data?.find(
+        (item: any) => Number(item?.id) === Number(selfDriver?.service_id),
+      ),
+    [serviceData, selfDriver?.service_id],
+  )
+
+  const categoryName = useMemo(
+    () =>
+      categoryData?.data?.find(
+        (item: any) =>
+          Number(item?.id) === Number(selfDriver?.service_category_id),
+      )?.name,
+    [categoryData, selfDriver?.service_category_id],
+  )
+
+  const vehicleType = useMemo(
+    () =>
+      vehicleTypedata?.data?.find(
+        (item: any) => Number(item?.id) === Number(vehicle?.vehicle_type_id),
+      ),
+    [vehicleTypedata, vehicle?.vehicle_type_id],
+  )
+
+  const vehicleTypeName = vehicleType?.name
+
+  /*
+    Admin-uploaded artwork for the vehicle type — the same field rideInfo,
+    rentalDetails and endRide render. Deliberately not vehicle_type_map_icon_url,
+    which is the top-down sprite drawn for map pins. The API exposes a flattened
+    url and a nested media object depending on the endpoint, so both are tried.
+  */
+  const vehicleArt =
+    vehicleType?.vehicle_image_url ||
+    vehicleType?.vehicle_image?.original_url ||
+    null
+
+  // The list is fetched scoped by service + category, so it can come back empty
+  // (ambulance / find-driver especially) and the url can 404. Either way the
+  // hero falls back to the line icon rather than showing an empty tile.
+  const [artFailed, setArtFailed] = useState(false)
+  useEffect(() => setArtFailed(false), [vehicleArt])
+  const showArt = Boolean(vehicleArt) && !artFailed
+
+  const serviceSlug = (service?.slug || '').toLowerCase().replace(/[-_]/g, '')
+  const isAmbulance = serviceSlug === 'ambulance'
+  const isFindDriver = serviceSlug === 'finddriver'
+  const isRental = categoryName === 'Rental'
+
+  const dash = translateData?.notSet || FALLBACK.notSet
+  const show = (value: any) =>
+    value === null || value === undefined || value === '' ? dash : String(value)
+
+  /* ---------------- building blocks ---------------- */
+
+  const SectionTitle = ({ text }: { text: string }) => (
+    <Text
+      style={[styles.sectionTitle, { color: bodyColor, textAlign: textRtlStyle }]}
+    >
+      {text}
+    </Text>
+  )
+
+  const Card = ({ children }: { children: React.ReactNode }) => (
+    <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
+      {children}
+    </View>
+  )
+
+  // `last` drops the divider on the final row so the card doesn't end on a line.
+  const Row = ({
+    label,
+    value,
+    swatch,
+    last,
+  }: {
+    label: string
+    value: any
+    swatch?: string | null
+    last?: boolean
+  }) => (
+    <>
+      <View style={[styles.row, { flexDirection: viewRtlStyle }]}>
+        <Text style={[styles.rowLabel, { color: bodyColor }]}>{label}</Text>
+        <View style={[styles.rowValueWrap, { flexDirection: viewRtlStyle }]}>
+          {swatch ? (
+            <View
+              style={[
+                styles.swatch,
+                { backgroundColor: swatch, borderColor },
+              ]}
             />
-          </View>
-
-          {(() => {
-            const serviceSlug = selectedService?.toLowerCase().replace(/[-_]/g, '')
-            const isAmbulance = serviceSlug === 'ambulance'
-            const isFindDriver = serviceSlug === 'finddriver'
-
-            if (selectedCategory === 'Rental') {
-              return (
-                <View style={styles.rentalBg}>
-                  <Text style={styles.rentalDesc}>
-                    {translateData.registrationNotice} '
-                    <Text style={styles.boldText}>
-                      {translateData.vehicleList}
-                    </Text>
-                  </Text>
-                </View>
-              )
-            }
-
-            if (isAmbulance) {
-              return (
-                <>
-                  <View style={[styles.vehicleNo, { marginTop: windowHeight(25) }]}>
-                    <Input
-                      title={translateData.ambulanceName}
-                      titleShow={true}
-                      placeholder={translateData.enterHospitalName}
-                      value={formData.ambulanceName}
-                      onChangeText={text => handleChange('ambulanceName', text)}
-                      showWarning={showWarning && !formData.ambulanceName}
-                      warning={translateData.pleaseEnterAmbulanceNameeeee}
-                      backgroundColor={
-                        isDark ? appColors.darkThemeSub : appColors.white
-                      }
-                      editable={false}
-                    />
-                  </View>
-                  <View style={styles.vehicleColor}>
-                    <Input
-                      title={translateData.ambulanceDescription}
-                      titleShow={true}
-                      placeholder={translateData.enterAmbulanceDescription}
-                      value={formData.ambulanceDescription}
-                      onChangeText={text =>
-                        handleChange('ambulanceDescription', text)
-                      }
-                      showWarning={showWarning && !formData.ambulanceDescription}
-                      warning={translateData.pleaseEnterAmbulanceDescriptionnnnn}
-                      backgroundColor={
-                        isDark ? appColors.darkThemeSub : appColors.white
-                      }
-                      editable={false}
-                    />
-                  </View>
-                </>
-              )
-            }
-
-            if (isFindDriver) {
-              return (
-                <View>
-                  <View style={styles.vehicle}>
-                    <Text
-                      style={[
-                        styles.vehicleTitle,
-                        { textAlign: textRtlStyle },
-                        {
-                          color: isDark
-                            ? appColors.white
-                            : appColors.primaryFont,
-                        },
-                        { bottom: windowHeight(0) },
-                      ]}
-                    >
-                      {translateData.selectVehicle}
-                    </Text>
-                    <View style={{ flexDirection: viewRtlStyle }}>
-                      <View>
-                        <RenderVehicleList
-                          vehicleIndex={vehicleIndex}
-                          handleItemPress={handleVehiclePress}
-                          selectedCategory={selectedCategoryID || selfDriver?.service_category_id}
-                          serviceId={selectedServiceID || selfDriver?.service_id}
-                          categoryId={selectedCategoryID || selfDriver?.service_category_id}
-                          selectedVehicleID={selectedVehicleID || selfDriver?.vehicle_info?.vehicle_type_id}
-                          editable={false}
-                        />
-                      </View>
-                    </View>
-                  </View>
-
-                  <View style={styles.experienceInput}>
-                    <Input
-                      title={"Experience (Years)"}
-                      titleShow={true}
-                      placeholder={"Enter Experience"}
-                      value={formData.experience}
-                      onChangeText={text => handleChange('experience', text)}
-                      keyboardType="numeric"
-                      backgroundColor={isDark ? appColors.darkThemeSub : appColors.white}
-                      editable={false}
-                    />
-                  </View>
-
-                  <Text style={[styles.priceType, { color: isDark ? appColors.white : appColors.primaryFont, marginTop: windowHeight(2) }]}>
-                    Price Type
-                  </Text>
-                  <View style={styles.priceTypeContainer}>
-                    {['day', 'hour', 'km'].map((type) => (
-                      <View key={type} style={styles.checkboxItem}>
-                        <CustomCheckbox
-                          label={`Per ${type.charAt(0).toUpperCase() + type.slice(1)}`}
-                          checked={selectedPriceTypes.includes(type)}
-                          onPress={() => { }}
-                        />
-                      </View>
-                    ))}
-                  </View>
-
-                  {selectedPriceTypes.map((type) => (
-                    <View key={type} style={styles.priceFields}>
-                      <Input
-                        title={`Price Per ${type.charAt(0).toUpperCase() + type.slice(1)}`}
-                        titleShow={true}
-                        placeholder={`Enter price per ${type}`}
-                        value={formData[`price_per_${type}`]}
-                        onChangeText={text => handleChange(`price_per_${type}`, text)}
-                        keyboardType="numeric"
-                        backgroundColor={isDark ? appColors.darkThemeSub : appColors.white}
-                        editable={false}
-                      />
-                    </View>
-                  ))}
-
-                  <Text style={[styles.vehicleTitle, { color: isDark ? appColors.white : appColors.primaryFont, marginTop: windowHeight(2) }]}>
-                    Gear Type
-                  </Text>
-                  <DropDownPicker
-                    open={openGear}
-                    value={formData.gear_type}
-                    items={gearItems}
-                    setOpen={setOpenGear}
-                    setValue={callback => { }}
-                    setItems={setGearItems}
-                    placeholder="Select Gear Type"
-                    containerStyle={styles.dropdownContainer}
-                    style={[
-                      styles.dropdown,
-                      {
-                        backgroundColor: isDark ? appColors.darkThemeSub : appColors.white,
-                        borderColor: appColors.border
-                      }
-                    ]}
-                    textStyle={[styles.dropdownText, { color: isDark ? appColors.white : appColors.black }]}
-                    dropDownContainerStyle={{
-                      backgroundColor: isDark ? appColors.darkThemeSub : appColors.white,
-                      borderColor: appColors.border
-                    }}
-                    disabled={true}
-                  />
-                </View>
-              )
-            }
-
-            return (
-              <>
-                <Text
-                  style={[
-                    styles.selectTitle,
-                    {
-                      color: isDark ? appColors.white : appColors.primaryFont,
-                      textAlign: textRtlStyle,
-                      marginTop: windowHeight(1),
-                    },
-                  ]}
-                >
-                  {translateData.selectCategory}
-                </Text>
-                <View
-                  style={[
-                    vehicleStyles.categoryList,
-                    { flexDirection: viewRtlStyle },
-                  ]}
-                >
-                  <RenderCategoryList
-                    categoryIndex={categoryIndex}
-                    selectedService={selectedServiceID || selfDriver?.service_id}
-                    selectedCategory={selectedCategory}
-                    categoryId={selfDriver?.service_category_id}
-                    handleItemPress={handleCategoryPress}
-                  />
-                </View>
-
-                <Text
-                  style={[
-                    styles.selectTitle1,
-                    {
-                      color: isDark ? appColors.white : appColors.primaryFont,
-                      textAlign: textRtlStyle,
-                      marginTop: windowHeight(2),
-                    },
-                  ]}
-                >
-                  {translateData.selectVehicle}
-                </Text>
-                <View style={{ flexDirection: viewRtlStyle }}>
-                  <RenderVehicleList
-                    vehicleIndex={vehicleIndex}
-                    selectedItemIndex={selectedItemIndex}
-                    selectedCategory={
-                      selectedCategoryID || selfDriver?.service_category_id
-                    }
-                    selectedVehicle={
-                      selectedVehicleID ||
-                      selfDriver?.vehicle_info?.vehicle_type_id
-                    }
-                    serviceId={selectedServiceID || selfDriver?.service_id}
-                    handleItemPress={handleVehiclePress}
-                    editable={true}
-                  />
-                </View>
-
-                <View
-                  style={[
-                    vehicleStyles.vehicleName,
-                    { marginTop: windowWidth(6) },
-                  ]}
-                >
-                  <Input
-                    titleShow
-                    title={translateData.vehicleName}
-                    placeholder={translateData.enterVehicleNames}
-                    value={formData.model}
-                    onChangeText={text => handleChange('model', text)}
-                    showWarning={showWarning && !formData.model}
-                    warning={translateData.enterYourvehicleName}
-                    backgroundColor={
-                      isDark ? appColors.darkThemeSub : appColors.white
-                    }
-                    editable={false}
-                  />
-                </View>
-                <View style={vehicleStyles.vehicle}>
-                  <Input
-                    titleShow
-                    title={translateData.vehicleNo}
-                    placeholder={translateData.rnterVehicleNo}
-                    value={formData.vehicleNumber}
-                    onChangeText={text => handleChange('vehicleNumber', text)}
-                    showWarning={showWarning && !formData.vehicleNumber}
-                    warning={translateData.pleaseEnterVehicleNo}
-                    backgroundColor={
-                      isDark ? appColors.darkThemeSub : appColors.white
-                    }
-                    editable={false}
-                  />
-                </View>
-                <View style={vehicleStyles.vehicle}>
-                  <Input
-                    titleShow
-                    title={translateData.vehicleColor}
-                    placeholder={translateData.enterVehicleColor}
-                    value={formData.vehicleColor}
-                    onChangeText={text => handleChange('vehicleColor', text)}
-                    showWarning={showWarning && !formData.vehicleColor}
-                    warning={translateData.enterYourvehicleColor}
-                    backgroundColor={
-                      isDark ? appColors.darkThemeSub : appColors.white
-                    }
-                    editable={false}
-                  />
-                </View>
-                <View style={vehicleStyles.datePicker}>
-                  <Input
-                    titleShow
-                    title={translateData.maximumSeats}
-                    placeholder={translateData.enterMaximumSeats}
-                    value={formData.maximumSeats}
-                    onChangeText={text => handleChange('maximumSeats', text)}
-                    showWarning={
-                      showWarning &&
-                      (!formData.maximumSeats ||
-                        Number(formData.maximumSeats) > (foundVehicle?.seat || 0))
-                    }
-                    warning={
-                      !formData.maximumSeats
-                        ? translateData.enterYourmaximumSeats
-                        : `${translateData?.maax} ${foundVehicle?.seat} ${translateData?.Seats}`
-                    }
-                    keyboardType="numeric"
-                    backgroundColor={
-                      isDark ? appColors.darkThemeSub : appColors.white
-                    }
-                    editable={false}
-                  />
-                </View>
-              </>
-            )
-          })()}
+          ) : null}
+          <Text
+            style={[styles.rowValue, { color: titleColor }]}
+            numberOfLines={2}
+          >
+            {show(value)}
+          </Text>
         </View>
       </View>
-    </ScrollView>
+      {last ? null : (
+        <View style={[styles.divider, { backgroundColor: borderColor }]} />
+      )}
+    </>
+  )
+
+  const PriceChip = ({ label, amount }: { label: string; amount: any }) => (
+    <View
+      style={[
+        styles.priceChip,
+        { backgroundColor: softBg, borderColor: brandColors.primaryBorder },
+      ]}
+    >
+      <Text style={[styles.priceChipLabel, { color: bodyColor }]}>{label}</Text>
+      <Text style={[styles.priceChipValue, { color: appColors.primary }]}>
+        {currency}
+        {show(amount)}
+      </Text>
+    </View>
+  )
+
+  const Notice = ({ text }: { text: string }) => (
+    <View
+      style={[
+        styles.notice,
+        { backgroundColor: cardBg, borderColor, flexDirection: viewRtlStyle },
+      ]}
+    >
+      <View style={{ marginTop: 2 }}>
+        <Icons.Info />
+      </View>
+      <Text style={[styles.noticeText, { color: bodyColor }]}>{text}</Text>
+    </View>
+  )
+
+  /* ---------------- empty state ---------------- */
+
+  if (!vehicle) {
+    return (
+      <View style={[styles.screen, { backgroundColor: pageBg }]}>
+        <Header
+          variant="brand"
+          title={translateData?.vehicleDetails || FALLBACK.title}
+        />
+        <View style={styles.empty}>
+          <Icons.vehicleSetting color={appColors.secondaryFont} />
+          <Text style={[styles.emptyTitle, { color: titleColor }]}>
+            {FALLBACK.emptyTitle}
+          </Text>
+          <Text style={[styles.emptyBody, { color: bodyColor }]}>
+            {FALLBACK.emptyBody}
+          </Text>
+        </View>
+      </View>
+    )
+  }
+
+  /* ---------------- screen ---------------- */
+
+  const heroName = isAmbulance
+    ? vehicle?.name || vehicle?.model
+    : vehicle?.model || vehicle?.name
+
+  const heroMeta = [service?.name, categoryName].filter(Boolean).join('  ·  ')
+
+  return (
+    <View style={[styles.screen, { backgroundColor: pageBg }]}>
+      <Header
+        variant="brand"
+        title={translateData?.vehicleDetails || FALLBACK.title}
+      />
+
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/*
+          The hero is brand orange in both themes — it is an accent card on the
+          page, not a chrome band, so it does not follow the header's
+          light-mode-only rule. Everything on it inverts to white.
+        */}
+        <View
+          style={[
+            styles.hero,
+            {
+              backgroundColor: appColors.primary,
+              borderColor: appColors.primary,
+            },
+          ]}
+        >
+          <View style={[styles.heroTop, { flexDirection: viewRtlStyle }]}>
+            <View
+              style={[
+                styles.heroIcon,
+                { backgroundColor: 'rgba(255,255,255,0.18)' },
+              ]}
+            >
+              {showArt ? (
+                <Image
+                  source={{ uri: vehicleArt }}
+                  style={styles.heroImage}
+                  resizeMode="contain"
+                  onError={() => setArtFailed(true)}
+                />
+              ) : (
+                <Icons.vehicleSetting color={appColors.white} />
+              )}
+            </View>
+            <View style={styles.heroText}>
+              <Text
+                style={[
+                  styles.heroName,
+                  { color: appColors.white, textAlign: textRtlStyle },
+                ]}
+                numberOfLines={1}
+              >
+                {show(heroName)}
+              </Text>
+              {heroMeta ? (
+                <Text
+                  style={[
+                    styles.heroMeta,
+                    {
+                      color: 'rgba(255,255,255,0.85)',
+                      textAlign: textRtlStyle,
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {heroMeta}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+
+          {/* Ambulance and Find Driver registrations carry no plate. */}
+          {!isAmbulance && !isFindDriver && vehicle?.plate_number ? (
+            <View
+              style={[
+                styles.plate,
+                {
+                  borderColor: appColors.white,
+                  backgroundColor: appColors.white,
+                },
+              ]}
+            >
+              <Text style={[styles.plateText, { color: appColors.primary }]}>
+                {String(vehicle.plate_number).toUpperCase()}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+
+        <SectionTitle text={FALLBACK.registration} />
+        <Card>
+          {/*
+            Deliberately not using translateData.selectService /
+            selectCategory here: those strings read "Select Service" and
+            "Select Category", which was right on the signup form but wrong on
+            a read-only card. Plain nouns instead.
+          */}
+          <Row label={FALLBACK.service} value={service?.name} />
+          <Row
+            label={FALLBACK.category}
+            value={categoryName}
+            last={isAmbulance || isRental}
+          />
+          {!isAmbulance && !isRental ? (
+            <Row
+              label={FALLBACK.vehicleType}
+              value={vehicleTypeName}
+              last
+            />
+          ) : null}
+        </Card>
+
+        {isRental ? (
+          <Notice text={FALLBACK.rentalNotice} />
+        ) : isAmbulance ? (
+          <>
+            <SectionTitle text={FALLBACK.ambulance} />
+            <Card>
+              <Row
+                label={translateData?.ambulanceName || FALLBACK.name}
+                value={vehicle?.name}
+                last={!vehicle?.description}
+              />
+              {vehicle?.description ? (
+                <View style={styles.descBlock}>
+                  <Text style={[styles.descLabel, { color: bodyColor }]}>
+                    {translateData?.ambulanceDescription ||
+                      FALLBACK.description}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.descValue,
+                      { color: titleColor, textAlign: textRtlStyle },
+                    ]}
+                  >
+                    {vehicle.description}
+                  </Text>
+                </View>
+              ) : null}
+            </Card>
+          </>
+        ) : isFindDriver ? (
+          <>
+            <SectionTitle text={FALLBACK.driverProfile} />
+            <Card>
+              <Row
+                label={FALLBACK.experience}
+                value={
+                  selfDriver?.experience
+                    ? `${selfDriver.experience} ${FALLBACK.years}`
+                    : null
+                }
+              />
+              <Row
+                label={FALLBACK.gearType}
+                value={
+                  selfDriver?.gear_type
+                    ? String(selfDriver.gear_type).replace(/^./, c =>
+                        c.toUpperCase(),
+                      )
+                    : null
+                }
+                last
+              />
+            </Card>
+
+            <SectionTitle text={FALLBACK.pricing} />
+            <Card>
+              <View style={[styles.priceRow, { flexDirection: viewRtlStyle }]}>
+                {selfDriver?.per_day_charge ? (
+                  <PriceChip
+                    label={FALLBACK.perDay}
+                    amount={selfDriver.per_day_charge}
+                  />
+                ) : null}
+                {selfDriver?.per_hour_charge ? (
+                  <PriceChip
+                    label={FALLBACK.perHour}
+                    amount={selfDriver.per_hour_charge}
+                  />
+                ) : null}
+                {selfDriver?.per_km_charge ? (
+                  <PriceChip
+                    label={FALLBACK.perKm}
+                    amount={selfDriver.per_km_charge}
+                  />
+                ) : null}
+                {!selfDriver?.per_day_charge &&
+                !selfDriver?.per_hour_charge &&
+                !selfDriver?.per_km_charge ? (
+                  <Text style={[styles.rowLabel, { color: bodyColor }]}>
+                    {dash}
+                  </Text>
+                ) : null}
+              </View>
+            </Card>
+          </>
+        ) : (
+          <>
+            <SectionTitle text={FALLBACK.vehicle} />
+            <Card>
+              <Row
+                label={translateData?.vehicleName || FALLBACK.vehicleName}
+                value={vehicle?.model}
+              />
+              <Row
+                label={translateData?.vehicleColor || FALLBACK.colour}
+                value={vehicle?.color}
+                swatch={toSwatch(vehicle?.color)}
+              />
+              <Row
+                label={translateData?.maximumSeats || FALLBACK.seats}
+                value={vehicle?.seat}
+                last
+              />
+            </Card>
+          </>
+        )}
+
+        <Notice text={FALLBACK.readOnly} />
+      </ScrollView>
+    </View>
   )
 }

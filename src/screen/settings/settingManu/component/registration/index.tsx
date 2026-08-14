@@ -52,7 +52,7 @@ export function RegistrationDetails() {
           text:
             selfDriver?.service_id === 5
               ? translateData.driverDetails || 'Driver Details'
-              : translateData.vehicleRegistration,
+              : translateData.vehicleDetails || 'Vehicle Details',
           route:
             selfDriver?.service_id === 5
               ? 'VehicleDetail'
