@@ -12,9 +12,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: windowHeight(1.3),
   },
+  // Was a "." character, which sits on the text baseline and so hung below the
+  // middle of the input beside it. A drawn dot centres properly and is not
+  // mistaken for a full stop.
   bullet: {
-    fontSize: fontSizes.FONT5,
-    marginRight: windowHeight(0.9),
+    width: windowHeight(0.9),
+    height: windowHeight(0.9),
+    borderRadius: windowHeight(0.45),
+    backgroundColor: appColors.primary,
+    marginHorizontal: windowHeight(0.9),
   },
   input: {
     flex: 1,

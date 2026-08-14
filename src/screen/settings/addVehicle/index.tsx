@@ -688,14 +688,7 @@ export function AddVehicle() {
 
   const renderField = ({ item, index }: any) => (
     <View style={[styles.fieldContainer, { flexDirection: viewRtlStyle }]}>
-      <Text
-        style={[
-          styles.bullet,
-          { color: isDark ? appColors.white : appColors.primaryFont },
-        ]}
-      >
-        .
-      </Text>
+      <View style={styles.bullet} />
       <TextInput
         style={[
           styles.input,
@@ -806,7 +799,9 @@ export function AddVehicle() {
     }
 
     if (!categoryType || !categoryType.trim()) {
-      newErrors.categoryType = translateData.vehicleTypeIsRequireddddddddd;
+      newErrors.categoryType =
+        translateData?.vehicleSubtypeIsRequired ||
+        'Please enter the vehicle sub type';
       valid = false;
     }
 
@@ -1425,7 +1420,14 @@ export function AddVehicle() {
               <Input
                 placeholder={translateData.suv}
                 titleShow={true}
-                title={translateData.vehicleType}
+                /*
+                  This is free text posted as `vehicle_subtype` (SUV, Sedan),
+                  not the vehicle type — that is the dropdown higher up, which
+                  owns translateData.vehicleType. Sharing that key labelled a
+                  text field "Select Vehicle Type". Falls back to English until
+                  a `vehicleSubtype` key exists in the admin translations.
+                */
+                title={translateData?.vehicleSubtype || 'Vehicle sub type'}
                 backgroundColor={isDark ? colors.card : appColors.white}
                 onChangeText={text => {
                   setCategoryType(text);
@@ -1433,7 +1435,9 @@ export function AddVehicle() {
                   if (!text.trim()) {
                     setErrors(prev => ({
                       ...prev,
-                      categoryType: translateData.vehicleTypeIsRequired,
+                      categoryType:
+                        translateData?.vehicleSubtypeIsRequired ||
+                        'Please enter the vehicle sub type',
                     }));
                   } else {
                     setErrors(prev => ({
@@ -1468,7 +1472,8 @@ export function AddVehicle() {
               <Input
                 placeholder={translateData.diesel}
                 titleShow={true}
-                title={translateData.fualType}
+                /* title={translateData.fualType} */
+                title={'Fuel type'}
                 backgroundColor={isDark ? colors.card : appColors.white}
                 onChangeText={text => {
                   setFualType(text);
@@ -1500,7 +1505,8 @@ export function AddVehicle() {
                 { color: isDark ? appColors.white : appColors.primaryFont },
               ]}
             >
-              {translateData.gearType}
+              {/* {translateData.gearType} */}
+              {'Gear type'}
             </Text>
             <View>
               <DropDownPicker
