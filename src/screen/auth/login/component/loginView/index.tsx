@@ -108,6 +108,8 @@ export function LoginView({
     }
   }
 
+  // Currently unused — the only caller is the tab strip, which is commented out
+  // in the render below. Kept so re-enabling fleet is a one-block change.
   const selectTab = (type: 'driver' | 'fleet') => {
     setAccountType(type)
     // A "not a valid phone/email" message from the previous tab is not about
@@ -154,6 +156,16 @@ export function LoginView({
           },
         ]}
       >
+        {/*
+          Driver / Fleet tabs hidden for now — only driver login is offered, and
+          a tab strip with a single option is just noise. `accountType` stays
+          pinned to its 'driver' default, so handleSubmit keeps taking the
+          driver branch and the whole fleet path below is untouched.
+
+          To bring fleet back: uncomment this block. Nothing else needs to
+          change — selectTab and gotoOTPFleet are still wired up.
+        */}
+        {/*
         <View
           style={[
             styles.tabsTrack,
@@ -192,6 +204,7 @@ export function LoginView({
             )
           })}
         </View>
+        */}
 
         <Text
           style={[
