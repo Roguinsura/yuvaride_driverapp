@@ -18,17 +18,20 @@ import messaging from '@react-native-firebase/messaging'
 import GPSStatusMonitor from './src/commonComponents/GPSStatusMonitor'
 import { getValue, setValue } from './src/utils/localstorage'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
-import { requestAllPermissionsOnFirstLaunch } from './src/utils/appPermissions'
+import { requestAllPermissionsOnFirstLaunch, queuePermissionPrompt } from './src/utils/appPermissions'
 
 type ChatHeadModule = {
   showChatHead: () => void
   hideChatHead: () => void
   checkOverlayPermission: () => Promise<boolean>
+  // Spelling is the module's own, not a typo here.
+  requrestPermission: () => Promise<boolean>
 }
 
 let showChatHead: (() => void) | undefined
 let hideChatHead: (() => void) | undefined
 let checkOverlayPermission: (() => Promise<boolean>) | undefined
+let requestOverlayPermission: (() => Promise<boolean>) | undefined
 const PERMISSION_EXPLANATION_SHOWN = 'PERMISSION_EXPLANATION_SHOWN'
 
 if (Platform.OS == 'android') {
@@ -36,6 +39,7 @@ if (Platform.OS == 'android') {
   showChatHead = chatHead.showChatHead
   hideChatHead = chatHead.hideChatHead
   checkOverlayPermission = chatHead.checkOverlayPermission
+  requestOverlayPermission = chatHead.requrestPermission
 }
 
 const AppGuards = () => {
@@ -77,11 +81,23 @@ const AppContent = () => {
   const { isDark } = useValues()
   const backgroundColor = isDark ? appColors.darkThemeSub : appColors.white
 
+  /*
+    The chat-head module fires ACTION_MANAGE_OVERLAY_PERMISSION with a
+    `package:` URI, which lands directly on this app's "Appear on top" toggle.
+
+    This used to call Linking.openURL with the bare Intent action string
+    'android.settings.action.MANAGE_OVERLAY_PERMISSION'. openURL expects a URL,
+    so it could never resolve that, threw every time, and the catch dropped the
+    user on the generic app settings page instead of the overlay screen.
+  */
   const openOverlayPermissionScreen = async () => {
     try {
-      await Linking.openURL('android.settings.action.MANAGE_OVERLAY_PERMISSION')
+      await requestOverlayPermission?.()
     } catch (err) {
-      await Linking.openSettings()
+      try {
+        await Linking.openSettings()
+      } catch (fallbackErr) {
+      }
     }
   }
 
@@ -89,13 +105,30 @@ const AppContent = () => {
     try {
       const alreadyShown = await getValue(PERMISSION_EXPLANATION_SHOWN)
       if (alreadyShown) return
-      await setValue(PERMISSION_EXPLANATION_SHOWN, 'true')
+
+      /*
+        The "already shown" flag is written when the user actually answers, not
+        before the alert goes up. It used to be set first, so an alert the user
+        never saw — dismissed by the system while a native permission dialog
+        held focus, say — still burned the app's one and only chance to ask,
+        and the overlay permission was then never requested again.
+      */
+      const remember = () => {
+        setValue(PERMISSION_EXPLANATION_SHOWN, 'true').catch(() => { })
+      }
+
       Alert.alert(
         'Permission Required',
         'To show the chat head bubble when the app is in the background, please grant the "Draw over other apps" permission in the next screen.',
         [
-          { text: 'Go to Settings', onPress: openOverlayPermissionScreen },
-          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Go to Settings',
+            onPress: () => {
+              remember()
+              openOverlayPermissionScreen()
+            },
+          },
+          { text: 'Cancel', style: 'cancel', onPress: remember },
         ],
         { cancelable: false },
       )
@@ -110,9 +143,11 @@ const AppContent = () => {
         const hasPermission = await checkOverlayPermission?.()
         if (hasPermission) {
           setGranted(true)
-        } else {
-          showPermissionExplanation()
+          return
         }
+        // Queued behind the location / notification dialogs. Opening this alert
+        // while a native permission dialog holds focus is how it went unseen.
+        queuePermissionPrompt(showPermissionExplanation)
       } catch (err) {
       }
     }

@@ -2,32 +2,32 @@ import { Alert, BackHandler, Linking, PermissionsAndroid, Platform } from 'react
 import { request, PERMISSIONS, RESULTS, openSettings } from 'react-native-permissions';
 import Geolocation from '@react-native-community/geolocation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+    requestLocationPermission as requestLocationPermissionQueued,
+    requestNotificationPermission as requestNotificationPermissionQueued,
+    requestCameraPermission as requestCameraPermissionQueued,
+    queuePermissionPrompt,
+} from '../../utils/appPermissions';
 
 const isAndroid = Platform.OS === 'android';
 const isIOS = Platform.OS === 'ios';
 
+/*
+  These delegate to utils/appPermissions rather than requesting directly.
 
-export const requestLocationPermission = async () => {
-    if (Platform.OS === 'android') {
-        try {
-            const result = await PermissionsAndroid.request(
-                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-            );
+  They used to be a second, independent implementation: the Splash screen called
+  these while App.tsx called the appPermissions set, and both fire on launch.
+  Android shows one runtime permission dialog at a time and drops any request
+  made while another is in flight, so the two collided — the loser came back
+  denied without ever being shown, which is why the background-location prompt
+  did not appear until the second launch.
 
-            return result === PermissionsAndroid.RESULTS.GRANTED;
-        } catch (err) {
-            return false;
-        }
-    }
-
-    // iOS: Request When-In-Use location permission
-    try {
-        const result = await request(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
-        return result === RESULTS.GRANTED || result === RESULTS.LIMITED;
-    } catch (err) {
-        return false;
-    }
-};
+  Routing every caller through the same queued implementation is what makes the
+  startup prompts run one after another. Signatures are unchanged, so the call
+  sites did not need touching.
+*/
+export const requestLocationPermission = (): Promise<boolean> =>
+    requestLocationPermissionQueued();
 
 
 
@@ -79,22 +79,23 @@ export const getStoredLocation = async (): Promise<{ lat: number; lng: number } 
 };
 
 
-export const requestCameraPermission = async () => {
-    const permission = isIOS ? PERMISSIONS.IOS.CAMERA : PERMISSIONS.ANDROID.CAMERA;
-    const result = await request(permission);
-    return result === RESULTS.GRANTED;
-};
+export const requestCameraPermission = (): Promise<boolean> =>
+    requestCameraPermissionQueued();
 
-export const requestNotificationPermission = async () => {
-    const permission = isIOS ? PERMISSIONS.IOS.NOTIFICATIONS : PERMISSIONS.ANDROID.POST_NOTIFICATIONS;
-    const result = await request(permission);
-    return result === RESULTS.GRANTED;
-};
+/*
+  The queued version also gates on Platform.Version >= 33. This one asked for
+  POST_NOTIFICATIONS on every Android version, and that permission only exists
+  from Android 13 — below it the request just resolves unavailable.
+*/
+export const requestNotificationPermission = (): Promise<boolean> =>
+    requestNotificationPermissionQueued();
 
-export const requestStoragePermission = async () => {
-    if (isAndroid) {
-        const result = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE);
+export const requestStoragePermission = async (): Promise<boolean> => {
+    if (!isAndroid) return true;
+    return queuePermissionPrompt(async () => {
+        const result = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        );
         return result === PermissionsAndroid.RESULTS.GRANTED;
-    }
-    return true;
+    });
 };

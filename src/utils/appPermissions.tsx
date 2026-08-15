@@ -12,10 +12,51 @@ interface PermissionResult {
     allGranted: boolean;
 }
 
+/*
+  Android shows one runtime permission dialog at a time. A request made while
+  another is still in flight is dropped and comes straight back as denied.
+
+  Two flows ask on startup — App.tsx (requestAllPermissionsOnFirstLaunch) and
+  the Splash screen — and they mount together, so they collided on the very
+  first prompt. The chain below then bailed out at its location step and only
+  ran to completion on the *second* launch, once location was already granted
+  and no dialog was needed.
+
+  Everything now goes through one queue, so prompts run back to back instead of
+  racing. `once` additionally collapses identical concurrent requests into a
+  single dialog, so the two startup flows asking for location at the same
+  moment shows one prompt rather than two.
+*/
+let promptQueue: Promise<unknown> = Promise.resolve();
+const inFlight = new Map<string, Promise<boolean>>();
+
+const queue = <T,>(task: () => Promise<T>): Promise<T> => {
+    // Chained on both settle paths so one rejection cannot stall the queue.
+    const run = promptQueue.then(task, task);
+    promptQueue = run.catch(() => undefined);
+    return run;
+};
+
+const once = (key: string, task: () => Promise<boolean>): Promise<boolean> => {
+    const existing = inFlight.get(key);
+    if (existing) return existing;
+    const run = queue(task).finally(() => inFlight.delete(key));
+    inFlight.set(key, run);
+    return run;
+};
+
+/**
+ * Run something after any in-flight permission dialogs have been answered.
+ * Used by the overlay ("appear on top") explanation so its alert does not open
+ * while a native permission dialog still has focus.
+ */
+export const queuePermissionPrompt = <T,>(task: () => Promise<T>): Promise<T> =>
+    queue(task);
+
 /**
  * Request Location Permission (Fine Location)
  */
-export const requestLocationPermission = async (): Promise<boolean> => {
+const requestLocationPermissionImpl = async (): Promise<boolean> => {
     try {
         if (Platform.OS === 'android') {
             const result = await PermissionsAndroid.request(
@@ -40,10 +81,13 @@ export const requestLocationPermission = async (): Promise<boolean> => {
     }
 };
 
+export const requestLocationPermission = (): Promise<boolean> =>
+    once('location', requestLocationPermissionImpl);
+
 /**
  * Request Notification Permission
  */
-export const requestNotificationPermission = async (): Promise<boolean> => {
+const requestNotificationPermissionImpl = async (): Promise<boolean> => {
     try {
         if (Platform.OS === 'android') {
             if (Platform.Version >= 33) {
@@ -74,10 +118,13 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
     }
 };
 
+export const requestNotificationPermission = (): Promise<boolean> =>
+    once('notification', requestNotificationPermissionImpl);
+
 /**
  * Request Camera Permission
  */
-export const requestCameraPermission = async (): Promise<boolean> => {
+const requestCameraPermissionImpl = async (): Promise<boolean> => {
     try {
         const permission = Platform.OS === 'ios' ? PERMISSIONS.IOS.CAMERA : PERMISSIONS.ANDROID.CAMERA;
         const result = await request(permission);
@@ -88,10 +135,13 @@ export const requestCameraPermission = async (): Promise<boolean> => {
     }
 };
 
+export const requestCameraPermission = (): Promise<boolean> =>
+    once('camera', requestCameraPermissionImpl);
+
 /**
  * Request Background Location Permission (Android only)
  */
-export const requestBackgroundLocationPermission = async (): Promise<boolean> => {
+const requestBackgroundLocationPermissionImpl = async (): Promise<boolean> => {
     try {
         if (Platform.OS == 'android' && Platform.Version >= 29) {
             const result = await PermissionsAndroid.request(
@@ -112,6 +162,9 @@ export const requestBackgroundLocationPermission = async (): Promise<boolean> =>
         return false;
     }
 };
+
+export const requestBackgroundLocationPermission = (): Promise<boolean> =>
+    once('backgroundLocation', requestBackgroundLocationPermissionImpl);
 
 /**
  * Show alert when permission is denied with options to go to settings or exit
@@ -166,6 +219,17 @@ export const requestAllPermissionsOnFirstLaunch = async (): Promise<PermissionRe
                 const retryResult = await requestAllPermissionsOnFirstLaunch();
                 return retryResult;
             });
+            return result;
+        }
+
+        /*
+          The prompts below are a deliberate one-time ask on first launch.
+          `alreadyRequested` was read but never used, so they re-ran on every
+          single launch. Location above still runs each time — it is the one
+          the app cannot work without, and it shows no dialog once granted.
+        */
+        if (alreadyRequested) {
+            result.allGranted = result.location;
             return result;
         }
 
