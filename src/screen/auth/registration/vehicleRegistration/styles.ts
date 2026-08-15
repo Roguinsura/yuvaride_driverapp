@@ -100,6 +100,15 @@ const styles = StyleSheet.create({
   maximumSeats: {
     bottom: windowHeight(5)
   },
+  /*
+    Deliberately has no `bottom` offset. The sections around it each shift
+    themselves up by a fixed amount to close gaps, and reusing one of those
+    here dragged the documents heading up over the vehicle cards.
+  */
+  documentsSection: {
+    marginTop: windowHeight(1),
+    marginBottom: windowHeight(2),
+  },
   boldText: {
     fontFamily: appFonts.bold
   },

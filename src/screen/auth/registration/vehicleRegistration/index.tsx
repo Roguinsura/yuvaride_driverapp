@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { View, Text, ScrollView, Keyboard} from 'react-native'
 import styles from './styles'
 import appColors from '../../../../theme/appColors'
@@ -11,7 +11,10 @@ import {
   RenderServiceList,
   RenderCategoryReg,
   RenderColorList,
+  RenderVehicleCards,
+  VehicleDocuments,
 } from './component'
+import type { VehicleDocumentsState } from './component/vehicleDocuments'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { RootStackParamList } from '../../../../navigation/main/types'
 import { useValues } from '../../../../utils/context'
@@ -20,6 +23,7 @@ import { driverRuleGet } from '../../../../api/store/action/driverRuleAction'
 import { fontSizes, windowHeight } from '../../../../theme/appConstant'
 import { getValue, setValue } from '../../../../utils/localstorage'
 import { selfDriverData } from '../../../../api/store/action'
+import { categoryDataGet } from '../../../../api/store/action/categoryAction'
 import { URL } from '../../../../api/config'
 import appFonts from '../../../../theme/appFonts'
 import { AppDispatch } from '../../../../api/store'
@@ -58,6 +62,7 @@ export function VehicleRegistration() {
   const isFocused = useIsFocused()
   const { translateData } = useSelector((state: any) => state.setting)
   const { vehicleTypedata } = useSelector((state: any) => state.vehicleType)
+  const { categoryData } = useSelector((state: any) => state.serviceCategory)
   const { preferenceList } = useSelector((state: any) => state.account)
   const dispatch = useDispatch<AppDispatch>()
   const [selectedPrefs, setSelectedPrefs] = useState<string[]>([])
@@ -81,6 +86,19 @@ export function VehicleRegistration() {
     price_per_hour: '',
     price_per_km: '',
   })
+
+  /*
+    Vehicle documents for the chosen vehicle type. The child component owns the
+    list, the picked files and the expiry dates and hands the whole lot up here,
+    so this screen keeps one piece of state rather than four.
+  */
+  const [vehicleDocs, setVehicleDocs] = useState<VehicleDocumentsState>({
+    documents: [],
+    uploads: {},
+    expiryDates: {},
+    isComplete: true,
+  })
+  const [showDocError, setShowDocError] = useState(false)
 
   const [openGear, setOpenGear] = useState(false)
   const [gearItems, setGearItems] = useState([
@@ -111,6 +129,12 @@ export function VehicleRegistration() {
   useEffect(() => {
     getService()
   }, [])
+
+  // Fetched here rather than inside the picker: this screen decides which
+  // category goes with which service, so it needs the list itself.
+  useEffect(() => {
+    dispatch(categoryDataGet())
+  }, [dispatch])
 
   const getService = () => {
     dispatch(driverRuleGet())
@@ -150,6 +174,73 @@ export function VehicleRegistration() {
     )
   }
 
+  /*
+    Service → category → vehicle is one cascade, and every step narrows the one
+    below it. This screen owns all three so a change can be applied as a single
+    state update.
+
+    It used to be split: the category picker held its own selection and reset
+    itself in an effect after the service changed. That produced a render where
+    the new service was paired with the *previous* service's category — an
+    invalid combination the vehicle list happily fetched. Two requests were
+    then in flight for two different pairs, and whichever answered last decided
+    what the driver saw. Roughly one switch in three showed "No vehicles
+    available" for a category that has vehicles.
+  */
+  const normalizeSlug = (value?: string) =>
+    value?.toLowerCase().replace(/[-_]/g, '') ?? ''
+
+  const categoriesForService = useCallback(
+    (serviceSlug: string) => {
+      const rows = categoryData?.data
+      if (!Array.isArray(rows) || !serviceSlug) return []
+      return rows.filter(
+        (category: any) =>
+          normalizeSlug(category.service_type) === normalizeSlug(serviceSlug),
+      )
+    },
+    [categoryData],
+  )
+
+  const serviceCategories = useMemo(
+    () => categoriesForService(selectedService),
+    [categoriesForService, selectedService],
+  )
+
+  // The categories request has come back (either way). Until then we cannot
+  // tell "this service has no categories" from "not loaded yet".
+  const categoriesLoaded = Array.isArray(categoryData?.data)
+
+  /*
+    The vehicle list is only asked for once the service and its category have
+    settled — a service with no categories counts as settled. Without this the
+    list would fetch against a half-applied selection and show the answer to a
+    question nobody asked.
+  */
+  const vehicleSelectionReady =
+    Boolean(selectedServiceID) &&
+    categoriesLoaded &&
+    (serviceCategories.length === 0 || selectedCategoryID !== undefined)
+
+  /*
+    A vehicle picked under a different service/category is not necessarily in
+    the new list. Left set, it kept the documents section open for a vehicle no
+    longer on screen and submitted that stale id.
+  */
+  const clearVehicleSelection = () => {
+    setVehicleIndex(null)
+    setSelectedVehicle('')
+    setSelectedVehicleID(undefined)
+    setSelectedVehicleSeat(null)
+    setShowVehicleError(false)
+  }
+
+  const applyCategory = (category: any, index: number) => {
+    setCategoryIndex(category ? index : null)
+    setSelectedCategory(category?.name ?? '')
+    setSelectedCategoryID(category?.id)
+  }
+
   const handleItemPress = (
     index: number,
     slug: string,
@@ -160,16 +251,37 @@ export function VehicleRegistration() {
     setSelectedServiceID(id)
     setSelectedService(slug)
     setShowServiceError(false)
+
+    if (id === selectedServiceID) return
+
+    // Same update as the service, so no render ever sees the new service
+    // beside the old category.
+    clearVehicleSelection()
+    const next = categoriesForService(slug)
+    applyCategory(next[0], 0)
+    setShowCategoryError(false)
   }
 
-  const handleCategoryPress = (
-    index: number,
-    categoryName: string,
-    categoryId: number,
-  ) => {
-    setCategoryIndex(index)
-    setSelectedCategory(categoryName)
-    setSelectedCategoryID(categoryId)
+  /*
+    Safety net for the categories list arriving after a service was picked, and
+    for a category that is not in the current service's list. Only fires when
+    the two are genuinely out of step, so it cannot race the handler above.
+  */
+  useEffect(() => {
+    if (!selectedService || !categoriesLoaded) return
+    if (serviceCategories.length === 0) {
+      if (selectedCategoryID !== undefined) applyCategory(undefined, -1)
+      return
+    }
+    const index = serviceCategories.findIndex(
+      (category: any) => category.id === selectedCategoryID,
+    )
+    if (index === -1) applyCategory(serviceCategories[0], 0)
+  }, [selectedService, serviceCategories, categoriesLoaded, selectedCategoryID])
+
+  const handleCategoryPress = (category: any, index: number) => {
+    if (category?.id !== selectedCategoryID) clearVehicleSelection()
+    applyCategory(category, index)
     setShowCategoryError(false)
   }
 
@@ -177,15 +289,21 @@ export function VehicleRegistration() {
     index: number,
     vehicleName: string,
     vehicleId: number,
+    vehicle?: any,
   ) => {
     setVehicleIndex(index)
     setSelectedVehicle(vehicleName)
     setSelectedVehicleID(vehicleId)
     setShowVehicleError(false)
 
-    const selectedItem = vehicleTypedata?.data?.find(
-      (item: any) => item.id === vehicleId,
-    )
+    /*
+      Prefer the row the list handed over. The store copy can belong to a
+      different service/category when two fetches overlapped, in which case
+      the lookup finds nothing and the seat cap goes unset.
+    */
+    const selectedItem =
+      vehicle ??
+      vehicleTypedata?.data?.find((item: any) => item.id === vehicleId)
     if (selectedItem?.seat) {
       setSelectedVehicleSeat(selectedItem.seat)
       setFormData((prev: any) => ({
@@ -278,6 +396,18 @@ export function VehicleRegistration() {
       hasError = false
     }
 
+    /*
+      Checked after the Rental reset above, deliberately. Rental skips the
+      vehicle field checks, but a document the admin marked required is still
+      required — the reset must not wave it through.
+    */
+    if (!vehicleDocs.isComplete) {
+      setShowDocError(true)
+      hasError = true
+    } else {
+      setShowDocError(false)
+    }
+
     if (hasError) {
       return
     }
@@ -334,23 +464,44 @@ export function VehicleRegistration() {
         formData.append(`preferences[${index}]`, item)
       })
 
-      Object.keys(documentDetail).forEach((key, index) => {
-        const doc = documentDetail[key]?.file
-        const expiryDate = documentDetail[key]?.expiryDate
+      /*
+        Personal documents from step 2 and vehicle documents picked on this
+        screen go into the same `documents[]` array — the register endpoint
+        resolves each entry by slug and stores it against the driver, so the
+        document's own type (driver / vehicle) is already carried by the row it
+        matches. A single running index keeps the two sets from overwriting each
+        other in the form data.
+      */
+      let documentIndex = 0
 
-        if (doc) {
-          formData.append(`documents[${index}][file]`, {
-            uri: doc.uri,
-            type: doc.type,
-            name: doc.name,
-          })
-
-          formData.append(`documents[${index}][slug]`, key)
-
-          if (expiryDate) {
-            formData.append(`documents[${index}][expired_at]`, expiryDate)
-          }
+      const appendDocument = (slug: string, file: any, expiryDate?: string) => {
+        if (!file) return
+        formData.append(`documents[${documentIndex}][file]`, {
+          uri: file.uri,
+          type: file.type,
+          name: file.name,
+        })
+        formData.append(`documents[${documentIndex}][slug]`, slug)
+        if (expiryDate) {
+          formData.append(`documents[${documentIndex}][expired_at]`, expiryDate)
         }
+        documentIndex += 1
+      }
+
+      Object.keys(documentDetail || {}).forEach(key => {
+        appendDocument(
+          key,
+          documentDetail[key]?.file,
+          documentDetail[key]?.expiryDate,
+        )
+      })
+
+      Object.keys(vehicleDocs.uploads).forEach(slug => {
+        appendDocument(
+          slug,
+          vehicleDocs.uploads[slug],
+          vehicleDocs.expiryDates[slug],
+        )
       })
 
       const response = await fetch(`${URL}/api/driver/register`, {
@@ -462,10 +613,9 @@ export function VehicleRegistration() {
                 </Text>
                 <View style={{ flexDirection: viewRtlStyle }}>
                   <RenderCategoryReg
-                    categoryIndex={categoryIndex}
-                    handleItemPress={handleCategoryPress}
-                    selectedService={selectedService}
-                    selectedCategory={selectedCategory}
+                    categories={serviceCategories}
+                    selectedCategoryID={selectedCategoryID}
+                    onSelect={handleCategoryPress}
                   />
                 </View>
                 {showCategoryError && (
@@ -518,11 +668,12 @@ export function VehicleRegistration() {
                         {translateData.selectVehicle}
                       </Text>
                       <View style={{ flexDirection: viewRtlStyle }}>
-                        <View>
-                          <RenderVehicleList
-                            vehicleIndex={vehicleIndex}
+                        {/* flex:1 — inside a row parent a plain View shrinks to
+                            its content, which collapsed the card grid. */}
+                        <View style={{ flex: 1 }}>
+                          <RenderVehicleCards
                             handleItemPress={handleVehiclePress}
-                            selectedCategory={selectedCategory}
+                            ready={vehicleSelectionReady}
                             serviceId={selectedServiceID}
                             categoryId={selectedCategoryID}
                             selectedVehicleID={selectedVehicleID}
@@ -708,11 +859,12 @@ export function VehicleRegistration() {
                           {translateData.selectVehicle}
                         </Text>
                         <View style={{ flexDirection: viewRtlStyle }}>
-                          <View>
-                            <RenderVehicleList
-                              vehicleIndex={vehicleIndex}
+                          {/* flex:1 — inside a row parent a plain View shrinks
+                              to its content, collapsing the card grid. */}
+                          <View style={{ flex: 1 }}>
+                            <RenderVehicleCards
                               handleItemPress={handleVehiclePress}
-                              selectedCategory={selectedCategory}
+                              ready={vehicleSelectionReady}
                               serviceId={selectedServiceID}
                               categoryId={selectedCategoryID}
                               selectedVehicleID={selectedVehicleID}
@@ -732,6 +884,38 @@ export function VehicleRegistration() {
                           </View>
                         </View>
                       </View>
+
+                      {/*
+                        Documents for the selected vehicle type. Sits directly
+                        under the picker so the ask reads as part of choosing
+                        the vehicle, and renders nothing until one is picked
+                        since the list depends on it.
+                      */}
+                      {Boolean(selectedVehicleID) && (
+                        <View style={styles.documentsSection}>
+                          <Text
+                            style={[
+                              styles.vehicleTitle,
+                              { textAlign: textRtlStyle },
+                              {
+                                color: isDark
+                                  ? appColors.white
+                                  : appColors.primaryFont,
+                              },
+                            ]}
+                          >
+                            {selectedVehicle
+                              ? `${translateData?.documents || 'Documents'} — ${selectedVehicle}`
+                              : translateData?.documents || 'Documents'}
+                          </Text>
+                          <VehicleDocuments
+                            vehicleTypeId={selectedVehicleID}
+                            showErrors={showDocError}
+                            onChange={setVehicleDocs}
+                          />
+                        </View>
+                      )}
+
                       <View style={styles.vehicleName}>
                         <Input
                           title={translateData.vehicleName}
@@ -857,6 +1041,7 @@ export function VehicleRegistration() {
                             ),
                           )}
                       </View>
+
                     </>
                   )}
                 </>

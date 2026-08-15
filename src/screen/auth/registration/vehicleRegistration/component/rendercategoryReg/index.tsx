@@ -1,112 +1,71 @@
-import React, { useEffect, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Text, View } from 'react-native'
 import appColors from '../../../../../../theme/appColors'
 import { useTheme } from '@react-navigation/native'
-import { useDispatch, useSelector } from 'react-redux'
-import { categoryDataGet } from '../../../../../../api/store/action/categoryAction'
+import { useSelector } from 'react-redux'
 import DropDownPicker from 'react-native-dropdown-picker'
 import { useValues } from '../../../../../../utils/context'
 import { fontSizes, windowHeight } from '../../../../../../theme/appConstant'
 import styles from '../renderCategoryList/styles'
-import { AppDispatch } from '../../../../../../api/store'
 
-interface RenderItemsProps {
-  categoryIndex: number
-  selectedCategory: string | null
-  handleItemPress: (
-    index: number,
-    categoryName: string,
-    id: number,
-    serviceType: string,
-  ) => void
-  selectedService: string
+/*
+  A controlled picker: the categories to offer and the one selected are both
+  props, and picking one is reported straight back up.
+
+  It used to hold its own selection and derive its own list from the store,
+  resetting itself in an effect whenever the service changed. That reset landed
+  a render later than the service change, so for one render the new service was
+  paired with the old service's category — and the vehicle list fetched that
+  invalid pair. Owning nothing removes the window entirely.
+*/
+
+interface RenderCategoryRegProps {
+  /** Categories belonging to the selected service. */
+  categories: any[]
+  selectedCategoryID?: number
+  onSelect: (category: any, index: number) => void
 }
 
 export function RenderCategoryReg({
-  handleItemPress,
-  selectedService,
-  selectedCategory,
-}: RenderItemsProps | any) {
+  categories,
+  selectedCategoryID,
+  onSelect,
+}: RenderCategoryRegProps | any) {
   const { colors } = useTheme()
   const { rtl, isDark, viewRtlStyle } = useValues()
-  const dispatch = useDispatch<AppDispatch>()
-  const { categoryData } = useSelector((state: any) => state.serviceCategory)
   const { translateData } = useSelector((state: any) => state.setting)
-  const [serviceDataValue, setServiceDataValue] = useState<any>([])
   const [open, setOpen] = useState<boolean>(false)
-  const [value, setValue] = useState<number | null>(null)
-  const [items, setItems] = useState<{ label: string; value: number }[]>([])
 
+  const rows: any[] = Array.isArray(categories) ? categories : []
 
-  useEffect(() => {
-    dispatch(categoryDataGet())
-  }, [dispatch])
+  const items = useMemo(
+    () =>
+      rows.map((item: any) => ({
+        label: item.name,
+        value: item.id,
+      })),
+    [rows],
+  )
 
-  useEffect(() => {
-    if (selectedService && categoryData?.data?.length > 0) {
-      const normalize = (s: string) => s?.toLowerCase().replace(/[-_]/g, '')
-      const normalizedSelected = normalize(selectedService)
-
-      const filteredServices = categoryData.data.filter(
-        (category: any) =>
-          normalize(category.service_type) === normalizedSelected,
-      )
-
-      setServiceDataValue(filteredServices)
-
-      const dropdownItems = filteredServices.map(
-        (item: any, index: number) => ({
-          label: item.name,
-          value: item.id,
-          index: index,
-          service_type: item.service_type,
-        }),
-      )
-
-      setItems(dropdownItems)
-
-      if (dropdownItems.length > 0 && value === null) {
-        handleValueChange(dropdownItems[0].value)
-      }
-    }
-  }, [selectedService, categoryData, value])
-
-  useEffect(() => {
-    if (selectedCategory) {
-      const selectedItem = items.find(item => item.label === selectedCategory)
-      if (selectedItem) {
-        setValue(selectedItem.value)
-      }
-    }
-  }, [selectedCategory, items])
-
-  const handleValueChange = (itemValue: number | null) => {
-    setValue(itemValue)
-
-    const selectedItem = serviceDataValue.find(
-      (item: any) => item.id === itemValue,
-    )
-
-    if (selectedItem) {
-      const itemIndex = serviceDataValue.indexOf(selectedItem)
-      handleItemPress(
-        itemIndex,
-        selectedItem.name,
-        selectedItem.id,
-        selectedItem.service_type,
-      )
-    }
+  // DropDownPicker hands back either the new value or an updater.
+  const handleSetValue = (valueOrUpdater: any) => {
+    const next =
+      typeof valueOrUpdater === 'function'
+        ? valueOrUpdater(selectedCategoryID ?? null)
+        : valueOrUpdater
+    const index = rows.findIndex((item: any) => item.id === next)
+    if (index !== -1) onSelect(rows[index], index)
   }
+
   return (
     <View>
       <DropDownPicker
         open={open}
-        value={value}
+        value={selectedCategoryID ?? null}
         items={items}
         setOpen={setOpen}
-        setValue={setValue}
-        setItems={setItems}
-        onChangeValue={handleValueChange}
+        setValue={handleSetValue}
+        setItems={() => { }}
         placeholder={translateData.selectCategory}
         containerStyle={styles.container}
         placeholderStyle={[
@@ -126,7 +85,6 @@ export function RenderCategoryReg({
           borderColor: open ? appColors.border : colors.border,
           marginTop: 1,
         }}
-        textStyle={[styles.text, { color: colors.text }]}
         labelStyle={[
           styles.text,
           { color: isDark ? appColors.white : appColors.black },
@@ -143,6 +101,7 @@ export function RenderCategoryReg({
         textStyle={{
           textAlign: rtl ? 'right' : 'left',
           fontSize: fontSizes.FONT4,
+          color: colors.text,
         }}
         scrollViewProps={{
           showsVerticalScrollIndicator: false,
