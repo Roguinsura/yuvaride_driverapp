@@ -2,6 +2,7 @@ import { StyleSheet } from 'react-native'
 import appColors from '../../../theme/appColors'
 import { fontSizes, windowHeight, windowWidth } from '../../../theme/appConstant'
 import appFonts from '../../../theme/appFonts'
+import appTypography from '../../../theme/appTypography'
 
 const styles = StyleSheet.create({
   mapSection: {
@@ -128,14 +129,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalTitle: {
-    fontFamily: appFonts.bold,
-    fontSize: fontSizes.FONT4,
+    ...appTypography.h3,
     marginBottom: 10,
     color: appColors.black,
   },
   modalText: {
-    fontFamily: appFonts.regular,
-    fontSize: fontSizes.FONT3HALF,
+    ...appTypography.body,
     color: appColors.primaryFont,
     textAlign: 'center',
     marginBottom: 20,
@@ -162,9 +161,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   closeText: {
-    color: appColors.white,
-    fontFamily: appFonts.medium,
-    fontSize: fontSizes.FONT3HALF,
+    ...appTypography.buttonSecondary,    color: appColors.white,
   },
   otpSheetContainer: {
     flex: 1,
@@ -173,14 +170,12 @@ const styles = StyleSheet.create({
     paddingBottom: windowHeight(2),
   },
   otpTitle: {
-    fontFamily: appFonts.bold,
-    fontSize: fontSizes.FONT5,
+    ...appTypography.h2,
     textAlign: 'center',
     marginBottom: windowHeight(1),
   },
   otpSubtitle: {
-    fontFamily: appFonts.regular,
-    fontSize: fontSizes.FONT3,
+    ...appTypography.caption,
     textAlign: 'center',
     marginBottom: windowHeight(1),
   },
@@ -194,8 +189,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     textAlign: 'center',
-    fontSize: fontSizes.FONT5,
-    fontFamily: appFonts.medium,
+    // Size and weight only — a lineHeight would clip the digit inside this
+    // fixed-height box on Android, and tracking would break the centring.
+    fontFamily: appTypography.otp.fontFamily,
+    fontSize: appTypography.otp.fontSize,
+    fontWeight: appTypography.otp.fontWeight,
     borderBottomWidth: 1,
     borderColor: appColors.border,
     color: appColors.black,
@@ -210,8 +208,7 @@ const styles = StyleSheet.create({
     paddingTop: windowHeight(0.2),
   },
   extraFareTitle: {
-    fontFamily: appFonts.medium,
-    fontSize: fontSizes.FONT5,
+    ...appTypography.h3,
     textAlign: 'center',
     marginBottom: windowHeight(2.5),
   },
@@ -226,8 +223,7 @@ const styles = StyleSheet.create({
     marginBottom: windowHeight(2),
   },
   inputLabel: {
-    fontFamily: appFonts.medium,
-    fontSize: windowWidth(3.8),
+    ...appTypography.inputLabel,
     marginBottom: windowHeight(1),
   },
   inputField: {
@@ -236,9 +232,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   textInput: {
+    ...appTypography.inputText,
     height: windowHeight(5.5),
-    fontFamily: appFonts.regular,
-    fontSize: fontSizes.FONT3HALF,
   },
   chargesList: {
     marginVertical: windowHeight(1.5),
@@ -253,8 +248,7 @@ const styles = StyleSheet.create({
     marginBottom: windowHeight(1),
   },
   chargeText: {
-    fontFamily: appFonts.medium,
-    fontSize: fontSizes.FONT3HALF,
+    ...appTypography.body,
     flex: 1,
   },
   chargeRight: {
@@ -262,8 +256,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   chargeAmount: {
-    fontFamily: appFonts.bold,
-    fontSize: fontSizes.FONT3HALF,
+    ...appTypography.bodyMedium,
     marginRight: windowWidth(2),
   },
   removeButton: {
@@ -289,8 +282,7 @@ const styles = StyleSheet.create({
     marginLeft: windowWidth(1),
   },
   actionButtonText: {
-    fontFamily: appFonts.medium,
-    fontSize: fontSizes.FONT3HALF,
+    ...appTypography.buttonSecondary,
   },
 })
 export default styles

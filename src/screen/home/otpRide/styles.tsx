@@ -2,6 +2,7 @@ import { StyleSheet } from 'react-native'
 import appColors from '../../../theme/appColors'
 import appFonts from '../../../theme/appFonts'
 import { windowHeight, fontSizes, windowWidth } from '../../../theme/appConstant'
+import appTypography from '../../../theme/appTypography'
 
 const styles = StyleSheet.create({
   container: {
@@ -46,9 +47,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: windowWidth(3),
     marginTop: windowHeight(1),
   },
+  // Pickup address line.
   timing: {
-    fontFamily: appFonts.medium,
-    fontSize: fontSizes.FONT4,
+    ...appTypography.locationPrimary,
     textAlign: 'left'
   },
   otpInput: {
@@ -80,11 +81,11 @@ const styles = StyleSheet.create({
     marginVertical: windowHeight(1.5),
     marginHorizontal: windowWidth(3),
   },
+  // Screen title: 20/700, per the spec's rule that page titles are not 24-28.
   title: {
+    ...appTypography.screenTitle,
     textAlign: 'center',
     justifyContent: 'center',
-    fontSize: fontSizes.FONT5,
-    fontFamily: appFonts.medium,
     marginVertical: windowHeight(1.5),
     bottom: windowHeight(3)
   },
@@ -108,13 +109,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: windowHeight(0.5),
   },
+  /*
+    OTP digits: 26/700 per the spec's "important numbers" rule.
+
+    fontSize and fontWeight are set explicitly rather than spreading the otp
+    token, because that token carries a lineHeight and letterSpacing. Inside a
+    fixed-size TextInput box, a lineHeight taller than the box clips the glyph
+    vertically on Android, and tracking pushes a centred digit off-centre — the
+    spacing between digits comes from the boxes themselves here, not the text.
+  */
   otpInputs: {
     width: windowHeight(7),
     height: windowHeight(7),
     borderWidth: windowHeight(0.2),
     borderRadius: windowHeight(1.3),
     marginTop: windowHeight(2),
-    fontSize: fontSizes.FONT4HALF,
+    fontFamily: appTypography.otp.fontFamily,
+    fontSize: appTypography.otp.fontSize,
+    fontWeight: appTypography.otp.fontWeight,
     borderBottomWidth: windowHeight(0.2)
   },
   map: {
