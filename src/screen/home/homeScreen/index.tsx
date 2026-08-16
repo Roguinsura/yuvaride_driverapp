@@ -1105,22 +1105,24 @@ export function Home() {
 
     setLoadingId(details?.id)
     dispatch(sosAlertGet(payload))
-      .unwrap()
-      .then(async () => {
-        Linking.openURL(`tel:${details?.phone}`)
-      })
-      .catch(err => {
-        // The alert did not reach the server. Say so rather than leaving the
-        // driver staring at a button that appeared to do nothing.
-        notificationHelper(
-          '',
-          err?.message || translateData.somethingWentWrong,
-          'error',
-        )
+      .catch(() => {
+        // Swallow deliberately — the dial below must not depend on this.
       })
       .finally(() => {
         setLoadingId(null)
       })
+
+    // Placing the call is the point of this button, so it happens regardless of
+    // whether the alert reached the server. The dispatch above is not awaited:
+    // a driver in trouble should not wait on a network round-trip, and a failed
+    // alert must never be a reason not to dial.
+    Linking.openURL(`tel:${details?.phone}`).catch(() => {
+      notificationHelper(
+        '',
+        translateData.somethingWentWrong,
+        'error',
+      )
+    })
   }
 
   useEffect(() => {
