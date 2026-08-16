@@ -70,3 +70,7 @@ ios/GoogleService-Info.plist
 !android/app/debug.keystore.example
 .env
 .env.local
+
+# Per-machine Claude Code settings (personal permission rules, local paths).
+# The checked-in .claude/settings.json is the shared one; this override is not.
+.claude/settings.local.json
