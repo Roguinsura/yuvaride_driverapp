@@ -1,6 +1,7 @@
 import { StyleSheet } from "react-native";
 import appColors from "../../theme/appColors";
 import { fontSizes, windowHeight, windowWidth } from "../../theme/appConstant";
+import appTypography from '../../theme/appTypography'
 import appFonts from "../../theme/appFonts";
 
 const styles = StyleSheet.create({
@@ -16,9 +17,10 @@ const styles = StyleSheet.create({
         borderRadius: windowWidth(5),
         width: '80%',
     },
+    // Was appFonts.semiBold, which does not exist on AppFonts — fontFamily
+    // resolved to undefined, so this rendered in the platform default face.
     title: {
-        fontSize: fontSizes.FONT4,
-        fontFamily: appFonts.semiBold,
+        ...appTypography.h3,
         marginVertical: windowHeight(2),
         alignSelf: 'center'
     },

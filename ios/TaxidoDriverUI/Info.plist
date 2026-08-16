@@ -52,6 +52,8 @@
 		<string>GTWalsheimPro-Bold.ttf</string>
 		<string>GTWalsheimPro-Medium.ttf</string>
 		<string>GTWalsheimPro-Regular.ttf</string>
+		<string>Roboto-Regular.ttf</string>
+		<string>Roboto-Bold.ttf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>
