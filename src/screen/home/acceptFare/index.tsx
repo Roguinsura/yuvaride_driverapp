@@ -10,6 +10,8 @@ import { DriverProfile } from '../../../commonComponents'
 import { Button } from '../../../commonComponents'
 import { useDispatch, useSelector } from 'react-redux'
 import GetLocation from 'react-native-get-location'
+import Geolocation from '@react-native-community/geolocation'
+import { distanceInMeters } from '../../../utils/functions'
 import { ArrivedMap } from '../../../commonComponents/maps/arrivedMap'
 import { useAppNavigation } from '../../../utils/navigation'
 import { cancelationDataGet, rideDataPut, rideDataGet } from '../../../api/store/action'
@@ -65,6 +67,40 @@ export function AcceptFare() {
   const [cancelationreason, setCancelationReason] = useState<any>(null)
   const [selectedId, setSelectedId] = useState<null>(null)
   const [showActions, setShowActions] = useState<boolean>(false)
+  const [distanceToPickup, setDistanceToPickup] = useState<number | null>(null)
+
+  /*
+    Arrival radius, configured in admin under Settings:
+      activation.arrival_radius_enable  — master switch
+      ride.arrival_radius_meters        — how close the driver must be
+
+    The server enforces the same two values and answers 422 when the driver is
+    too far, so this is the local half of one rule, not a second rule. Gating
+    the button here means the driver is told *before* pressing it; the 422
+    remains the backstop for a stale or spoofed position.
+  */
+  const arrivalRadiusEnabled =
+    String(
+      taxidoSettingData?.cabbooking_values?.activation?.arrival_radius_enable ??
+      '0',
+    ) === '1'
+
+  const arrivalRadiusMeters = Number(
+    taxidoSettingData?.cabbooking_values?.ride?.arrival_radius_meters ?? 0,
+  )
+
+  const pickupPoint = rideData?.location_coordinates?.[0]
+
+  // Only gate when the rule is on, a usable radius is configured, and we have
+  // both coordinates. If any of that is missing the button stays enabled and
+  // the server decides — never lock a driver out because a setting is absent.
+  const radiusGateActive =
+    arrivalRadiusEnabled &&
+    arrivalRadiusMeters > 0 &&
+    distanceToPickup !== null
+
+  const withinArrivalRadius =
+    !radiusGateActive || (distanceToPickup as number) <= arrivalRadiusMeters
 
 
   useFocusEffect(
@@ -85,6 +121,45 @@ export function AcceptFare() {
     (props: BottomSheetBackdropProps) => <CustomBackdrop {...props} />,
     [],
   )
+
+  /*
+    Track the distance to the pickup while this screen is open.
+
+    watchPosition rather than a polled getCurrentPosition: the driver is moving
+    toward the pickup, and the button needs to unlock as soon as they are in
+    range rather than up to one poll interval later. distanceFilter keeps it to
+    roughly one update per 10 m of movement instead of a fix per second.
+  */
+  useEffect(() => {
+    if (!arrivalRadiusEnabled || arrivalRadiusMeters <= 0) return
+    if (!pickupPoint?.lat || !pickupPoint?.lng) return
+
+    const pickupLat = parseFloat(pickupPoint.lat)
+    const pickupLng = parseFloat(pickupPoint.lng)
+    if (Number.isNaN(pickupLat) || Number.isNaN(pickupLng)) return
+
+    const watchId = Geolocation.watchPosition(
+      position => {
+        setDistanceToPickup(
+          distanceInMeters(
+            position.coords.latitude,
+            position.coords.longitude,
+            pickupLat,
+            pickupLng,
+          ),
+        )
+      },
+      () => {
+        // No fix available. Leave the distance unknown, which disables the
+        // gate and lets the server rule — better than blocking a driver who
+        // is standing at the pickup with poor GPS.
+        setDistanceToPickup(null)
+      },
+      { enableHighAccuracy: true, distanceFilter: 10, interval: 5000 },
+    )
+
+    return () => Geolocation.clearWatch(watchId)
+  }, [arrivalRadiusEnabled, arrivalRadiusMeters, pickupPoint?.lat, pickupPoint?.lng])
 
   useEffect(() => {
     const ride_start = 'after'
@@ -382,11 +457,30 @@ export function AcceptFare() {
                 />
                 <View style={{ marginBottom: windowHeight(2) }}>
                   <Button
-                    title={translateData.arrived}
-                    backgroundColor={appColors.primary}
-                    color={appColors.white}
+                    // Out of range, show how much closer they need to get —
+                    // a greyed button with no explanation reads as broken.
+                    title={
+                      withinArrivalRadius
+                        ? translateData.arrived
+                        : `${translateData.arrived} (${Math.round(
+                          distanceToPickup as number,
+                        )}m away)`
+                    }
+                    backgroundColor={
+                      withinArrivalRadius
+                        ? appColors.primary
+                        : isDark
+                          ? appColors.darkThemeSub
+                          : appColors.lightGray
+                    }
+                    color={
+                      withinArrivalRadius
+                        ? appColors.white
+                        : appColors.iconColor
+                    }
                     onPress={gotoPickup}
                     loading={arrivedLoading}
+                    disabled={!withinArrivalRadius}
                   />
                 </View>
                 {taxidoSettingData?.cabbooking_values?.ads?.native_enable == 1 && (

@@ -14,7 +14,8 @@ export function Button({
   margin,
   loading,
   activeOpacity,
-  textDecorationLine
+  textDecorationLine,
+  disabled
 }: CustomButtonProps) {
   return (
     <View style={{ marginHorizontal: margin !== undefined ? margin : 15 }}>
@@ -27,7 +28,7 @@ export function Button({
           { borderWidth },
         ]}
         onPress={onPress}
-        disabled={loading}
+        disabled={loading || disabled}
       >
         {loading ? (
           <ActivityIndicator size="large" color={appColors.white} />

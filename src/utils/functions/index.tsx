@@ -29,6 +29,29 @@ export const apiformatDates = (dateString: string) => {
   }
 }
 
+// Great-circle distance between two points, in METRES.
+//
+// Mirrors the haversine the server uses for the arrival-radius check, so the
+// app's "you are N m away" agrees with the server's accept/refuse decision
+// rather than drifting from it.
+export const distanceInMeters = (
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number,
+) => {
+  const toRad = (value: number) => (value * Math.PI) / 180
+  const R = 6371e3
+  const phi1 = toRad(lat1)
+  const phi2 = toRad(lat2)
+  const deltaPhi = toRad(lat2 - lat1)
+  const deltaLambda = toRad(lng2 - lng1)
+  const a =
+    Math.sin(deltaPhi / 2) ** 2 +
+    Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
 // Calendar date in the device's own timezone, as YYYY-MM-DD.
 //
 // Deliberately not toISOString().split('T')[0] — that converts to UTC first, so
