@@ -2,13 +2,12 @@ import { ZONE_UPDATE, RENTAL_ZONE, Current_Zone, DRIVERS_STATUS } from '../types
 import { ZoneUpdatePayload } from '../../interface/zoneInterface'
 import { zoneService } from '../../services/index'
 import { createAsyncThunk } from '@reduxjs/toolkit'
+import { settleResponse } from '../settleResponse'
 
 export const driverZone = createAsyncThunk(
   ZONE_UPDATE,
-  async (data: ZoneUpdatePayload) => {
-    const response = await zoneService.zone(data);
-    return response?.data;
-  },
+  async (data: ZoneUpdatePayload, { rejectWithValue }) =>
+    settleResponse(await zoneService.zone(data), rejectWithValue),
 );
 
 
@@ -28,11 +27,13 @@ export const currentZone = createAsyncThunk(
   },
 );
 
+// Online/offline toggle. All three call sites already await .unwrap() inside a
+// try/catch that reverts the local state and warns the driver — but the thunk
+// never rejected, so a server-side refusal read as success and left the driver
+// showing "online" while the server had them offline.
 export const driversStatus = createAsyncThunk(
   DRIVERS_STATUS,
-  async (data: ZoneUpdatePayload) => {
-    const response = await zoneService.driversStatus(data);
-    return response?.data;
-  },
+  async (data: ZoneUpdatePayload, { rejectWithValue }) =>
+    settleResponse(await zoneService.driversStatus(data), rejectWithValue),
 );
 

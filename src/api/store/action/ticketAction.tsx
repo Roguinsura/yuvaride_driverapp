@@ -8,6 +8,7 @@ import {
 import { ticketService } from '../../services/index'
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { TicketInterface } from '../../interface/ticketInterface'
+import { settleResponse } from '../settleResponse'
 
 export const departmentDataGet = createAsyncThunk(DEPARTMENT, async () => {
   const response = await ticketService.departmentDataGet()
@@ -34,8 +35,6 @@ export const messageDataGet = createAsyncThunk(
 
 export const addTicket = createAsyncThunk(
   TICKET_POST,
-  async (data: TicketInterface) => {
-    const response = await ticketService.addTicket(data)
-    return response?.data
-  },
+  async (data: TicketInterface, { rejectWithValue }) =>
+    settleResponse(await ticketService.addTicket(data), rejectWithValue),
 )

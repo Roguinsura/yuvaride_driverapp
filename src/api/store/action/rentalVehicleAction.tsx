@@ -8,13 +8,15 @@ import {
 import { RentalInterface } from '../../interface/rentalVehicleInterface'
 import { rentalvehicleService } from '../../services/index'
 import { createAsyncThunk } from '@reduxjs/toolkit'
+import { settleResponse } from '../settleResponse'
 
 export const rentalVehicleAdd = createAsyncThunk(
   RENTAL_VEHICLE,
-  async (data: RentalInterface) => {
-    const response = await rentalvehicleService.rentalVehicleAdd(data)
-    return response?.data
-  },
+  async (data: RentalInterface, { rejectWithValue }) =>
+    settleResponse(
+      await rentalvehicleService.rentalVehicleAdd(data),
+      rejectWithValue,
+    ),
 )
 
 export const rentalVehicleData = createAsyncThunk(
@@ -35,18 +37,22 @@ export const rentalVehicleDetail = createAsyncThunk(
 
 export const rentalVehicleUpdate = createAsyncThunk(
   RENTAL_VEHICLE_UPDATE,
-  async ({ rentalVehicleId, status }: { rentalVehicleId: number, status: number }) => {
-    const response = await rentalvehicleService.rentalVehicleUpdate(rentalVehicleId, status)
-    return response?.data
-  },
+  async (
+    { rentalVehicleId, status }: { rentalVehicleId: number; status: number },
+    { rejectWithValue },
+  ) =>
+    settleResponse(
+      await rentalvehicleService.rentalVehicleUpdate(rentalVehicleId, status),
+      rejectWithValue,
+    ),
 )
 
-export const deleteRentalVehicle = createAsyncThunk(DELETE_RENTAL_VEHICLE, async (id) => {
-  const response = await rentalvehicleService.deleteRentalVehicle(id)
-  if (response.status == 200) {
-    return response?.data
-  } else {
-    return 'Error'
-  }
-})
+export const deleteRentalVehicle = createAsyncThunk(
+  DELETE_RENTAL_VEHICLE,
+  async (id: any, { rejectWithValue }) =>
+    settleResponse(
+      await rentalvehicleService.deleteRentalVehicle(id),
+      rejectWithValue,
+    ),
+)
 

@@ -257,6 +257,11 @@ export function Ride() {
       .catch(err => {
         console.error('[Ride] Error placing bid:', err)
         setbidloading(false)
+        notificationHelper(
+          '',
+          err?.message || translateData.somethingWentWrong,
+          'error',
+        )
       })
   }
 

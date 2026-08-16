@@ -359,6 +359,13 @@ export function OtpRide() {
       })
       .catch(error => {
         setVerifyLoader(false)
+        // A rejected start-ride used to arrive as a resolved response and get
+        // reported by the branch above; now it lands here, so it has to speak.
+        notificationHelper(
+          '',
+          error?.message || translateData.somethingWentWrong,
+          'error',
+        )
       })
   }
 
@@ -369,21 +376,37 @@ export function OtpRide() {
     cancelReasonRef.current?.snapToIndex(1)
   }
 
-  const cancelRide = (item: any) => {
+  const cancelRide = async (item: any) => {
     setCancelLoaders(true)
-    dispatch(
-      rideDataPut({
-        status: 'cancelled',
-        cancellation_reason: item?.title,
-        ride_id: ride_Id,
-      }),
-    ).then(async (res: any) => {
+    try {
+      // The status fields belong under `data` — rideDataPut destructures
+      // { data, ride_id }, so passing them flat sent an undefined request body
+      // and the cancellation never reached the server.
+      await dispatch(
+        rideDataPut({
+          data: {
+            status: 'cancelled',
+            cancellation_reason: item?.title,
+          },
+          ride_id: ride_Id,
+        }),
+      ).unwrap()
+
       navigation.navigate('TabNav')
+    } catch (error: any) {
+      // Stay on the ride rather than navigating away from one that is still
+      // active on the server.
+      notificationHelper(
+        '',
+        error?.message || translateData.somethingWentWrong,
+        'error',
+      )
+    } finally {
+      // These previously also ran synchronously outside the promise, so the
+      // loading state cleared before the request had finished.
       setCancelloader(false)
       setCancelLoaders(false)
-    })
-    setCancelloader(false)
-    setCancelLoaders(false)
+    }
   }
 
   return (

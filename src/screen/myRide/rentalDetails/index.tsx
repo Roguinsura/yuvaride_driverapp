@@ -74,6 +74,14 @@ export function RentalDetails({ route }: any) {
           goBack()
         }
       })
+      .catch((error: any) => {
+        // Stay on the screen; going back would imply the ride had started.
+        notificationHelper(
+          '',
+          error?.message || translateData.somethingWentWrong,
+          'error',
+        )
+      })
   }
 
   const endTime = ride?.end_time
@@ -104,6 +112,13 @@ export function RentalDetails({ route }: any) {
       .then((res: any) => {
         notificationHelper('', translateData.rideAccepted, 'success')
         goBack()
+      })
+      .catch((error: any) => {
+        notificationHelper(
+          '',
+          error?.message || translateData.somethingWentWrong,
+          'error',
+        )
       })
   }
 

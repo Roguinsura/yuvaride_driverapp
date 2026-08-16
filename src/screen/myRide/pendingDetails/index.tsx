@@ -98,6 +98,14 @@ export function PendingDetails() {
         }
         setOtpModalVisible(false)
       })
+      .catch((error: any) => {
+        setOtpModalVisible(false)
+        notificationHelper(
+          '',
+          error?.message || translateData.somethingWentWrong,
+          'error',
+        )
+      })
   }
 
   const gotoPickup = () => {
@@ -206,8 +214,19 @@ export function PendingDetails() {
 
     dispatch(allpayment(payload))
       .unwrap()
-      .then(async (res: any) => { })
-    setIsConfirming(true)
+      .then(() => {
+        // Only flip to the confirmed state once the server has accepted the
+        // payment; this used to run unconditionally, so a rejected call still
+        // showed the driver a confirmed cash collection.
+        setIsConfirming(true)
+      })
+      .catch((error: any) => {
+        notificationHelper(
+          '',
+          error?.message || translateData.somethingWentWrong,
+          'error',
+        )
+      })
   }
 
   const handleConfirm = () => {

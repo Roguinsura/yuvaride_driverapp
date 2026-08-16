@@ -80,6 +80,13 @@ export function PaymentSelect() {
           notificationHelper('', res.message, 'error')
         }
       })
+      .catch((error: any) => {
+        notificationHelper(
+          '',
+          error?.message || translateData.somethingWentWrong,
+          'error',
+        )
+      })
   }
 
   const filteredPaymentMethods = paymentMethodData.filter(

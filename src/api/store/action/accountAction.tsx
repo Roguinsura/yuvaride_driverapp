@@ -14,6 +14,7 @@ import {
 import { accountServices } from '../../services/index'
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { BankDetailsinterface, UpdateProfileInterface, updateVehicleInterface } from '../../interface/accountInterface'
+import { settleResponse } from '../settleResponse'
 
 
 export const selfDriverData = createAsyncThunk(SELF_DRIVER, async () => {
@@ -26,59 +27,49 @@ export const selfFleetData = createAsyncThunk(SELF_FLEET, async () => {
   return response?.data
 })
 
-export const updateProfile = createAsyncThunk(UPDATEPROFILE, async (data: any) => {
-  const response = await accountServices.updateProfile(data.data)
-  if (response.status == 200) {
-    data.dispatch(selfDriverData())
-    return response?.data
-  } else {
-    return 'Error'
-  }
-})
+export const updateProfile = createAsyncThunk(
+  UPDATEPROFILE,
+  async (data: any, { rejectWithValue }) => {
+    const response = await accountServices.updateProfile(data.data)
 
-export const deleteProfile = createAsyncThunk(DELETE_ACCOUNT, async () => {
-  const response = await accountServices.deleteProfile()
-  if (response.status == 200) {
-    return response?.data
-  } else {
-    return 'Error'
-  }
-})
+    if (!response || response.status >= 400) {
+      return settleResponse(response, rejectWithValue)
+    }
+
+    // Refresh the cached driver record only once the update actually landed.
+    data.dispatch(selfDriverData())
+    return response.data
+  },
+)
+
+export const deleteProfile = createAsyncThunk(
+  DELETE_ACCOUNT,
+  async (_, { rejectWithValue }) =>
+    settleResponse(await accountServices.deleteProfile(), rejectWithValue),
+)
 
 export const updateBankDetails = createAsyncThunk(
   USER_BANKDETAILS,
-  async (data: BankDetailsinterface) => {
-    const response = await accountServices.updateBankDetails(data)
-    if (response.status == 200) {
-      return response?.data
-    } else {
-      return response.data
-    }
-  },
+  async (data: BankDetailsinterface, { rejectWithValue }) =>
+    settleResponse(
+      await accountServices.updateBankDetails(data),
+      rejectWithValue,
+    ),
 )
 
 export const updateDocument = createAsyncThunk(
   UPDATE_DOCUMENT,
-  async (data: BankDetailsinterface) => {
-    const response = await accountServices.updateDocument(data)
-    if (response.status == 200) {
-      return response?.data
-    } else {
-      return response.data
-    }
-  },
+  async (data: BankDetailsinterface, { rejectWithValue }) =>
+    settleResponse(await accountServices.updateDocument(data), rejectWithValue),
 )
 
 export const updateVehicle = createAsyncThunk(
   UPDATE_VEHICLE,
-  async (data: updateVehicleInterface) => {
-    const response = await accountServices.updateVehicleRegis(data)
-    if (response.status == 200) {
-      return response?.data
-    } else {
-      return response.data
-    }
-  },
+  async (data: updateVehicleInterface, { rejectWithValue }) =>
+    settleResponse(
+      await accountServices.updateVehicleRegis(data),
+      rejectWithValue,
+    ),
 )
 
 export const countryData = createAsyncThunk(COUNTRY, async () => {

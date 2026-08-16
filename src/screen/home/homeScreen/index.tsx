@@ -1109,7 +1109,15 @@ export function Home() {
       .then(async () => {
         Linking.openURL(`tel:${details?.phone}`)
       })
-      .catch(err => {})
+      .catch(err => {
+        // The alert did not reach the server. Say so rather than leaving the
+        // driver staring at a button that appeared to do nothing.
+        notificationHelper(
+          '',
+          err?.message || translateData.somethingWentWrong,
+          'error',
+        )
+      })
       .finally(() => {
         setLoadingId(null)
       })

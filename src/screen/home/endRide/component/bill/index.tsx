@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { PaymentRideInterface } from '../../../../../api/interface/walletInterface'
 import { allpayment } from '../../../../../api/store/action'
 import { useAppNavigation } from '../../../../../utils/navigation'
+import { notificationHelper } from '../../../../../commonComponents'
 import { AppDispatch } from '../../../../../api/store'
 
 export function Bill({ pressRefresh, rideData }: any) {
@@ -26,6 +27,15 @@ export function Bill({ pressRefresh, rideData }: any) {
       .unwrap()
       .then(async (res: any) => {
         navigation.navigate('TabNav')
+      })
+      .catch((error: any) => {
+        // Stay on the bill so the driver can retry. Navigating away here would
+        // imply the cash was recorded when the server may have rejected it.
+        notificationHelper(
+          '',
+          error?.message || translateData.somethingWentWrong,
+          'error',
+        )
       })
   }
 

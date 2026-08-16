@@ -126,7 +126,14 @@ export const UpcomingRide = forwardRef(function UpcomingRide(
         }
       })
       .catch(err => {
-        console.log('error', err)
+        // A rejected accept now lands here rather than the else branch above,
+        // so this has to surface the reason — another driver taking the ride
+        // first is the common case.
+        notificationHelper(
+          '',
+          err?.message || translateData.somethingWentWrong,
+          'error',
+        )
       })
   }
 
@@ -152,7 +159,13 @@ export const UpcomingRide = forwardRef(function UpcomingRide(
           notificationHelper('', res?.message, 'error')
         }
       })
-      .catch(err => { })
+      .catch(err => {
+        notificationHelper(
+          '',
+          err?.message || translateData.somethingWentWrong,
+          'error',
+        )
+      })
   }
 
   const acceptFindDriver = (rideId: any) => {
@@ -171,7 +184,13 @@ export const UpcomingRide = forwardRef(function UpcomingRide(
           notificationHelper('', res?.message, 'error')
         }
       })
-      .catch(err => { })
+      .catch(err => {
+        notificationHelper(
+          '',
+          err?.message || translateData.somethingWentWrong,
+          'error',
+        )
+      })
   }
 
 
@@ -193,6 +212,16 @@ export const UpcomingRide = forwardRef(function UpcomingRide(
       .unwrap()
       .then(async res => {
         console.log('[UpcomingRide] Reject API response:', res);
+      })
+      .catch(err => {
+        // Put the card back if the server did not record the decline, rather
+        // than leaving it hidden locally while the request is still assigned.
+        setDeclined(false)
+        notificationHelper(
+          '',
+          err?.message || translateData.somethingWentWrong,
+          'error',
+        )
       })
   }
 

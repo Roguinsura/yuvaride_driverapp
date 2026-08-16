@@ -2,13 +2,12 @@ import { FLEET_VEHICLE, FLEET_VEHICLE_LIST, FLEET_DRIVER_LIST } from '../types/i
 import { FleetVehicleInterface } from '../../interface/fleetInterface'
 import { fleetServices } from '../../services/index'
 import { createAsyncThunk } from '@reduxjs/toolkit'
+import { settleResponse } from '../settleResponse'
 
 export const fleetVehicleAdd = createAsyncThunk(
     FLEET_VEHICLE,
-    async (data: FleetVehicleInterface) => {
-        const response = await fleetServices.fleetVehicleAdd(data)
-        return response?.data
-    },
+    async (data: FleetVehicleInterface, { rejectWithValue }) =>
+        settleResponse(await fleetServices.fleetVehicleAdd(data), rejectWithValue),
 )
 
 export const fleetVehicleList = createAsyncThunk(FLEET_VEHICLE_LIST, async () => {

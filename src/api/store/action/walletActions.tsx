@@ -21,6 +21,7 @@ import {
   WithdrawDataInterface,
   fleetWalletInterface,
 } from '../../interface/walletInterface'
+import { settleResponse } from '../settleResponse'
 
 export const walletData = createAsyncThunk(WALLET, async () => {
   const response = await walletServices.walletData()
@@ -48,42 +49,35 @@ export const withdrawRequestData = createAsyncThunk(
 
 export const purchaseData = createAsyncThunk(
   PURCHASE_PLAN,
-  async (data: PurchasePlanDataInterface) => {
-    const response = await walletServices.purchaseData(data)
-    return response?.data
-  },
+  async (data: PurchasePlanDataInterface, { rejectWithValue }) =>
+    settleResponse(await walletServices.purchaseData(data), rejectWithValue),
 )
 
 export const paymentVerify = createAsyncThunk(
   VERIFY_PAYMENT,
-  async (data: PaymentVerifyInterface) => {
-    const response = await walletServices.paymentVerify(data)
-    return response?.data
-  },
+  async (data: PaymentVerifyInterface, { rejectWithValue }) =>
+    settleResponse(await walletServices.paymentVerify(data), rejectWithValue),
 )
 
 export const withdrawData = createAsyncThunk(
   WITHDRAW_PAYMENT,
-  async (data: WithdrawDataInterface) => {
-    const response = await walletServices.withdrawData(data)
-    return response?.data
-  },
+  async (data: WithdrawDataInterface, { rejectWithValue }) =>
+    settleResponse(await walletServices.withdrawData(data), rejectWithValue),
 )
 
 export const walletTopUpData = createAsyncThunk(
   WALLET_TOPUP,
-  async (data: WalletTopUpDatainterface) => {
-    const response = await walletServices.walletTopUpData(data)
-    return response?.data
-  },
+  async (data: WalletTopUpDatainterface, { rejectWithValue }) =>
+    settleResponse(await walletServices.walletTopUpData(data), rejectWithValue),
 )
 
 export const allpayment = createAsyncThunk(
   PAYMENT_AMOUNT,
-  async (data: PaymentRideInterface) => {
-    const response = await walletServices.allpayment(data)
-    return response?.data
-  },
+  // Rejects on failure. Collecting cash is the one action the driver cannot
+  // undo from the app, so a failed call must not read as success at the call
+  // site — the server may have recorded nothing.
+  async (data: PaymentRideInterface, { rejectWithValue }) =>
+    settleResponse(await walletServices.allpayment(data), rejectWithValue),
 )
 
 
@@ -105,8 +99,6 @@ export const fleetWithdrawRequestData = createAsyncThunk(
 
 export const fleetWithdrawData = createAsyncThunk(
   FLEET_WITHDRAW_PAYMENT,
-  async (data: WithdrawDataInterface) => {
-    const response = await walletServices.fleetWithdrawData(data)
-    return response?.data
-  },
+  async (data: WithdrawDataInterface, { rejectWithValue }) =>
+    settleResponse(await walletServices.fleetWithdrawData(data), rejectWithValue),
 )

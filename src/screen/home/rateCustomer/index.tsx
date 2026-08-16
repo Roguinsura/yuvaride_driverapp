@@ -4,7 +4,7 @@ import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/botto
 import appColors from '../../../theme/appColors'
 import Icons from '../../../utils/icons/icons'
 import styles from './styles'
-import { Button } from '../../../commonComponents'
+import { Button, notificationHelper } from '../../../commonComponents'
 import { useTheme } from '@react-navigation/native'
 import { useValues } from '../../../utils/context'
 import { userReview } from '../../../api/store/action'
@@ -59,6 +59,14 @@ export function RateCustomer({ bottomSheetRef }: any) {
       .unwrap()
       .then((res: any) => {
         bottomSheetRef.current?.close();
+      })
+      .catch((error: any) => {
+        // Keep the sheet open so the rating isn't lost on a failed submit.
+        notificationHelper(
+          '',
+          error?.message || translateData.somethingWentWrong,
+          'error',
+        )
       })
   }
 
