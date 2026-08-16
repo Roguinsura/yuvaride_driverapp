@@ -4,6 +4,7 @@ import styles from './styles';
 import { useTheme } from '@react-navigation/native';
 import appColors from '../../../../../theme/appColors';
 import { fontSizes, windowHeight, windowWidth } from '../../../../../theme/appConstant';
+import appTypography from '../../../../../theme/appTypography'
 import appFonts from '../../../../../theme/appFonts';
 import { useValues } from '../../../../../utils/context';
 import Icons from '../../../../../utils/icons/icons';
@@ -57,9 +58,8 @@ const RenderUpload: React.FC<Props> = ({
         <View style={{ flexDirection: rtl ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Text
             style={{
+              ...appTypography.title,
               color: isDark ? appColors.white : appColors.black,
-              fontSize: fontSizes.FONT3HALF,
-              fontFamily: appFonts.medium,
               writingDirection: textRtlStyle,
             }}
           >
@@ -73,10 +73,9 @@ const RenderUpload: React.FC<Props> = ({
         {!expanded && uploadedDocuments[documentType]?.uri && expiryDate && (
           <Text
             style={{
+              ...appTypography.captionMedium,
               marginTop: windowHeight(0.5),
               color: appColors.price,
-              fontSize: fontSizes.FONT3,
-              fontFamily: appFonts.medium,
               writingDirection: textRtlStyle,
             }}
           >
@@ -131,11 +130,10 @@ const RenderUpload: React.FC<Props> = ({
               <>
                 <Text
                   style={{
+                    ...appTypography.inputLabel,
                     marginTop: windowHeight(2),
                     marginBottom: windowHeight(0.8),
                     color: colors.text,
-                    fontSize: fontSizes.FONT3HALF,
-                    fontFamily: appFonts.medium,
                     textAlign: rtl ? 'right' : 'left'
 
                   }}
@@ -155,9 +153,8 @@ const RenderUpload: React.FC<Props> = ({
                 >
                   <Text
                     style={{
+                      ...appTypography.inputText,
                       color: colors.text,
-                      fontSize: fontSizes.FONT3HALF,
-                      fontFamily: appFonts.regular,
                       textAlign: rtl ? 'right' : 'left'
                     }}
                   >
@@ -197,7 +194,7 @@ const RenderUpload: React.FC<Props> = ({
             >
               <Icons.Close />
             </TouchableOpacity>
-            <Text style={{ alignSelf: 'center', color: appColors.black, fontFamily: appFonts.medium, fontSize: fontSizes.FONT4HALF }}>{translateData.selectOne}</Text>
+            <Text style={{ ...appTypography.h3, alignSelf: 'center', color: appColors.black }}>{translateData.selectOne}</Text>
             <TouchableOpacity
               onPress={() => {
                 setShowUploadOptions(false);
@@ -209,7 +206,7 @@ const RenderUpload: React.FC<Props> = ({
                 <View style={{ backgroundColor: appColors.cardicon, height: windowHeight(5), width: windowHeight(5), borderRadius: windowHeight(3), alignSelf: 'center', justifyContent: 'center', alignItems: 'center' }}>
                   <Icons.Gallery />
                 </View>
-                <Text style={{ fontSize: fontSizes.FONT3HALF, fontFamily: appFonts.medium, marginHorizontal: windowWidth(3) }}>
+                <Text style={{ ...appTypography.bodyMedium, marginHorizontal: windowWidth(3) }}>
                   {translateData.chooseFromGallery}
                 </Text>
               </View>
@@ -227,7 +224,7 @@ const RenderUpload: React.FC<Props> = ({
                   <Icons.Camera1 />
 
                 </View>
-                <Text style={{ fontSize: fontSizes.FONT3HALF, fontFamily: appFonts.medium, marginHorizontal: windowWidth(3) }}>
+                <Text style={{ ...appTypography.bodyMedium, marginHorizontal: windowWidth(3) }}>
                   {translateData.openCamera}
                 </Text>
               </View>

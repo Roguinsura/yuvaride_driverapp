@@ -25,6 +25,7 @@ import { getValue, setValue } from '../../../../utils/localstorage'
 import { selfDriverData } from '../../../../api/store/action'
 import { categoryDataGet } from '../../../../api/store/action/categoryAction'
 import { URL } from '../../../../api/config'
+import appTypography from '../../../../theme/appTypography'
 import appFonts from '../../../../theme/appFonts'
 import { AppDispatch } from '../../../../api/store'
 import DropDownPicker from 'react-native-dropdown-picker'
@@ -591,9 +592,9 @@ export function VehicleRegistration() {
             {showServiceError && (
               <Text
                 style={{
+                  ...appTypography.inputError,
                   color: appColors.red,
                   marginBottom: windowHeight(0.5),
-                  fontSize: fontSizes.FONT3,
                 }}
               >
                 {translateData.plpleaseSelectaServiceErrorrr}
@@ -621,8 +622,8 @@ export function VehicleRegistration() {
                 {showCategoryError && (
                   <Text
                     style={{
+                      ...appTypography.inputError,
                       color: appColors.red,
-                      fontSize: fontSizes.FONT3,
                       bottom: windowHeight(1.5),
                     }}
                   >
@@ -809,10 +810,10 @@ export function VehicleRegistration() {
                       <View style={styles.vehicleColor}>
                         <Text
                           style={{
+                            ...appTypography.inputLabel,
                             marginBottom: windowHeight(1),
                             marginTop: windowHeight(2),
                             color: appColors.black,
-                            fontFamily: appFonts.medium,
                             textAlign: textRtlStyle,
                           }}
                         >
@@ -954,12 +955,12 @@ export function VehicleRegistration() {
                       <View style={styles.vehicleColor}>
                         <Text
                           style={{
+                            ...appTypography.inputLabel,
                             marginBottom: windowHeight(1),
                             marginTop: windowHeight(2),
                             color: isDark
                               ? appColors.white
                               : appColors.primaryFont,
-                            fontFamily: appFonts.medium,
                             textAlign: textRtlStyle,
                           }}
                         >

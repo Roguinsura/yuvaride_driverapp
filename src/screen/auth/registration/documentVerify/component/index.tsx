@@ -6,6 +6,7 @@ import { DocumentPickerResponse } from '@react-native-documents/picker'
 import { useTheme } from '@react-navigation/native'
 import appColors from '../../../../../theme/appColors'
 import { fontSizes, windowHeight, windowWidth } from '../../../../../theme/appConstant'
+import appTypography from '../../../../../theme/appTypography'
 import appFonts from '../../../../../theme/appFonts'
 import { useValues } from '../../../../../utils/context'
 import { Props } from './type'
@@ -65,10 +66,9 @@ const renderDocumentUpload = ({
               marginTop: windowHeight(2),
               marginBottom: windowHeight(0.8),
               marginHorizontal: windowHeight(1.5),
+              ...appTypography.inputLabel,
               textAlign: textRtlStyle,
               color: colors.text,
-              fontSize: fontSizes.FONT3HALF,
-              fontFamily: appFonts.medium,
             }}
           >
             {translateData?.expiryDate}
@@ -81,9 +81,8 @@ const renderDocumentUpload = ({
           >
             <Text
               style={{
+                ...appTypography.inputText,
                 color: colors.text,
-                fontSize: fontSizes.FONT3HALF,
-                fontFamily: appFonts.regular,
                 marginHorizontal: windowWidth(2)
               }}
             >
