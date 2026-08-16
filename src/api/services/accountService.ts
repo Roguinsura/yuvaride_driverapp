@@ -23,7 +23,10 @@ export const selfFleetData = async () => {
 }
 
 export const updateProfile = async data => {
-  return PUT_API(editProfile, data)
+  // Was PUT_API(editProfile, data): the signature is (body, endpoint), so the
+  // endpoint was being sent as the body and the payload used as the URL. The
+  // route is POST regardless.
+  return POST_API(data, editProfile)
     .then(res => {
       return res
     })

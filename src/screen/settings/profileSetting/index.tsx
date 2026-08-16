@@ -191,7 +191,6 @@ export function ProfileSetting() {
       updateFormData.append('email', formData.email)
       updateFormData.append('country_code', formData.countryCode)
       updateFormData.append('phone', formData.phoneNumber)
-      updateFormData.append('_method', 'PUT')
 
       if (profileImg) {
         updateFormData.append('profile_image', {
@@ -201,7 +200,15 @@ export function ProfileSetting() {
         })
       }
 
-      const response = await fetch(`${URL}/api/updateProfile`, {
+      /*
+        POST driver/updateProfile.
+
+        This pointed at /api/updateProfile, which does not exist — the routes
+        are rider/updateProfile and driver/updateProfile — so every save 404'd.
+        The `_method: PUT` override is gone with it: the route is registered as
+        POST, and spoofing PUT made Laravel look for a PUT route and miss.
+      */
+      const response = await fetch(`${URL}/api/driver/updateProfile`, {
         method: 'POST',
         body: updateFormData,
         headers: {
@@ -218,7 +225,11 @@ export function ProfileSetting() {
       }
 
       if (!response.ok) {
+        // Stop here. This used to fall through to the success toast and
+        // goBack(), so a failed save showed an error AND "updated
+        // successfully", then navigated away as though it had worked.
         notificationHelper('', translateData.failedprofile, 'error')
+        return
       }
 
       dispatch(selfDriverData())
@@ -253,9 +264,9 @@ export function ProfileSetting() {
       updateFormData.append('country_code', formData.countryCode)
       updateFormData.append('phone', formData.phoneNumber)
       updateFormData.append('profile_image_id', '')
-      updateFormData.append('_method', 'PUT')
 
-      const response = await fetch(`${URL}/api/updateProfile`, {
+      // Same correction as update(): real route, POST, no method spoofing.
+      const response = await fetch(`${URL}/api/driver/updateProfile`, {
         method: 'POST',
         body: updateFormData,
         headers: {
@@ -272,7 +283,11 @@ export function ProfileSetting() {
       }
 
       if (!response.ok) {
+        // Stop here. This used to fall through to the success toast and
+        // goBack(), so a failed save showed an error AND "updated
+        // successfully", then navigated away as though it had worked.
         notificationHelper('', translateData.failedprofile, 'error')
+        return
       }
 
       dispatch(selfDriverData())

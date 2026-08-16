@@ -1,4 +1,6 @@
-export const editProfile = 'updateProfile'
+// POST, not PUT — and namespaced under driver/. A bare `updateProfile` route
+// does not exist; the API registers rider/updateProfile and driver/updateProfile.
+export const editProfile = 'driver/updateProfile'
 export const changePassword = 'updatePassword'
 export const deleteAccount = 'driver/deleteAccount'
 export const driverSelf = 'driver/self'
