@@ -309,8 +309,8 @@ export function Ride() {
   const pickup =
     ride?.location_coordinates?.length > 0
       ? {
-        latitude: parseFloat(ride?.location_coordinates[0].lat),
-        longitude: parseFloat(ride?.location_coordinates[0].lng),
+        latitude: parseFloat(ride?.location_coordinates?.[0].lat),
+        longitude: parseFloat(ride?.location_coordinates?.[0].lng),
       }
       : defaultLocation
 

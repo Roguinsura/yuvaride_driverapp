@@ -226,7 +226,7 @@ export const UpcomingRide = forwardRef(function UpcomingRide(
   }
 
   const calculateDrivingDistance = () => {
-    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${currentLatitude},${currentLongitude}&destinations=${ride?.location_coordinates[0]?.lat},${ride?.location_coordinates[0]?.lng}&mode=driving&units=metric&key=${Google_Map_Key}`
+    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${currentLatitude},${currentLongitude}&destinations=${ride?.location_coordinates?.[0]?.lat},${ride?.location_coordinates?.[0]?.lng}&mode=driving&units=metric&key=${Google_Map_Key}`
     fetch(url)
       .then(response => response.json())
       .then(data => {
@@ -246,16 +246,16 @@ export const UpcomingRide = forwardRef(function UpcomingRide(
     if (
       currentLatitude &&
       currentLongitude &&
-      ride?.location_coordinates[0]?.lat &&
-      ride?.location_coordinates[0]?.lng
+      ride?.location_coordinates?.[0]?.lat &&
+      ride?.location_coordinates?.[0]?.lng
     ) {
       calculateDrivingDistance()
     }
   }, [
     currentLatitude,
     currentLongitude,
-    ride?.location_coordinates[0]?.lat,
-    ride?.location_coordinates[0]?.lng,
+    ride?.location_coordinates?.[0]?.lat,
+    ride?.location_coordinates?.[0]?.lng,
   ])
 
   const endTime = ride?.end_time

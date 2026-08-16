@@ -252,7 +252,7 @@ export function Details({ rideDetails }: any) {
               />
             </View>
             <Text style={{ fontFamily: appFonts.medium, color: isDark ? appColors.secondaryFont : appColors.primaryFont, width: "97%" }}>
-              {rideDetails?.locations[0] || '--'}
+              {rideDetails?.locations?.[0] || '--'}
             </Text>
           </View>
         )}

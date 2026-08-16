@@ -417,7 +417,7 @@ export function OtpRide() {
       />
       <View style={styles.mapSection}>
         <ArrivedMap
-          Pickuplocation={rideData?.location_coordinates[0]}
+          Pickuplocation={rideData?.location_coordinates?.[0]}
           driverId={Driver_Id}
         />
       </View>

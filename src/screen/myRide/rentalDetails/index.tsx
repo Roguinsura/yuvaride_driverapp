@@ -87,21 +87,39 @@ export function RentalDetails({ route }: any) {
   const endTime = ride?.end_time
   const startTIme = ride?.start_time
 
-  const dateObj = new Date(endTime.replace(' ', 'T'))
-  const options = { day: 'numeric', month: 'long' }
-  const formattedDate = dateObj.toLocaleDateString('en-GB', options) // "23 July"
-  let hours = dateObj.getHours()
-  const ampm = hours >= 12 ? 'PM' : 'AM'
-  hours = hours % 12 || 12 // Convert 0 to 12
-  const formattedTime = `${hours} ${ampm}`
+  /*
+    Guarded because this runs during render: end_time and start_time are null
+    on a rental that has not finished (or not started), and calling .replace on
+    null threw a TypeError that took the whole screen down.
 
-  const dateObj1 = new Date(startTIme.replace(' ', 'T'))
-  const optionsdate = { day: 'numeric', month: 'long' }
-  const formattedDate1 = dateObj1.toLocaleDateString('en-GB', optionsdate) // "23 July"
-  let hours1 = dateObj1.getHours()
-  const ampm1 = hours >= 12 ? 'PM' : 'AM'
-  hours = hours % 12 || 12 // Convert 0 to 12
-  const formattedTime1 = `${hours} ${ampm}`
+    The start-time values were also being built from the END date's `hours` and
+    `ampm` — hours1/ampm1 were computed and then never used — so the "start"
+    time shown was actually the end time.
+  */
+  const formatDatePart = (value?: string | null) => {
+    if (!value) return { date: '--', time: '--' }
+
+    const parsed = new Date(String(value).replace(' ', 'T'))
+    if (Number.isNaN(parsed.getTime())) return { date: '--', time: '--' }
+
+    const options: any = { day: 'numeric', month: 'long' }
+    const rawHours = parsed.getHours()
+    const ampm = rawHours >= 12 ? 'PM' : 'AM'
+    const hours12 = rawHours % 12 || 12
+
+    return {
+      date: parsed.toLocaleDateString('en-GB', options),
+      time: `${hours12} ${ampm}`,
+    }
+  }
+
+  const endParts = formatDatePart(endTime)
+  const startParts = formatDatePart(startTIme)
+
+  const formattedDate = endParts.date
+  const formattedTime = endParts.time
+  const formattedDate1 = startParts.date
+  const formattedTime1 = startParts.time
 
   const acceptRequest = () => {
     let payload: any = {
@@ -233,7 +251,7 @@ export function RentalDetails({ route }: any) {
               ]}
             >
               {translateData.pickUp}{' '}
-              <Text style={styles.locationName}>{ride?.locations[0]}</Text>
+              <Text style={styles.locationName}>{ride?.locations?.[0]}</Text>
             </Text>
             <View
               style={[
@@ -250,7 +268,7 @@ export function RentalDetails({ route }: any) {
               ]}
             >
               {translateData.dropOff}{' '}
-              <Text style={styles.locationName}>{ride?.locations[1]}</Text>
+              <Text style={styles.locationName}>{ride?.locations?.[1]}</Text>
             </Text>
           </View>
         </View>
