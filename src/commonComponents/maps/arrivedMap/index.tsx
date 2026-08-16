@@ -1,5 +1,11 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react'
-import { View, Platform, PermissionsAndroid } from 'react-native'
+import {
+  View,
+  Platform,
+  PermissionsAndroid,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native'
 import Geolocation from '@react-native-community/geolocation'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import getEchoInstance from '../../../utils/echo'
@@ -182,7 +188,13 @@ export function ArrivedMap({ Pickuplocation, driverId }: any) {
 
 
 
-  const html = `
+  /*
+    Memoised deliberately. This template is ~300 lines and was rebuilt on every
+    render — including every driver-location update — and `source={{ html }}`
+    handed the WebView a freshly allocated object each time. Now it is rebuilt
+    only when something that actually appears in the markup changes.
+  */
+  const html = useMemo(() => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -332,7 +344,11 @@ export function ArrivedMap({ Pickuplocation, driverId }: any) {
         setTimeout(() => window.updateDriverLocation(lat, lng), 0);
       }
 
-      setTimeout(() => window.ReactNativeWebView?.postMessage("WebViewReady"), 500);
+      // Posted as soon as the map object exists. This was wrapped in a 500ms
+      // timer, which delayed the driver marker and route by half a second on
+      // every single open for no reason — the handlers it gates are already
+      // defined by this point.
+      window.ReactNativeWebView?.postMessage("WebViewReady");
     }
 
     function drawRoute(driverPos, pickupPos) {
@@ -390,9 +406,12 @@ export function ArrivedMap({ Pickuplocation, driverId }: any) {
   `
       : `
   <!--  LEAFLET (OpenStreetMap) VERSION -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+  <!-- Versions pinned: an unversioned unpkg URL 302s to the current release on
+       every cold load, costing an extra round trip per asset and making the
+       response far less cacheable. -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
   <script>
     let map, driverMarker, pickupMarker, routeControl;
     let pendingDriverPos = null;
@@ -422,7 +441,11 @@ export function ArrivedMap({ Pickuplocation, driverId }: any) {
         setTimeout(() => window.updateDriverLocation(lat, lng), 0);
       }
 
-      setTimeout(() => window.ReactNativeWebView?.postMessage("WebViewReady"), 500);
+      // Posted as soon as the map object exists. This was wrapped in a 500ms
+      // timer, which delayed the driver marker and route by half a second on
+      // every single open for no reason — the handlers it gates are already
+      // defined by this point.
+      window.ReactNativeWebView?.postMessage("WebViewReady");
     }
 
     function drawRoute(driverPos, pickupPos) {
@@ -482,7 +505,7 @@ export function ArrivedMap({ Pickuplocation, driverId }: any) {
     }
 </body>
 </html>
-`;
+`, [mapType, isDark, Google_Map_Key, vehicleIcon, pickupLocation]);
 
 
 
@@ -497,6 +520,26 @@ export function ArrivedMap({ Pickuplocation, driverId }: any) {
         domStorageEnabled
         scrollEnabled={false}
         style={{ flex: 1 }}
+        // Keep the map's own assets across opens instead of refetching Leaflet
+        // and the tiles every time the screen mounts.
+        cacheEnabled
+        // GPU-composited, which stops the map stuttering while it draws.
+        androidLayerType="hardware"
+        // Something on screen immediately rather than a white rectangle while
+        // the WebView boots — most of the "slow" feeling is the blank gap.
+        startInLoadingState
+        renderLoading={() => (
+          <View
+            style={{
+              ...StyleSheet.absoluteFillObject,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: isDark ? appColors.darkThemeSub : appColors.white,
+            }}
+          >
+            <ActivityIndicator size="large" color={appColors.primary} />
+          </View>
+        )}
         onMessage={event => {
           const msg = event.nativeEvent.data
           if (msg === 'WebViewReady') {
