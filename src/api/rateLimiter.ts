@@ -1,9 +1,14 @@
 /**
- * globalRateLimiter - Prevents the app from sending too many requests 
+ * globalRateLimiter - Prevents the app from sending too many requests
  * across the whole application in a short burst.
- * 
- * Limit: 20 requests per 10 seconds.
- * Cooldown: Once the burst limit is hit, the app is locked for 5 seconds to allow the server to breathe.
+ *
+ * Limit: 35 requests per 10 seconds.
+ * Cooldown: once the burst limit is hit, every request is blocked for 7s.
+ *
+ * A block here is raised as a synthetic 429 by the request interceptor, tagged
+ * `isLocalRateLimit` so the response interceptor does not report it as coming
+ * from the server. It means "the app throttled itself", not "the server
+ * refused" — the request never left the device.
  */
 
 let requestTimestamps: number[] = [];
@@ -28,7 +33,9 @@ export const isGlobalRateLimited = (): boolean => {
 
   // 3. If we just hit the 20-request burst limit
   if (requestTimestamps.length >= LIMIT) {
-    console.warn(`[RateLimit] CRITICAL: 20-request burst limit HIT! Locking for 5s...`);
+    console.warn(
+      `[RateLimit] burst limit of ${LIMIT}/${WINDOW_MS}ms hit — blocking for ${COOLDOWN_ON_LIMIT_HIT}ms`,
+    );
     // Lock the global API for 5 seconds to stop the flood immediately
     lockUntilUnix = now + COOLDOWN_ON_LIMIT_HIT;
     return true;

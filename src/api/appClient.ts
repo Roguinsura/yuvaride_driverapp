@@ -35,7 +35,11 @@ api.interceptors.request.use(
           notificationHelper("", "Too many attempts. Please wait a minute before trying again", "error");
           lastGlobalWarningTime = now;
         }
-        const error: any = new Error(`[GlobalLimit] Overload: 20/10s`);
+        const error: any = new Error(`[GlobalLimit] burst limit reached`);
+        // Flag it: axios still runs the response interceptor for a rejection
+        // raised here, and that branch must not report a local block as a
+        // server response.
+        error.isLocalRateLimit = true;
         error.response = { status: 429, data: { message: "Too many attempts" } };
         return Promise.reject(error);
       }
@@ -43,6 +47,7 @@ api.interceptors.request.use(
       // 2. PER-ENDPOINT THROTTLER (Same URL spam: 1 per 2s)
       if (ENABLE_ENDPOINT_THROTTLE && config.url && !isWhitelisted && isThrottled(config.url)) {
         const error: any = new Error(`[Throttler] Blocked duplicate: ${config.url}`);
+        error.isLocalRateLimit = true;
         error.response = { status: 429, data: { message: "Too many requests" } };
         return Promise.reject(error);
       }
@@ -137,7 +142,12 @@ api.interceptors.response.use(
     }
 
     if (error.response?.status === 429) {
-      notificationHelper("", "Too many requests from server", "error");
+      // A local burst-limit block never reached the server and has already
+      // toasted in the request interceptor — a second, server-attributed
+      // message here would be both duplicated and untrue.
+      if (!error.isLocalRateLimit) {
+        notificationHelper("", "Too many requests from server", "error");
+      }
       return Promise.reject(error);
     }
 

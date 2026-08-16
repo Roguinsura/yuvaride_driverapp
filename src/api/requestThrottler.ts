@@ -4,7 +4,11 @@ interface RequestState {
 
 let requestHistory: Record<string, RequestState> = {};
 
-// 1 second cooldown for the EXACT same endpoint to prevent auto-clickers
+// Per-endpoint cooldown, in ms. At 0 this throttler can never fire: the guard
+// below tests `elapsed < COOLDOWN_MS`, which is never true for a non-negative
+// elapsed. Raise it (e.g. 1000) to actually suppress double-taps on the same
+// endpoint — and note ENABLE_ENDPOINT_THROTTLE in config.tsx must also be true,
+// as it currently gates this off entirely.
 const COOLDOWN_MS = 0;
 
 /**
