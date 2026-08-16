@@ -1,0 +1,37 @@
+# Normalize all text files to LF in the repository and on checkout, so line
+# endings don't depend on each contributor's core.autocrlf setting.
+* text=auto eol=lf
+
+# Windows-only scripts must keep CRLF — cmd.exe mis-parses LF-only batch files.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Shell scripts and the Gradle wrapper must stay LF or they fail to execute.
+*.sh text eol=lf
+gradlew text eol=lf
+
+# Binary files: never touch line endings, never try to diff as text.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.mp3 binary
+*.mp4 binary
+*.pdf binary
+*.zip binary
+*.jar binary
+*.aar binary
+*.apk binary
+*.aab binary
+*.keystore binary
+*.jks binary
+*.so binary
+
+# Generated lockfiles: keep them in the repo but out of diffs and reviews.
+package-lock.json -diff linguist-generated
