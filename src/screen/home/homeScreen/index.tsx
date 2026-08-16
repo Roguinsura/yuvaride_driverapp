@@ -679,7 +679,9 @@ export function Home() {
             '[SyncRide][Navigate] ✅ CASE: otp — navigating to OtpRide',
           )
           if (ride) {
-            navigate('OtpRide', { ride })
+            // OtpRide reads { rideData, ride_Id }; passing { ride } left both
+            // undefined, so resuming into this state gave a blank screen.
+            navigate('OtpRide', { rideData: ride, ride_Id: ride?.id })
           }
           break
 
@@ -690,7 +692,9 @@ export function Home() {
             '[SyncRide][Navigate] ✅ CASE: active — navigating to ActiveRide',
           )
           if (ride) {
-            navigate('ActiveRide', { ride })
+            // Same mismatch as the otp case above — ActiveRide reads
+            // { rideData, ride_Id }.
+            navigate('ActiveRide', { rideData: ride, ride_Id: ride?.id })
           }
           break
 

@@ -91,6 +91,20 @@ export function AcceptFare() {
 
   const pickupPoint = rideData?.location_coordinates?.[0]
 
+  /*
+    activation.ride_otp — whether the rider must read an OTP to the driver.
+
+    With it OFF the server starts the ride at ACCEPTANCE (RideTrait sets
+    is_otp_verified and moves the status to STARTED), so by the time the driver
+    marks Arrived the ride is already running. Sending them to the OTP screen
+    would ask for a code that nothing will ever check, on a ride that has
+    already begun.
+  */
+  const rideOtpEnabled =
+    String(
+      taxidoSettingData?.cabbooking_values?.activation?.ride_otp ?? '1',
+    ) === '1'
+
   // Only gate when the rule is on, a usable radius is configured, and we have
   // both coordinates. If any of that is missing the button stays enabled and
   // the server decides — never lock a driver out because a setting is absent.
@@ -242,7 +256,17 @@ export function AcceptFare() {
         }),
       ).unwrap()
 
-      navigation.navigate('OtpRide', { rideData: rideData, ride_Id: ride_Id })
+      if (rideOtpEnabled) {
+        navigation.navigate('OtpRide', { rideData: rideData, ride_Id: ride_Id })
+      } else {
+        // Already started server-side, so go straight to the in-ride screen —
+        // the same destination the app's own resume logic uses for a ride in
+        // the started state.
+        navigation.navigate('ActiveRide', {
+          rideData: rideData,
+          ride_Id: ride_Id,
+        })
+      }
     } catch (error: any) {
       // An API rejection carries a status; anything else came from GetLocation.
       if (error?.status) {

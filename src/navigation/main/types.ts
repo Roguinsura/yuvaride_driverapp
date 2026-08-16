@@ -131,7 +131,9 @@ export type RootStackParamList = {
   PaymentSelect: undefined
   PaymentWebView: PaymentWebView
   AcceptFare: undefined
-  ActiveRide: undefined
+  // The screen reads { rideData, ride_Id } from route.params; it was typed as
+  // taking none, so every navigation to it was either an error or untyped.
+  ActiveRide: OtpRide
   Home: undefined
   OtpRide: OtpRide
   Ride: undefined
