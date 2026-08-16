@@ -17,6 +17,7 @@ import appColors from '../../../theme/appColors'
 import { fontSizes, windowHeight, windowWidth } from '../../../theme/appConstant'
 import Icons from '../../../utils/icons/icons'
 import { useDispatch, useSelector } from 'react-redux'
+import appTypography from '../../../theme/appTypography'
 import appFonts from '../../../theme/appFonts'
 import useSmartLocation from '../../../commonComponents/helper/locationHelper'
 import { useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native'
@@ -751,9 +752,8 @@ export function FleetHome() {
                         >
                             <Text
                                 style={{
+                                    ...appTypography.h2,
                                     color: appColors.white,
-                                    fontFamily: appFonts.bold,
-                                    fontSize: fontSizes.FONT5,
                                 }}
                             >
                                 {char}
@@ -787,8 +787,7 @@ export function FleetHome() {
                         >
                             <Animated.Text
                                 style={{
-                                    fontSize: fontSizes.FONT4,
-                                    fontFamily: appFonts.medium,
+                                    ...appTypography.bodyLargeMedium,
                                     color: appColors.white,
                                     transform: [{ scale: scaleAnim }],
                                 }}
@@ -927,7 +926,7 @@ export function FleetHome() {
                             onPress={() => setSelectedVehicles([])}
                             style={{ alignSelf: 'flex-end', padding: windowHeight(1.5), paddingBottom: 0 }}
                         >
-                            <Text style={{ color: appColors.primary, fontFamily: appFonts.medium }}>{translateData.clearAll || 'Clear All'}</Text>
+                            <Text style={{ ...appTypography.buttonSecondary, color: appColors.primary }}>{translateData.clearAll || 'Clear All'}</Text>
                         </TouchableOpacity>
                         <FlatList
                             data={allVehicle}
@@ -942,14 +941,14 @@ export function FleetHome() {
 
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: windowHeight(1.8) }}>
                             <TouchableOpacity onPress={() => setModalVisible(false)}>
-                                <Text style={{ color: appColors.red, fontFamily: appFonts.medium }}>{translateData.cancelTextT}</Text>
+                                <Text style={{ ...appTypography.buttonSecondary, color: appColors.red }}>{translateData.cancelTextT}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => {
                                     setModalVisible(false);
                                 }}
                             >
-                                <Text style={{ color: appColors.primary, fontFamily: appFonts.medium }}>{translateData.apply}</Text>
+                                <Text style={{ ...appTypography.buttonSecondary, color: appColors.primary }}>{translateData.apply}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

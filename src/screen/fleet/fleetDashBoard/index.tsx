@@ -2,6 +2,7 @@ import React from 'react'
 import { Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { fontSizes, windowHeight, windowWidth } from '../../../theme/appConstant'
 import appColors from '../../../theme/appColors'
+import appTypography from '../../../theme/appTypography'
 import appFonts from '../../../theme/appFonts'
 import Images from '../../../utils/images/images'
 import Icons from '../../../utils/icons/icons'
@@ -56,18 +57,16 @@ export function FleetDashBoard() {
         <View style={{ flexDirection: 'column', flex: 1, marginHorizontal: windowWidth(2), justifyContent: 'center' }}>
           <Text
             style={{
+              ...appTypography.bodyMedium,
               color: isDark?appColors.white: appColors.black,
-              fontFamily: appFonts.medium,
-              fontSize: fontSizes.FONT3SMALL,
             }}
           >
             {name}
           </Text>
           <Text
             style={{
+              ...appTypography.caption,
               color: appColors.iconColor,
-              fontFamily: appFonts.medium,
-              fontSize: fontSizes.FONT3SMALL,
               marginTop: windowHeight(0.5),
             }}
           >
@@ -97,8 +96,7 @@ export function FleetDashBoard() {
         <View
         >
           <Text style={{
-            color: appColors.iconColor, fontFamily: appFonts.regular,
-            fontSize: fontSizes.FONT3HALF
+            ...appTypography.body, color: appColors.iconColor,
           }}>{translateData.totalReviews}:</Text>
         </View>
 
@@ -111,8 +109,7 @@ export function FleetDashBoard() {
           }}
         >
           <Text style={{
-            color: appColors.iconColor, fontFamily: appFonts.regular,
-            fontSize: fontSizes.FONT3HALF
+            ...appTypography.body, color: appColors.iconColor,
           }}>{translateData.totalEarning}:</Text>
         </View>
       </View>
@@ -126,10 +123,10 @@ export function FleetDashBoard() {
             if (half) return <Icons.RatingHalfStar key={index} />;
             return <Icons.RatingEmptyStar key={index} />;
           })}
-          <Text style={{ left: windowHeight(1), color: isDark?appColors.white: appColors.black, fontSize: fontSizes.FONT3, fontFamily: appFonts.regular }}>{driverData?.rating_count}</Text>
-          <Text style={{ marginHorizontal: windowHeight(1.5), color: appColors.iconColor, fontSize: fontSizes.FONT3, fontFamily: appFonts.regular }}>({driverData?.review_count})</Text>
+          <Text style={{ ...appTypography.rating, left: windowHeight(1), color: isDark?appColors.white: appColors.black }}>{driverData?.rating_count}</Text>
+          <Text style={{ ...appTypography.caption, marginHorizontal: windowHeight(1.5), color: appColors.iconColor }}>({driverData?.review_count})</Text>
         </View>
-        <Text style={{ color: appColors.primary, fontFamily: appFonts.bold, fontSize: fontSizes.FONT4 }}>{driverData?.wallet_balance}</Text>
+        <Text style={{ ...appTypography.price, color: appColors.primary }}>{driverData?.wallet_balance}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -162,9 +159,8 @@ export function FleetDashBoard() {
             
             <Text
               style={{
+                ...appTypography.screenTitle,
                 color: appColors.white,
-                fontFamily: appFonts.medium,
-                fontSize: fontSizes.FONT5,
               }}
             >
               {translateData.drivers}
@@ -206,13 +202,12 @@ export function FleetDashBoard() {
             <View style={{ alignItems: 'center', marginTop: windowHeight(8) }}>
               <Image source={Images.noVehicle} style={{ height: windowHeight(40), width: windowHeight(40), resizeMode: 'contain' }} />
               <Text style={{
-                color: isDark ? appColors.white : appColors.primaryFont,
-                fontFamily: appFonts.medium,
-                fontSize: fontSizes.FONT4HALF
+                ...appTypography.h3,
+                color: isDark ? appColors.white : appColors.primaryFont
               }}>
                 {translateData.noDataFound}
               </Text>
-              <Text style={{ textAlign: 'center', fontFamily: appFonts.regular, marginTop: windowHeight(1), color: appColors.secondaryFont, }}>{translateData.noDataDesc}</Text>
+              <Text style={{ ...appTypography.body, textAlign: 'center', marginTop: windowHeight(1), color: appColors.secondaryFont, }}>{translateData.noDataDesc}</Text>
             </View>
           )}
         </View>
@@ -239,13 +234,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: fontSizes.FONT3HALF,
+    ...appTypography.bodyMedium,
     color: appColors.black,
-    fontFamily: appFonts.medium,
   },
   count: {
-    fontSize: fontSizes.FONT4HALF,
-    fontFamily: appFonts.bold,
+    ...appTypography.price,
     color: appColors.primary,
     top: '15%',
   },
@@ -274,13 +267,11 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   statusLabel: {
-    fontSize: fontSizes.FONT3HALF,
+    ...appTypography.body,
     color: appColors.iconColor,
-    fontFamily: appFonts.regular,
   },
   statusValue: {
-    fontSize: fontSizes.FONT3HALF,
-    fontFamily: appFonts.regular,
+    ...appTypography.bodyMedium,
     color: appColors.black,
     left: windowWidth(2.8),
   },

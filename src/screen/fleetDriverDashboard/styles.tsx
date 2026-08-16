@@ -1,6 +1,7 @@
 import { StyleSheet } from "react-native";
 import { windowHeight, fontSizes, windowWidth } from "../../theme/appConstant";
 import appColors from "../../theme/appColors";
+import appTypography from '../../theme/appTypography'
 import appFonts from "../../theme/appFonts";
 
 
@@ -19,13 +20,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     title: {
-        fontSize: fontSizes.FONT3HALF,
+        ...appTypography.bodyMedium,
         color: appColors.black,
-        fontFamily: appFonts.medium,
     },
+    // Headline figure on a stat tile.
     count: {
-        fontSize: fontSizes.FONT4HALF,
-        fontFamily: appFonts.bold,
+        ...appTypography.price,
         color: appColors.primary,
         top: '15%',
     },
@@ -55,13 +55,11 @@ const styles = StyleSheet.create({
         marginRight: 6,
     },
     statusLabel: {
-        fontSize: fontSizes.FONT3HALF,
+        ...appTypography.body,
         color: appColors.iconColor,
-        fontFamily: appFonts.regular,
     },
     statusValue: {
-        fontSize: fontSizes.FONT3HALF,
-        fontFamily: appFonts.regular,
+        ...appTypography.bodyMedium,
         color: appColors.black,
         left: windowWidth(2.8),
     },

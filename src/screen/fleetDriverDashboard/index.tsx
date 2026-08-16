@@ -3,6 +3,7 @@ import { StatusBar } from 'react-native'
 import { View, Text, TouchableOpacity, Image, ScrollView, BackHandler, ImageBackground } from 'react-native'
 import appColors from '../../theme/appColors'
 import { fontSizes, windowHeight, windowWidth } from '../../theme/appConstant'
+import appTypography from '../../theme/appTypography'
 import appFonts from '../../theme/appFonts'
 import Icons from '../../utils/icons/icons'
 import Images from '../../utils/images/images'
@@ -100,9 +101,8 @@ export function FleetDriverDashBoard() {
             </TouchableOpacity>
                         <Text
                             style={{
+                                ...appTypography.screenTitle,
                                 color: isDark ? appColors.white : appColors.primaryFont,
-                                fontFamily: appFonts.medium,
-                                fontSize: fontSizes.FONT5,
                             }}
                         >
                             {translateData.dashboard}
@@ -127,8 +127,8 @@ export function FleetDriverDashBoard() {
                 <View style={{ backgroundColor:isDark?appColors.darkThemeSub:  appColors.white, marginHorizontal: windowWidth(5), marginTop: windowHeight(3), paddingBottom: windowHeight(3), borderRadius: windowHeight(1) }}>
                     <View style={{ alignItems: 'center', marginTop: windowHeight(4) }}>
                         <Image source={Images.user} style={{ height: windowHeight(10), width: windowHeight(10), resizeMode: 'cover' }} />
-                        <Text style={{ marginVertical: windowHeight(0.5), fontSize: fontSizes.FONT4HALF, fontFamily: appFonts.medium, color: isDark?appColors.white: appColors.primaryFont }}>{driverData?.name}</Text>
-                        <Text style={{ fontSize: fontSizes.FONT3, fontFamily: appFonts.regular, color: appColors.secondaryFont }}>{driverData?.email}</Text>
+                        <Text style={{ ...appTypography.driverName, marginVertical: windowHeight(0.5), color: isDark?appColors.white: appColors.primaryFont }}>{driverData?.name}</Text>
+                        <Text style={{ ...appTypography.caption, color: appColors.secondaryFont }}>{driverData?.email}</Text>
                     </View>
 
 
@@ -138,20 +138,20 @@ export function FleetDriverDashBoard() {
                                 <View style={{
                                     height: windowHeight(7), width: windowWidth(23), backgroundColor: appColors.rgb, borderRadius: windowHeight(0.8), alignItems: 'center', justifyContent: 'center'
                                 }}>
-                                    <Text style={{ fontFamily: appFonts.regular, color: appColors.lightGreen1, marginBottom: windowHeight(0.5) }}>{translateData.completeRide}</Text>
-                                    <Text style={{ fontFamily: appFonts.medium, color: appColors.white }}>{completeTotal}</Text>
+                                    <Text style={{ ...appTypography.caption, color: appColors.lightGreen1, marginBottom: windowHeight(0.5) }}>{translateData.completeRide}</Text>
+                                    <Text style={{ ...appTypography.bodyMedium, color: appColors.white }}>{completeTotal}</Text>
                                 </View>
                                 <View style={{ height: windowHeight(7), width: windowWidth(23), backgroundColor: appColors.rgb, borderRadius: windowHeight(0.8), alignItems: 'center', justifyContent: 'center' }}>
-                                    <Text style={{ fontFamily: appFonts.regular, color: appColors.lightGreen1, marginBottom: windowHeight(0.5) }}>{translateData.pending}</Text>
-                                    <Text style={{ fontFamily: appFonts.medium, color: appColors.white }}>{pendingTotal}</Text>
+                                    <Text style={{ ...appTypography.caption, color: appColors.lightGreen1, marginBottom: windowHeight(0.5) }}>{translateData.pending}</Text>
+                                    <Text style={{ ...appTypography.bodyMedium, color: appColors.white }}>{pendingTotal}</Text>
                                 </View>
                                 <View style={{ height: windowHeight(7), width: windowWidth(23), backgroundColor: appColors.rgb, borderRadius: windowHeight(0.8), alignItems: 'center', justifyContent: 'center' }}>
-                                    <Text style={{ fontFamily: appFonts.regular, color: appColors.lightGreen1, marginBottom: windowHeight(0.5) }}>{translateData.cancelled}</Text>
-                                    <Text style={{ fontFamily: appFonts.medium, color: appColors.white }}>{cancelTotal}</Text>
+                                    <Text style={{ ...appTypography.caption, color: appColors.lightGreen1, marginBottom: windowHeight(0.5) }}>{translateData.cancelled}</Text>
+                                    <Text style={{ ...appTypography.bodyMedium, color: appColors.white }}>{cancelTotal}</Text>
                                 </View>
                             </View>
                             <View style={{ borderTopWidth: 1.5, borderStyle: 'dashed', marginVertical: windowHeight(1), marginHorizontal: windowHeight(2), borderColor: 'rgba(255,255,255,0.45)' }} />
-                            <Text style={{ textAlign: 'center', paddingBottom: windowHeight(1), color: appColors.white, fontFamily: appFonts.medium }}>{translateData.viewRides}</Text>
+                            <Text style={{ ...appTypography.buttonSecondary, textAlign: 'center', paddingBottom: windowHeight(1), color: appColors.white }}>{translateData.viewRides}</Text>
                         </ImageBackground>
                     </View>
                 </View>
@@ -202,18 +202,16 @@ export function FleetDriverDashBoard() {
                         <View style={{ flex: 1, marginLeft: windowHeight(2) }}>
                             <Text
                                 style={{
+                                    ...appTypography.title,
                                     color: isDark ? appColors.white : appColors.black,
-                                    fontSize: fontSizes.FONT4,
-                                    fontFamily: appFonts.medium,
                                 }}
                             >
                                 {translateData?.totalEarning}
                             </Text>
                             <Text
                                 style={{
+                                    ...appTypography.price,
                                     color: appColors.yellow,
-                                    fontSize: fontSizes.FONT4HALF,
-                                    fontFamily: appFonts.bold,
                                     marginTop: windowHeight(0.5),
                                 }}
                             >
@@ -226,11 +224,10 @@ export function FleetDriverDashBoard() {
 
                     <Text
                         style={{
+                            ...appTypography.title,
                             color: isDark ? appColors.white : appColors.black,
                             marginHorizontal: windowWidth(5),
                             marginTop: windowHeight(2.5),
-                            fontFamily: appFonts.medium,
-                            fontSize: fontSizes.FONT4,
                         }}
                     >
                         {translateData.drivePerformance}
@@ -280,10 +277,9 @@ export function FleetDriverDashBoard() {
                                 <View>
                                     <Text
                                         style={{
+                                            ...appTypography.price,
                                             color: appColors.blueShade,
                                             top: windowHeight(2),
-                                            fontFamily: appFonts.bold,
-                                            fontSize: fontSizes.FONT5,
                                             textAlign: 'center'
                                         }}
                                     >
@@ -291,10 +287,9 @@ export function FleetDriverDashBoard() {
                                     </Text>
                                     <Text
                                         style={{
+                                            ...appTypography.price,
                                             color: appColors.blueShade,
                                             top: windowHeight(2),
-                                            fontFamily: appFonts.bold,
-                                            fontSize: fontSizes.FONT5,
                                             textAlign: 'center'
                                         }}
                                     >
@@ -307,7 +302,7 @@ export function FleetDriverDashBoard() {
                                     color: isDark ? appColors.white : appColors.black,
                                     marginHorizontal: windowHeight(2),
                                     marginTop: windowHeight(1.7),
-                                    fontFamily: appFonts.medium,
+                                    ...appTypography.body,
                                     textAlign: rtl ? 'right' : 'left'
                                 }}
                             >
@@ -361,8 +356,7 @@ export function FleetDriverDashBoard() {
                                     style={{
                                         color: appColors.orange,
                                         top: windowHeight(3.5),
-                                        fontFamily: appFonts.bold,
-                                        fontSize: fontSizes.FONT5,
+                                        ...appTypography.price,
                                         textAlign: rtl ? 'right' : 'left'
                                     }}
                                 >
@@ -374,7 +368,7 @@ export function FleetDriverDashBoard() {
                                     color: isDark ? appColors.white : appColors.black,
                                     marginHorizontal: windowHeight(2),
                                     marginTop: windowHeight(1.7),
-                                    fontFamily: appFonts.medium,
+                                    ...appTypography.body,
                                     textAlign: rtl ? 'right' : 'left'
                                 }}
                             >
@@ -394,11 +388,10 @@ export function FleetDriverDashBoard() {
 
                     <Text
                         style={{
+                            ...appTypography.title,
                             color: isDark ? appColors.white : appColors.black,
                             marginHorizontal: windowWidth(5),
                             marginTop: windowHeight(2.5),
-                            fontFamily: appFonts.medium,
-                            fontSize: fontSizes.FONT4,
                         }}
                     >
                         {translateData.averageDrivePerformance}
@@ -450,8 +443,7 @@ export function FleetDriverDashBoard() {
                                         style={{
                                             color: appColors.completeColor,
                                             top: windowHeight(2),
-                                            fontFamily: appFonts.bold,
-                                            fontSize: fontSizes.FONT5,
+                                            ...appTypography.price,
                                             textAlign: 'center'
                                         }}
                                     >
@@ -461,8 +453,7 @@ export function FleetDriverDashBoard() {
                                         style={{
                                             color: appColors.completeColor,
                                             top: windowHeight(2),
-                                            fontFamily: appFonts.bold,
-                                            fontSize: fontSizes.FONT5,
+                                            ...appTypography.price,
                                             textAlign: 'center'
                                         }}
                                     >
@@ -475,7 +466,7 @@ export function FleetDriverDashBoard() {
                                     color: isDark ? appColors.white : appColors.black,
                                     marginHorizontal: windowHeight(2),
                                     marginTop: windowHeight(1.7),
-                                    fontFamily: appFonts.medium,
+                                    ...appTypography.body,
                                     textAlign: rtl ? 'right' : 'left'
                                 }}
                             >
@@ -532,8 +523,7 @@ export function FleetDriverDashBoard() {
                                     style={{
                                         color: appColors.setp,
                                         top: windowHeight(3.5),
-                                        fontFamily: appFonts.bold,
-                                        fontSize: fontSizes.FONT5,
+                                        ...appTypography.price,
                                     }}
                                 >
                                     {dashBoardList?.driver_performance?.average_hours}
@@ -544,7 +534,7 @@ export function FleetDriverDashBoard() {
                                     color: isDark ? appColors.white : appColors.black,
                                     marginHorizontal: windowHeight(2),
                                     marginTop: windowHeight(1.7),
-                                    fontFamily: appFonts.medium,
+                                    ...appTypography.body,
                                     textAlign: rtl ? 'right' : 'left'
                                 }}
                             >

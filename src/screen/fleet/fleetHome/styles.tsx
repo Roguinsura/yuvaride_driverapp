@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native'
 import appColors from '../../../theme/appColors'
+import appTypography from '../../../theme/appTypography'
 import appFonts from '../../../theme/appFonts'
 import { fontSizes, windowWidth } from '../../../theme/appConstant'
 import { windowHeight } from '../../../theme/appConstant'
@@ -10,8 +11,7 @@ const OUTER_SIZE = SIZE + windowHeight(1.2)
 const styles = StyleSheet.create({
     text: {
         color: appColors.white,
-        fontSize: fontSizes.FONT4,
-        fontFamily: appFonts.medium,
+        ...appTypography.bodyLargeMedium,
     },
     container: {
         alignSelf: 'center',
@@ -64,8 +64,7 @@ const styles = StyleSheet.create({
         height: windowWidth(80),
     },
     noRideText: {
-        fontFamily: appFonts.medium,
-        fontSize: fontSizes.FONT4,
+        ...appTypography.bodyLargeMedium,
         color: appColors.secondaryFont,
         textAlign: 'center',
     },
@@ -94,12 +93,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     title: {
-        fontSize: fontSizes.FONT4,
-        fontWeight: 'bold',
+        ...appTypography.h3,
         marginBottom: windowHeight(1),
     },
     message: {
-        fontSize: fontSizes.FONT3SMALL,
+        ...appTypography.body,
         marginBottom: windowHeight(3),
         textAlign: 'center',
     },
@@ -110,7 +108,7 @@ const styles = StyleSheet.create({
     },
     buttonTextModel: {
         color: appColors.white,
-        fontFamily: appFonts.medium,
+        ...appTypography.button,
     },
 })
 
