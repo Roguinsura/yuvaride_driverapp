@@ -142,6 +142,40 @@ export function BankDetail() {
         setToken(data.access_token);
         notificationHelper('', translateData.registerSuccessfully, 'success');
 
+        /*
+          Driver photo, captured back in step 1. It cannot ride along with
+          registration — driver/register creates attachments for documents[]
+          only and drops profile_image — so it goes up here, once the account
+          exists and we hold a token.
+
+          Deliberately non-fatal: the account is already created, and failing
+          the whole registration over a photo would leave the driver
+          registered but stuck on this screen. They can add it later from
+          Profile.
+        */
+        if (accountDetail?.driverImage?.uri) {
+          try {
+            const imageForm = new FormData();
+            imageForm.append('profile_image', {
+              uri: accountDetail.driverImage.uri,
+              type: accountDetail.driverImage.type,
+              name: accountDetail.driverImage.name,
+            } as any);
+
+            await fetch(`${URL}/api/driver/updateProfile`, {
+              method: 'POST',
+              body: imageForm,
+              headers: {
+                'Content-Type': 'multipart/form-data',
+                Accept: 'application/json',
+                Authorization: `Bearer ${data.access_token}`,
+              },
+            });
+          } catch {
+            // Photo did not upload; registration itself stands.
+          }
+        }
+
         await dispatch(selfDriverData());
 
         if (data?.is_verified == 1) {

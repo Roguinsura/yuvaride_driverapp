@@ -8,7 +8,9 @@ import {
   BackHandler,
   Keyboard,
   ActivityIndicator,
+  Image,
 } from 'react-native'
+import { launchImageLibrary } from 'react-native-image-picker'
 import appColors from '../../../../theme/appColors'
 import brandColors from '../../../../theme/brandColors'
 import { ProgressBar } from '../component'
@@ -39,6 +41,14 @@ type navigation = NativeStackNavigationProp<RootStackParamList>
 export function CreateAccount() {
   const navigation = useNavigation<navigation>()
   const [showWarning, setShowWarning] = useState<boolean>(false)
+  /*
+    Driver photo, collected here in step 1 but NOT sent with registration:
+    driver/register only creates attachments for documents[] and ignores a
+    profile_image entirely. It is carried in accountDetail and uploaded to
+    driver/updateProfile straight after the account exists — see bankDetails,
+    which is where registration actually fires.
+  */
+  const [driverImage, setDriverImage] = useState<any>(null)
   const [emailFormatWarning, setEmailFormatWarning] = useState<string>('')
   const { colors } = useTheme()
   const { textRtlStyle, viewRtlStyle, isDark, setAccountDetail, rtl } =
@@ -247,9 +257,27 @@ export function CreateAccount() {
 
     setError({ phoneNumber: '', email: '', password: '', confirmPassword: '' })
     setShowWarning(false)
-    setAccountDetail(formData)
+    setAccountDetail({ ...formData, driverImage })
     Keyboard.dismiss()
     navigation.navigate('UploadedDocument', { type: userType })
+  }
+
+  const pickDriverImage = async () => {
+    try {
+      const res: any = await launchImageLibrary({
+        mediaType: 'photo',
+        quality: 0.8,
+      })
+      const file = res?.assets?.[0]
+      if (!file?.uri) return
+      setDriverImage({
+        uri: file.uri,
+        type: file.type ?? 'image/jpeg',
+        name: file.fileName ?? `driver_${Date.now()}.jpg`,
+      })
+    } catch {
+      // Cancelled or unavailable — leave the photo unset; it is optional.
+    }
   }
 
   const onSelectCountry = (country: any) => {
@@ -349,6 +377,51 @@ export function CreateAccount() {
         >
           {translateData.registerContent}
         </Text>
+
+        {/*
+          Driver photo. Optional at this stage: registration itself does not
+          require one, and blocking sign-up on a photo would strand a driver
+          who has no camera permission yet.
+        */}
+        <View style={{ alignItems: 'center', marginBottom: windowHeight(2) }}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={pickDriverImage}
+            style={{
+              width: windowHeight(11),
+              height: windowHeight(11),
+              borderRadius: windowHeight(11),
+              backgroundColor: isDark
+                ? appColors.darkThemeSub
+                : appColors.graybackground,
+              borderWidth: 1,
+              borderColor: colors.border,
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+            }}
+          >
+            {driverImage?.uri ? (
+              <Image
+                source={{ uri: driverImage.uri }}
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="cover"
+              />
+            ) : (
+              <Icons.Camera />
+            )}
+          </TouchableOpacity>
+          <Text
+            style={[
+              styles.subtitle,
+              { color: bodyColor, marginTop: windowHeight(0.8) },
+            ]}
+          >
+            {driverImage?.uri
+              ? translateData.changePhoto ?? 'Change photo'
+              : translateData.addPhoto ?? 'Add your photo'}
+          </Text>
+        </View>
 
         {/* ---------------- personal details ---------------- */}
         <Text
