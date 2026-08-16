@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native'
 import { windowHeight } from '../../theme/appConstant'
-import appFonts from '../../theme/appFonts'
+import appTypography from '../../theme/appTypography'
 
 const styles = StyleSheet.create({
   button: {
@@ -10,9 +10,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: windowHeight(1),
   },
-  buttonText: {
-    fontFamily: appFonts.semiBold,
-  },
+  /*
+    Primary CTA: 16/600, from the typography tokens.
+
+    This read `appFonts.semiBold`, which does not exist on AppFonts (only bold,
+    medium and regular do) — so fontFamily resolved to undefined and no size was
+    set at all, leaving every button on the platform default face at 14px.
+  */
+  buttonText: appTypography.button,
 })
 
 export default styles

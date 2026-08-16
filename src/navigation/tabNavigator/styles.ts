@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native'
-import appFonts from '../../theme/appFonts'
-import { fontSizes, windowHeight } from '../../theme/appConstant'
+import { windowHeight } from '../../theme/appConstant'
+import appTypography from '../../theme/appTypography'
+import spacing from '../../theme/spacing'
 
 const styles = StyleSheet.create({
   // Background and border are passed in by the navigator — brand orange in
@@ -26,10 +27,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  /*
+    Bottom-nav label: 12/500, per the typography spec.
+
+    This read `appFonts.Lexend`, which does not exist on AppFonts — only bold,
+    medium and regular do — so fontFamily resolved to undefined and the labels
+    rendered in the platform default face.
+
+    The icon-to-label gap is a fixed 4px (spec: 3-4px) rather than a fraction of
+    screen height, so it stays tight on tall devices instead of drifting open.
+  */
   tabBarLabelStyle: {
-    fontSize: fontSizes.FONT3HALF,
-    fontFamily: appFonts.Lexend,
-    marginTop: windowHeight(0.3),
+    ...appTypography.navigation,
+    marginTop: spacing.xxs,
   },
 })
 export default styles

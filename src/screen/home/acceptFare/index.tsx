@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import GetLocation from 'react-native-get-location'
 import Geolocation from '@react-native-community/geolocation'
 import { distanceInMeters } from '../../../utils/functions'
+import appTypography from '../../../theme/appTypography'
 import { ArrivedMap } from '../../../commonComponents/maps/arrivedMap'
 import { useAppNavigation } from '../../../utils/navigation'
 import { cancelationDataGet, rideDataPut, rideDataGet } from '../../../api/store/action'
@@ -379,7 +380,7 @@ export function AcceptFare() {
         />
         <View style={styles.mapSection}>
           <ArrivedMap
-            Pickuplocation={rideData?.location_coordinates[0]}
+            Pickuplocation={rideData?.location_coordinates?.[0]}
             driverId={Driver_Id}
           />
         </View>
@@ -547,9 +548,8 @@ export function AcceptFare() {
           <BottomSheetView>
             <Text
               style={{
+                ...appTypography.h3,
                 textAlign: 'center',
-                fontFamily: appFonts.medium,
-                fontSize: fontSizes.FONT4,
                 marginVertical: windowHeight(2),
                 color: isDark ? appColors.darkText : appColors.black,
               }}
@@ -601,7 +601,7 @@ export function AcceptFare() {
                   />
                   <Text
                     style={{
-                      fontFamily: appFonts.regular,
+                      ...appTypography.bodyLarge,
                       color: isDark ? appColors.darkText : appColors.black,
                     }}
                   >

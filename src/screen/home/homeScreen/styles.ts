@@ -3,15 +3,16 @@ import appColors from '../../../theme/appColors'
 import appFonts from '../../../theme/appFonts'
 import { fontSizes, windowWidth } from '../../../theme/appConstant'
 import { windowHeight } from '../../../theme/appConstant'
+import appTypography from '../../../theme/appTypography'
 
 const SIZE = windowHeight(7.5)
 const OUTER_SIZE = SIZE + windowHeight(1.2)
 
 const styles = StyleSheet.create({
+  // Online/offline slider label.
   text: {
+    ...appTypography.bodyLargeMedium,
     color: appColors.white,
-    fontSize: fontSizes.FONT4,
-    fontFamily: appFonts.medium,
   },
   container: {
     alignSelf: 'center',
@@ -63,9 +64,9 @@ const styles = StyleSheet.create({
     width: windowWidth(80),
     height: windowWidth(80),
   },
+  // Empty state while waiting for requests.
   noRideText: {
-    fontFamily: appFonts.medium,
-    fontSize: fontSizes.FONT4,
+    ...appTypography.bodyLargeMedium,
     color: appColors.secondaryFont,
     textAlign: 'center',
   },
@@ -93,13 +94,13 @@ const styles = StyleSheet.create({
     padding: windowHeight(3),
     alignItems: 'center',
   },
+  // Modal heading — 18/600 rather than a bolded body size.
   title: {
-    fontSize: fontSizes.FONT4,
-    fontWeight: 'bold',
+    ...appTypography.h3,
     marginBottom: windowHeight(1),
   },
   message: {
-    fontSize: fontSizes.FONT3SMALL,
+    ...appTypography.body,
     marginBottom: windowHeight(3),
     textAlign: 'center',
   },
@@ -109,8 +110,8 @@ const styles = StyleSheet.create({
     padding: windowHeight(1.5),
   },
   buttonTextModel: {
+    ...appTypography.button,
     color: appColors.white,
-    fontFamily: appFonts.medium,
   },
 })
 

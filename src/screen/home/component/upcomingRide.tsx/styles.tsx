@@ -6,6 +6,7 @@ import {
   windowHeight,
   windowWidth,
 } from '../../../../theme/appConstant'
+import appTypography from '../../../../theme/appTypography'
 
 const styles = StyleSheet.create({
   initialsCircle: {
@@ -43,9 +44,10 @@ const styles = StyleSheet.create({
     borderRadius: windowHeight(3),
     resizeMode: 'cover',
   },
+  // Rider name — the card's title line.
   userName: {
+    ...appTypography.cardTitle,
     marginHorizontal: windowWidth(1.5),
-    fontFamily: appFonts.medium,
     color: appColors.primary,
   },
   rate: {
@@ -61,19 +63,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rating: {
+    ...appTypography.rating,
     marginHorizontal: windowWidth(0.4),
-    fontFamily: appFonts.medium,
   },
   verticalBorder: {
     borderLeftWidth: windowHeight(0.1),
     height: windowHeight(2),
     marginHorizontal: windowWidth(1.5),
   },
+  /*
+    Fare. 20/700 — the spec wants this to draw the eye without overpowering the
+    rider name above it, which is why the name is 16/600 rather than matching.
+  */
   price: {
+    ...appTypography.cardPrice,
     color: appColors.price,
     marginHorizontal: windowWidth(0.4),
-    fontFamily: appFonts.bold,
-    fontSize: fontSizes.FONT4HALF,
   },
   border: {
     borderStyle: 'dashed',
@@ -81,14 +86,15 @@ const styles = StyleSheet.create({
     borderColor: appColors.bordercolor,
     marginVertical: windowHeight(1.5),
   },
+  // Secondary metadata beside the fare.
   timing: {
+    ...appTypography.cardMeta,
     color: appColors.secondaryFont,
-    fontFamily: appFonts.medium,
     top: windowHeight(0.1),
     marginHorizontal: windowHeight(0.6),
   },
   distance: {
-    fontFamily: appFonts.medium,
+    ...appTypography.cardMeta,
   },
   bottom: {
     borderRadius: windowHeight(0.5),
@@ -105,16 +111,19 @@ const styles = StyleSheet.create({
     marginHorizontal: windowHeight(0.7),
     borderStyle: 'dashed',
   },
+  /*
+    Pickup and drop, 16/500 (locationPrimary). These are the two lines a driver
+    reads under time pressure, so they carry more weight than the surrounding
+    metadata rather than sitting at body weight as before.
+  */
   pickup: {
-    fontSize: fontSizes.FONT3HALF,
-    fontFamily: appFonts.regular,
+    ...appTypography.locationPrimary,
     top: windowHeight(0.8),
     marginHorizontal: windowHeight(1),
   },
   drop: {
-    fontSize: fontSizes.FONT3HALF,
+    ...appTypography.locationPrimary,
     width: windowWidth(70),
-    fontFamily: appFonts.regular,
     top: windowHeight(0.5),
     marginBottom: windowHeight(0.9),
     marginHorizontal: windowHeight(1),
@@ -146,12 +155,12 @@ const styles = StyleSheet.create({
     borderRadius: windowWidth(1.8),
   },
   acceptText: {
+    ...appTypography.button,
     color: appColors.white,
-    fontFamily: appFonts.medium
   },
   moreInfo: {
+    ...appTypography.buttonSecondary,
     color: appColors.secondaryFont,
-    fontFamily: appFonts.medium,
   },
   moreInfoContainer: {
     backgroundColor: appColors.graybackground,

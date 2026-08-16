@@ -2,6 +2,7 @@ import { StyleSheet } from 'react-native'
 import appColors from '../../../theme/appColors'
 import appFonts from '../../../theme/appFonts'
 import { fontSizes, windowHeight, windowWidth } from '../../../theme/appConstant'
+import appTypography from '../../../theme/appTypography'
 
 const styles = StyleSheet.create({
   container: {
@@ -43,9 +44,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  // Pickup ETA / address line beside the location icons.
   timing: {
-    fontFamily: appFonts.medium,
-    fontSize: fontSizes.FONT4,
+    ...appTypography.locationPrimary,
   },
   space: {
     marginHorizontal: windowWidth(1.5),
