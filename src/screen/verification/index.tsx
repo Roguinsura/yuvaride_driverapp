@@ -25,6 +25,11 @@ import { AppDispatch } from '../../api/store'
 import { useAppNavigation } from '../../utils/navigation'
 import getEchoInstance from '../../utils/echo'
 
+// How often to re-check verification status while this screen is open. Short
+// enough that approval feels immediate, long enough not to hammer driver/self
+// for a driver who leaves the screen sitting open for hours.
+const VERIFICATION_POLL_MS = 30000
+
 // This screen is reachable before the settings call has ever succeeded, so
 // every translated string needs a literal to fall back to — the old code read
 // straight through `translateData` and would throw on a cold start.
@@ -106,6 +111,43 @@ export function Verification() {
       }
     }, [selfDriver?.id]),
   )
+
+  /*
+    Polling fallback for approval.
+
+    The websocket path above is the fast one, but it only works when WS_KEY and
+    WS_HOST are set in api/config — otherwise echo.ts falls back to Echo's
+    `null` broadcaster and every listener becomes a silent no-op. Without this,
+    a driver approved by admin sits on this screen indefinitely and has to kill
+    and reopen the app to get past it.
+
+    Re-fetching the driver is enough: the effect below already reacts to
+    is_verified, so the socket and the poll converge on the same navigation
+    rather than duplicating it. Polling only while this screen is focused, so
+    it stops the moment the driver moves on.
+  */
+  useFocusEffect(
+    useCallback(() => {
+      const interval = setInterval(() => {
+        dispatch(selfDriverData())
+      }, VERIFICATION_POLL_MS)
+
+      return () => clearInterval(interval)
+    }, [dispatch]),
+  )
+
+  /*
+    One place that acts on approval, fed by either the socket or the poll.
+    The socket handler navigates directly too; whichever arrives first wins and
+    the reset is idempotent.
+  */
+  useEffect(() => {
+    if (!isFocused) return
+
+    if (selfDriver?.is_verified == 1) {
+      navigation.reset({ index: 0, routes: [{ name: 'TabNav' }] })
+    }
+  }, [selfDriver?.is_verified, isFocused, navigation])
 
   useEffect(() => {
     const backAction = () => {
