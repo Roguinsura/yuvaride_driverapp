@@ -28,7 +28,11 @@ import Icons from '../../../../utils/icons/icons'
 import { useValues } from '../../../../utils/context'
 import { useDispatch, useSelector } from 'react-redux'
 import { useAppRoute } from '../../../../utils/navigation'
-import { ValidatePhoneNumber } from '../../../../utils/validation'
+import {
+  ValidatePhoneNumber,
+  validatePassword,
+  PASSWORD_MIN_LENGTH,
+} from '../../../../utils/validation'
 import { windowHeight } from '../../../../theme/appConstant'
 import { AppDispatch } from '../../../../api/store'
 import { countryData, preferenceData } from '../../../../api/store/action'
@@ -223,8 +227,18 @@ export function CreateAccount() {
       hasError = true
     }
 
-    if (formData.password.trim() === '') {
-      newErrors.password = translateData.password
+    /*
+      Length is checked here, not just rendered as a hint. The field already
+      showed a "minimum 8" warning, but this gate only tested for empty, so a
+      short password advanced to step 2 and was not rejected until the final
+      submit -- after documents, vehicle and bank details had been entered.
+    */
+    const passwordError = validatePassword(formData.password)
+    if (passwordError) {
+      newErrors.password =
+        formData.password.trim() === ''
+          ? translateData.password
+          : translateData.passwordMinLength || passwordError
       hasError = true
     }
     if (formData.confirmPassword.trim() === '') {
@@ -687,14 +701,21 @@ export function CreateAccount() {
               warning={
                 showWarning && formData.password === ''
                   ? translateData.password
-                  : formData.password.length > 0 && formData.password.length < 8
-                    ? translateData.passwordMinLength
+                  : formData.password.length > 0 &&
+                    formData.password.length < PASSWORD_MIN_LENGTH
+                    ? translateData.passwordMinLength ||
+                    `Password must be at least ${PASSWORD_MIN_LENGTH} characters`
                     : ''
               }
               onChangeText={text => handleChange('password', text)}
+              // Surface the length rule while typing, not only after a failed
+              // submit — the point is to correct it before moving on. The
+              // empty-field warning still waits for a submit attempt, so the
+              // form does not scold someone who has not started typing.
               showWarning={
-                showWarning &&
-                (formData.password === '' || formData.password.length < 8)
+                (formData.password.length > 0 &&
+                  formData.password.length < PASSWORD_MIN_LENGTH) ||
+                (showWarning && formData.password === '')
               }
               backgroundColor={fieldBg}
               borderColor={borderColor}
