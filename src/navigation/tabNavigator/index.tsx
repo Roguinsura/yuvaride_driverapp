@@ -5,7 +5,9 @@ import { MyRide, Settings } from '../../screen'
 import { Text, TouchableOpacity, Vibration, View } from 'react-native'
 import appColors from '../../theme/appColors'
 import Icons from '../../utils/icons/icons'
-import styles from './styles'
+import styles, { TAB_BAR_CONTENT_HEIGHT } from './styles'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import spacing from '../../theme/spacing'
 import { useSelector } from 'react-redux'
 import { useValues } from '../../utils/context'
 import { DashBoard } from '../../screen/dashBoard'
@@ -86,6 +88,7 @@ const TabIcon = React.memo(
 export default function App() {
   const { translateData } = useSelector((state: any) => state.setting)
   const { rtl, isDark } = useValues()
+  const insets = useSafeAreaInsets()
   const { selfDriver } = useSelector((state: any) => state.account)
   const palette = useMemo(() => tabPalette(isDark), [isDark])
 
@@ -179,18 +182,27 @@ export default function App() {
   }, [guardedPress]);
 
 
-  // Memoize screen options to prevent recreation on every render
+  /*
+    Height and bottom padding include the safe-area inset, so the labels clear
+    Android's gesture bar (and the home indicator on iOS). The bar is absolutely
+    positioned and the root SafeAreaView excludes the bottom edge, so nothing
+    else applies that inset for us.
+
+    On a device with no bottom inset this is simply the 68 the spec asks for.
+  */
   const screenOptions = useMemo(() => ({
     tabBarStyle: [
       styles.tabBarContainer,
       {
+        height: TAB_BAR_CONTENT_HEIGHT + insets.bottom,
+        paddingBottom: insets.bottom + spacing.xxs,
         backgroundColor: palette.bar,
         borderTopWidth: isDark ? 1 : 0,
         borderTopColor: palette.border,
       },
     ],
     headerShown: false,
-  }), [palette, isDark])
+  }), [palette, isDark, insets.bottom])
 
   return (
     <Tab.Navigator
