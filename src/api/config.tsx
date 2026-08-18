@@ -40,10 +40,22 @@ export const ORS_API_KEY: string = ENV_ORS_API_KEY ?? '';
 // updates stop arriving live, but nothing crashes.
 //
 // WS_KEY must match REVERB_APP_KEY (or PUSHER_APP_KEY) in the server's .env.
+//
+// Unlike GOOGLE_MAP_KEY above, this one is deliberately a literal rather than an
+// .env value. A Pusher-protocol app key is a public identifier, not a secret:
+// every client has to present it in the connection URL before it can subscribe
+// to anything, and it grants nothing on its own — REVERB_APP_SECRET does the
+// authorising and never leaves the server. Routing it through .env would only
+// mean that a clone without one silently loses realtime, because babel is set
+// to allowUndefined and the empty fallback disables Echo without an error.
+//
+// Reverb listens on 8080 because that port is open on the host and terminates
+// TLS itself; there is no Apache proxy in front of it. See ~/reverb/ on the
+// server for the keepalive and certificate-rotation scripts.
 export const WS_BROADCASTER: 'reverb' | 'pusher' = 'reverb';
-export const WS_KEY = '';
-export const WS_HOST = '';
-export const WS_PORT = 443;
+export const WS_KEY = 'yrtdtapyoopzf7p46ved';
+export const WS_HOST = 'fieldnova.com';
+export const WS_PORT = 8080;
 export const WS_SCHEME: 'https' | 'http' = 'https';
 // Pusher-hosted only; Reverb ignores this.
 export const WS_CLUSTER = 'mt1';
