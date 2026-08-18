@@ -99,7 +99,7 @@ adb reverse tcp:8081 tcp:8081   # if the device can't reach Metro
 
 ```ts
 export const URL = 'https://fieldnova.com'   // Laravel API base
-export const GOOGLE_MAP_KEY = '...'          // Directions, Places, geocoding
+export const GOOGLE_MAP_KEY = ...            // read from .env — never hardcoded
 ```
 
 Point `URL` at your own server to develop against it. It has no trailing slash
@@ -117,25 +117,55 @@ To switch it on, set `WS_KEY` to match the server's `REVERB_APP_KEY` (or
 
 ### Google Maps
 
-There is no native map view. `src/screen/mapView` builds an HTML page that
-loads the Google Maps JavaScript API and renders it in a `react-native-webview`,
-with routes fetched separately from the Directions REST API. So the key needs
-**Maps JavaScript API**, **Directions API** and **Geocoding API** enabled — and
-if you restrict it by platform, the JS API call comes from a WebView, not from
-the native SDK.
+There is no native map view. Eight screens — `src/screen/mapView` and the seven
+others under `src/screen/home` and `src/commonComponents/maps` — build an HTML
+page that loads the Google Maps JavaScript API and render it in a
+`react-native-webview`. Routes and ETAs are additionally fetched from the
+Directions and Distance Matrix REST APIs.
 
-The key is in two places and both must be set:
+**The key is never committed.** Copy `.env.example` to `.env` and set
+`GOOGLE_MAP_KEY`; `src/api/config.tsx` reads it through `react-native-dotenv`.
+After changing `.env`, restart Metro with `--reset-cache` — the value is inlined
+at transform time, so otherwise the old key stays baked into the bundle.
 
-- `GOOGLE_MAP_KEY` in `src/api/config.tsx` — used by the JS/WebView map and the
-  Directions calls
-- `google_maps_api_key` in `android/app/src/main/res/values/strings.xml`,
-  referenced from `AndroidManifest.xml`
+The key needs **Maps JavaScript API**, **Places API**, **Geocoding API** and
+**Directions API** enabled. Restricting it to the Maps JavaScript API alone
+silently breaks nearby-search and route rendering, because the Places, Geocoding
+and Directions JS libraries bill separately.
+
+It is a *browser* key: restrict it by **HTTP referrer**, never by Android
+package + SHA-1 — that restriction only covers the native Maps SDK for Android,
+which this app does not use. A referrer restriction requires the WebViews to
+send an origin, so set `baseUrl` on every WebView `source` before you enable it,
+or every map 403s with `RefererNotAllowedMapError`.
+
+Because the key ships inside the bundle and is extractable by design, set
+per-API **daily quota caps** and a billing budget alert. Those are the real
+control, not secrecy.
+
+The Android `google_maps_api_key` resource is generated at build time by
+`android/app/build.gradle` from `MAPS_API_KEY` in `android/local.properties`
+(gitignored — see `android/local.properties.example`) or the `MAPS_API_KEY`
+environment variable. Nothing consumes it today, since there is no
+`react-native-maps` dependency, and the build only warns if it is unset.
+
+### OpenRouteService
+
+The active-ride map (`src/screen/home/ride`) draws its route geometry from
+OpenRouteService. Set `ORS_API_KEY` in `.env` as well — see `.env.example`.
+
+Unlike the Maps key this is a genuine private credential: ORS offers no
+referrer, IP or package restriction, and quotas are per account. It is still
+interpolated into the WebView HTML, so it ships to the device; proxying it
+through the Laravel backend is the durable fix. Reissue any key that has ever
+been committed.
 
 ### Firebase
 
-`android/app/google-services.json` is committed and registered for
-`com.yuvaride.driver`. Replace it with your own project's file if you change
-the package id, or push notifications stop arriving.
+`android/app/google-services.json` and `ios/GoogleService-Info.plist` are
+**gitignored and not in this repo**. Get them from the Firebase console for
+package `com.yuvaride.driver` and drop them in place — without them the Android
+`google-services` Gradle task fails and iOS crashes at `FirebaseApp.configure()`.
 
 ### Ads
 
@@ -148,7 +178,7 @@ Test AdMob ids ship in `app.json`. Replace them before a production release.
 ```
 src/
 ├── api/
-│   ├── config.tsx        # base URL, map key, realtime + feature flags
+│   ├── config.tsx        # base URL, map key (from .env), realtime + feature flags
 │   ├── services/         # one module per endpoint group
 │   └── store/            # Redux slices, thunks, types
 ├── assets/               # images, SVG icons, Lottie animations, fonts

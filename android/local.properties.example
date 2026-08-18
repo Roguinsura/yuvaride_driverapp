@@ -1,0 +1,11 @@
+# Copy this file to android/local.properties (gitignored) and fill it in.
+# Android Studio also writes sdk.dir here — keep that line if it is already present.
+
+# Google Maps key for the native com.google.android.geo.API_KEY meta-data,
+# read by app/build.gradle and injected as the google_maps_api_key resource.
+# You can also export MAPS_API_KEY in the environment instead.
+#
+# Nothing consumes this today: there is no react-native-maps and no
+# play-services-maps dependency, so every map is a WebView using the key from
+# .env instead. Leaving this blank is fine — the build only warns.
+MAPS_API_KEY=

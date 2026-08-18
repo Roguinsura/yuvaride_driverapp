@@ -28,6 +28,7 @@ import { windowHeight } from '../../../theme/appConstant'
 import { useAppNavigation } from '../../../utils/navigation'
 import getEchoInstance from '../../../utils/echo'
 import { WebView } from 'react-native-webview'
+import { ORS_API_KEY } from '../../../api/config'
 
 export function Ride() {
   const navigation = useAppNavigation()
@@ -372,7 +373,7 @@ export function Ride() {
       const destination = { lat: ${destination?.latitude ?? 0}, lng: ${destination?.longitude ?? 0
       } };
       const addStops = ${addStopsJson};
-      const ORS_API_KEY = "REDACTED_ORS_KEY";
+      const ORS_API_KEY = ${JSON.stringify(ORS_API_KEY)};
 
       function toLatLngObj(p) {
         return { lat: parseFloat(p.latitude ?? p.lat), lng: parseFloat(p.longitude ?? p.lng) };

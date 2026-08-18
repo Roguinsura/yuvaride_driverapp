@@ -85,6 +85,35 @@ def reactNativeArchitectures() {
     return value ? value.split(",") : ["armeabi-v7a", "x86", "arm64-v8a", "x86_64"]
 }
 
+/**
+ * Google Maps key for the com.google.android.geo.API_KEY meta-data, read from
+ * android/local.properties (gitignored) or the MAPS_API_KEY environment variable.
+ *
+ * Never hardcode it here or in res/values/strings.xml — both are tracked, and a
+ * key committed to this repo is a key that has to be rotated.
+ *
+ * Nothing consumes this meta-data today: there is no react-native-maps and no
+ * play-services-maps dependency, so every map in this app is a WebView loading
+ * the Maps JavaScript API (see src/api/config.tsx). The slot is kept wired so a
+ * native map can be added later without anyone pasting a literal back in.
+ *
+ * An unset key is a warning, not an error, so a fresh clone still builds.
+ */
+def googleMapsApiKey() {
+    def props = new Properties()
+    def propsFile = rootProject.file("local.properties")
+    if (propsFile.exists()) {
+        propsFile.withInputStream { props.load(it) }
+    }
+    def key = props.getProperty("MAPS_API_KEY") ?: System.getenv("MAPS_API_KEY") ?: ""
+    if (key.isEmpty()) {
+        logger.warn("WARNING: MAPS_API_KEY is not set. Copy android/local.properties.example " +
+                    "to android/local.properties and set it, or export MAPS_API_KEY. " +
+                    "Building with an empty google_maps_api_key resource.")
+    }
+    return key
+}
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -97,8 +126,13 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 5
         versionName "3.0.0"
-        multiDexEnabled true 
-        missingDimensionStrategy 'react-native', 'hermes' 
+        multiDexEnabled true
+        missingDimensionStrategy 'react-native', 'hermes'
+
+        // Generates res/values/generated.xml with string/google_maps_api_key, which
+        // AndroidManifest.xml already references. Keep this as the only definition —
+        // a matching <string> in res/values/strings.xml collides at mergeResources.
+        resValue "string", "google_maps_api_key", googleMapsApiKey()
     }
     signingConfigs {
         debug {

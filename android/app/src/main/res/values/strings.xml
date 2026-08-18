@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">YuvaRide Driver</string>
-    <string name="google_maps_api_key" translatable="false">REDACTED_GOOGLE_MAPS_KEY</string>
+    <!-- google_maps_api_key is generated at build time by app/build.gradle from
+         MAPS_API_KEY in android/local.properties (gitignored). Do not define it
+         here — a duplicate definition fails the resource merge. -->
     <!-- Google test AdMob app ID. Replace with the real one before release. -->
     <string name="admob_app_id" translatable="false">ca-app-pub-3940256099942544~3347511713</string>
 </resources>
