@@ -13,7 +13,7 @@ import { acceptRequestValue, rejectRequestValue, rideDataGet, rideDataGets } fro
 import { notificationHelper } from '../../../../commonComponents'
 import appFonts from '../../../../theme/appFonts'
 import { ProgressBar } from '../../../../commonComponents/helper/progressBarHelper'
-import { formatDates } from '../../../../utils/functions'
+import { distanceInMeters, formatDates } from '../../../../utils/functions'
 import useSmartLocation from '../../../../commonComponents/helper/locationHelper'
 import CustomSlider from '../../../../commonComponents/CustomSlider'
 // import Sound from 'react-native-sound' (Removed due to RN 0.82 compatibility issues)
@@ -231,32 +231,44 @@ export const UpcomingRide = forwardRef(function UpcomingRide(
       })
   }
 
-  const calculateDrivingDistance = () => {
-    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${currentLatitude},${currentLongitude}&destinations=${ride?.location_coordinates?.[0]?.lat},${ride?.location_coordinates?.[0]?.lng}&mode=driving&units=metric&key=${Google_Map_Key}`
-    fetch(url)
-      .then(response => response.json())
-      .then(data => {
-        if (data.status === 'OK' && data.rows[0].elements[0].status === 'OK') {
-          const distance = data.rows[0].elements[0].distance.text
-          setDistance(distance)
-        } else {
-          setDistance('Error')
-        }
-      })
-      .catch(error => {
-        setDistance('Error')
-      })
-  }
+  /*
+    Distance from the driver to the pickup point.
 
+    This used to call Google's Distance Matrix API on every card. That API is
+    legacy and is not enabled on the project, so every request came back
+    REQUEST_DENIED and the card rendered the literal string "Error away".
+
+    Computed locally instead: it is instant, works with no signal, costs no
+    quota, and cannot fail. It is a straight-line distance rather than a
+    driving one, so it reads slightly short on a winding route - but the same
+    haversine backs the server's arrival-radius check, so what the driver sees
+    here agrees with the accept/refuse decision the server will make.
+  */
   useEffect(() => {
-    if (
-      currentLatitude &&
-      currentLongitude &&
-      ride?.location_coordinates?.[0]?.lat &&
-      ride?.location_coordinates?.[0]?.lng
-    ) {
-      calculateDrivingDistance()
+    const pickup = ride?.location_coordinates?.[0]
+
+    if (!currentLatitude || !currentLongitude || !pickup?.lat || !pickup?.lng) {
+      setDistance('')
+      return
     }
+
+    const metres = distanceInMeters(
+      Number(currentLatitude),
+      Number(currentLongitude),
+      Number(pickup.lat),
+      Number(pickup.lng),
+    )
+
+    if (!isFinite(metres)) {
+      setDistance('')
+      return
+    }
+
+    setDistance(
+      metres < 1000
+        ? `${Math.round(metres)} m`
+        : `${(metres / 1000).toFixed(1)} km`,
+    )
   }, [
     currentLatitude,
     currentLongitude,
@@ -684,7 +696,9 @@ export const UpcomingRide = forwardRef(function UpcomingRide(
                     ]}
                   >
                     {' '}
-                    {distance} {translateData.away}
+                    {/* Empty until the first location fix; without this the
+                        card shows a bare "away" with no number in front. */}
+                    {distance ? `${distance} ${translateData.away}` : ''}
                   </Text>
                   <View style={styles.borderContainer}>
                     <View
