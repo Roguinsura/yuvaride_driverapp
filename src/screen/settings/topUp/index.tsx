@@ -13,7 +13,8 @@ import {
   Header,
   notificationHelper,
 } from '../../../commonComponents'
-import styles from './styles'
+import styles, { TOPUP_BUTTON_OFFSET } from './styles'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useDispatch, useSelector } from 'react-redux'
 import appColors from '../../../theme/appColors'
 import { useValues } from '../../../utils/context'
@@ -33,6 +34,7 @@ export function TopUp() {
   )
   const { textRtlStyle, viewRtlStyle, isDark } = useValues()
   const { colors } = useTheme()
+  const insets = useSafeAreaInsets()
   const { zoneValue } = useSelector((state: any) => state.zoneUpdate)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const { paymentMethodData } = useSelector((state: any) => state.wallet)
@@ -221,7 +223,12 @@ export function TopUp() {
             {translateData.selectMethod}
           </Text>
 
-          <View style={styles.button}>
+          <View
+            style={[
+              styles.button,
+              { top: TOPUP_BUTTON_OFFSET - insets.bottom },
+            ]}
+          >
             <Button
               backgroundColor={appColors.primary}
               color={appColors.white}

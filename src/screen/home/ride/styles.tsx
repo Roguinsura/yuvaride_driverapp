@@ -3,6 +3,8 @@ import appColors from '../../../theme/appColors'
 import appFonts from '../../../theme/appFonts'
 import { fontSizes, windowHeight, windowWidth } from '../../../theme/appConstant'
 
+export const GREEN_SECTION_HEIGHT = windowHeight(51)
+
 const styles = StyleSheet.create({
   mapSection: {
     flex: 0.7,
@@ -11,11 +13,18 @@ const styles = StyleSheet.create({
   extraSection: {
     flex: 0.1,
   },
+  /*
+    Pinned to the bottom of the display, so its own last child - the accept
+    button - sits under Android's gesture bar. The root SafeAreaView excludes
+    the bottom edge on purpose (the map draws full-bleed), so the screen adds
+    insets.bottom to both the height and the padding here: the padding lifts the
+    button clear, and the extra height stops that padding squeezing the content.
+  */
   greenSection: {
     position: 'absolute',
     bottom: windowHeight(0),
     width: '100%',
-    height: windowHeight(51),
+    height: GREEN_SECTION_HEIGHT,
     flexDirection: 'column',
     justifyContent: 'space-between',
     backgroundColor: appColors.white,

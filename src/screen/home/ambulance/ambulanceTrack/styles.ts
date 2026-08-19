@@ -1,6 +1,8 @@
 import { StyleSheet } from 'react-native'
 import { windowHeight, windowWidth } from '../../../../theme/appConstant'
 
+export const EXTRA_SECTION_HEIGHT = windowHeight(32)
+
 const styles = StyleSheet.create({
     map: {
         flex: 1,
@@ -10,13 +12,18 @@ const styles = StyleSheet.create({
         height: 40,
         resizeMode: 'contain'
     },
+    /*
+      Pinned to the bottom of the display, so the button it wraps sits under
+      Android's gesture bar. The screen adds insets.bottom to the height and the
+      padding: the padding lifts the button clear, the extra height stops that
+      padding squeezing the content.
+    */
     extraSection: {
-        
         borderTopEndRadius:windowWidth(5),
         borderStartStartRadius:windowWidth(5),
         position:'absolute',
         bottom:windowHeight(0),
-        height: windowHeight(32),
+        height: EXTRA_SECTION_HEIGHT,
     },
     greenSection: {
         top: windowHeight(2),

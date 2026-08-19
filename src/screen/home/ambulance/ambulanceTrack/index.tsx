@@ -7,7 +7,8 @@ import commanStyles from '../../../../style/commanStyles';
 import { useDispatch, useSelector } from 'react-redux';
 import { BackButton, Button, DriverProfile } from '../../../../commonComponents';
 import appColors from '../../../../theme/appColors';
-import styles from './styles';
+import styles, { EXTRA_SECTION_HEIGHT } from './styles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useValues } from '../../../../utils/context';
 import { useTheme, useRoute } from '@react-navigation/native';
 import { ambulanceRideData, rideDataPut } from '../../../../api/store/action';
@@ -20,6 +21,7 @@ export function AmbulanceTrack() {
   const { rideData }: any = route.params || {};
   const { Google_Map_Key, isDark } = useValues();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const navigation = useAppNavigation();
   const webViewRef = useRef<any>(null);
   const [completeLoading, setCompleteLoading] = useState<boolean>(false);
@@ -497,7 +499,17 @@ export function AmbulanceTrack() {
         scalesPageToFit={true}
       />
       <View style={styles.backButton}><BackButton /></View>
-      <View style={[styles.extraSection, { backgroundColor: colors.card }]}>
+      <View
+        style={[
+          styles.extraSection,
+          { backgroundColor: colors.card },
+          // Clear the system navigation bar; see the note in styles.
+          {
+            height: EXTRA_SECTION_HEIGHT + insets.bottom,
+            paddingBottom: insets.bottom,
+          },
+        ]}
+      >
         <View style={[styles.greenSection]}>
           <View style={[styles.additionalSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <DriverProfile

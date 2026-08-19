@@ -12,7 +12,8 @@ import {
 import React, { useState, useEffect, useMemo } from 'react'
 import appColors from '../../../theme/appColors'
 import { useTheme, useRoute } from '@react-navigation/native'
-import styles from './styles'
+import styles, { GREEN_SECTION_HEIGHT } from './styles'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import commanStyles from '../../../style/commanStyles'
 import {
   Button,
@@ -34,6 +35,7 @@ export function Ride() {
   const navigation = useAppNavigation()
   const { textRtlStyle, viewRtlStyle, isDark, Google_Map_Key } = useValues()
   const { colors } = useTheme()
+  const insets = useSafeAreaInsets()
   const [bidId, setBidID] = useState<number | null>(null)
   const route = useRoute()
   const { ride } = (route.params as any) || {}
@@ -597,6 +599,11 @@ export function Ride() {
         style={[
           styles.greenSection,
           { backgroundColor: isDark ? appColors.bgDark : appColors.white },
+          // Clear the system navigation bar; see the note in styles.
+          {
+            height: GREEN_SECTION_HEIGHT + insets.bottom,
+            paddingBottom: insets.bottom,
+          },
         ]}
       >
         <View style={styles.sheetDash} />

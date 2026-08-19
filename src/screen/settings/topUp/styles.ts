@@ -3,6 +3,8 @@ import { windowHeight, fontSizes, windowWidth } from '../../../theme/appConstant
 import appColors from '../../../theme/appColors'
 import appFonts from '../../../theme/appFonts'
 
+export const TOPUP_BUTTON_OFFSET = windowHeight(63.3)
+
 const styles = StyleSheet.create({
   main: {
     flex: 1,
@@ -63,7 +65,13 @@ const styles = StyleSheet.create({
     fontFamily: appFonts.medium,
     fontSize: fontSizes.FONT19,
   },
-  button: { top: windowHeight(63.3) },
+  /*
+    The button is not anchored to the bottom - it sits in normal flow and is
+    pushed down by a fixed share of the screen height, which takes no account of
+    where the system navigation bar actually is. The screen subtracts the
+    safe-area inset from this offset so the button clears the gesture bar.
+  */
+  button: { top: TOPUP_BUTTON_OFFSET },
   inputView: {
     alignItems: 'center',
     borderRadius: windowWidth(1.5),
