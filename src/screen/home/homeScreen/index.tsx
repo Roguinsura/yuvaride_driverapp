@@ -1369,7 +1369,14 @@ export function Home() {
               const bidData = data?.bid || data
 
               if (bidData?.status === 'accepted' && bidData?.ride_id) {
-                onRideDeclined(bidData.ride_id)
+                /*
+                  Two different ids arrive in this payload. The sheet lists ride
+                  REQUESTS, so it has to be pruned with ride_request_id; ride_id
+                  is the ride that was just created from the accepted bid and
+                  only belongs in the navigation below. Removing by ride_id
+                  matched nothing, so an accepted ride stayed in the sheet.
+                */
+                onRideDeclined(bidData.ride_request_id ?? bidData.ride_id)
                 navigate('AcceptFare', {
                   ride_Id: bidData.ride_id,
                   ride_Details: bidData,
@@ -1846,6 +1853,9 @@ export function Home() {
           ref={bottomSheetModalRef}
           index={0}
           snapPoints={['48%', '80%']}
+          // flex: 1 content fills the snap point; dynamic sizing (on by
+          // default in v5) would instead measure the content and fight it.
+          enableDynamicSizing={false}
           onChange={handleSheetChanges}
           onDismiss={() => setIsBottomSheetOpen(false)}
           handleIndicatorStyle={{
@@ -1955,6 +1965,9 @@ export function Home() {
           ref={bottomSheetOfflineRef}
           index={0}
           snapPoints={['30%']}
+          // flex: 1 content fills the snap point; dynamic sizing (on by
+          // default in v5) would instead measure the content and fight it.
+          enableDynamicSizing={false}
           onChange={handleSheetChanges}
           onDismiss={() => setIsBottomSheetOfflineOpen(false)}
           style={{ zIndex: 2 }}
@@ -2017,6 +2030,9 @@ export function Home() {
           ref={bottomSheetSOSRef}
           index={0}
           snapPoints={['48%', '80%']}
+          // flex: 1 content fills the snap point; dynamic sizing (on by
+          // default in v5) would instead measure the content and fight it.
+          enableDynamicSizing={false}
           onChange={handleSheetChanges}
           onDismiss={() => setIsBottomSheetSOSOpen(false)}
           handleIndicatorStyle={{
@@ -2188,6 +2204,9 @@ export function Home() {
           ref={cancelbottomSheetRef}
           index={0}
           snapPoints={['32%']}
+          // flex: 1 content fills the snap point; dynamic sizing (on by
+          // default in v5) would instead measure the content and fight it.
+          enableDynamicSizing={false}
           onChange={handleSheetChanges}
           onDismiss={() => setIsBottomSheetOpen(false)}
           handleIndicatorStyle={{

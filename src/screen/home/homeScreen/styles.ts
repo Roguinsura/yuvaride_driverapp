@@ -50,19 +50,29 @@ const styles = StyleSheet.create({
     borderWidth: windowHeight(0.15),
     zIndex: 2,
   },
+  /*
+    No fixed height. windowHeight(50) is half the screen, but the four sheets
+    that use this style snap to 48%, 30%, 48% and 32% - so the content was
+    taller than the sheet holding it and its last rows fell outside. flex: 1
+    fills whatever the sheet actually is.
+  */
   contentContainer: {
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: 10,
-    height: windowHeight(50),
   },
   noRideContainer: {
     flex: 1,
     alignItems: 'center',
+    // Centred rather than stacked from the top, so the message sits in view
+    // regardless of how tall the sheet is.
+    justifyContent: 'center',
   },
+  // 80% of the screen width was taller than the room a 48% sheet leaves once
+  // the handle and padding are taken off, which pushed the text below the fold.
   noRideImg: {
-    width: windowWidth(80),
-    height: windowWidth(80),
+    width: windowWidth(38),
+    height: windowWidth(38),
   },
   // Empty state while waiting for requests.
   noRideText: {

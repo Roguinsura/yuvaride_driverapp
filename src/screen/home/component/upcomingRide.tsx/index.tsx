@@ -95,6 +95,16 @@ export const UpcomingRide = forwardRef(function UpcomingRide(
           dispatch(rideDataGet(res?.id))
           const rideDetails = res
 
+          /*
+            The request has been accepted, so it is no longer pending for this
+            driver whatever kind of ride it was - drop it from the requests
+            sheet before branching on type. This used to sit inside the
+            branches: rentals never removed it at all, and schedules only did
+            so when notificationValue happened to be true, which left accepted
+            rides sitting in the sheet until they timed out.
+          */
+          onRideDeclined(rideId)
+
           if (
             rideDetails?.service_category?.service_category_type === 'rental'
           ) {
@@ -107,13 +117,9 @@ export const UpcomingRide = forwardRef(function UpcomingRide(
           } else {
             if (ride?.service_category?.service_category_type === 'schedule') {
               dispatch(rideDataGets())
-              if (notificationValue == true) {
-                onRideDeclined(rideId)
-              }
               notificationHelper('', translateData.rideScheduled, 'success')
             } else {
               playRingtone()
-              onRideDeclined(rideId)
               navigate('AcceptFare', {
                 ride_Id: rideDetails?.id,
                 ride_Details: rideDetails,

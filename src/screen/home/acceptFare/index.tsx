@@ -61,7 +61,15 @@ export function AcceptFare() {
   const dispatch = useDispatch<AppDispatch>()
   const ambulanceRef = useRef<BottomSheetModal>(null)
   const cancelReasonRef = useRef<BottomSheetModal>(null)
-  const snapPoints = useMemo(() => [Platform.OS === 'ios' ? '43%' : '47.5%'], [])
+  // Latest fix from the arrival watch below, reused when marking Arrived.
+  const lastPositionRef = useRef<{
+    latitude: number
+    longitude: number
+    at: number
+  } | null>(null)
+  // Tall enough for the Arrived and Cancel buttons both. See
+  // enableDynamicSizing below for why the old value cut Cancel off.
+  const snapPoints = useMemo(() => [Platform.OS === 'ios' ? '56%' : '58%'], [])
   const snapCancelReason = useMemo(() => ['40%'], [])
   const { isDark } = useValues()
   const { translateData, taxidoSettingData } = useSelector((state: any) => state.setting)
@@ -155,6 +163,13 @@ export function AcceptFare() {
 
     const watchId = Geolocation.watchPosition(
       position => {
+        // Kept so "Arrived" can use this fix instead of opening a second,
+        // competing location request. See gotoPickup.
+        lastPositionRef.current = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          at: Date.now(),
+        }
         setDistanceToPickup(
           distanceInMeters(
             position.coords.latitude,
@@ -236,15 +251,30 @@ export function AcceptFare() {
   const gotoPickup = async () => {
     setArrivedLoading(true)
     try {
-      // The server verifies the driver is within the configured radius of the
-      // pickup point, but only when coordinates are present — without them the
-      // check is silently skipped. Take a fresh high-accuracy fix rather than
-      // reusing a cached one, since a stale position can be off by enough to
-      // pass or fail the check wrongly.
-      const loc = await GetLocation.getCurrentPosition({
-        enableHighAccuracy: true,
-        timeout: 15000,
-      })
+      /*
+        The server verifies the driver is within the configured radius of the
+        pickup point, but only when coordinates are present — without them the
+        check is silently skipped, so a position is worth having.
+
+        The watch above is already streaming high-accuracy fixes to drive the
+        arrival gate, so its latest one is used here. Asking
+        react-native-get-location for a second fix meant two location requests
+        could be outstanding at once — that library cancels its pending request
+        whenever a new one starts, and the OTP screen opens one as it mounts,
+        so the arrival failed with "Location cancelled by another request".
+
+        A fresh request is still made when the watch has nothing recent, which
+        is the case when the arrival radius check is switched off entirely.
+      */
+      const watched = lastPositionRef.current
+      const isRecent = watched && Date.now() - watched.at < 30000
+
+      const loc = isRecent
+        ? watched
+        : await GetLocation.getCurrentPosition({
+            enableHighAccuracy: true,
+            timeout: 15000,
+          })
 
       await dispatch(
         rideDataPut({
@@ -447,6 +477,11 @@ export function AcceptFare() {
           ref={ambulanceRef}
           index={0}
           snapPoints={snapPoints}
+          // Off, deliberately. It defaults to true, and when on gorhom pushes a
+          // content-height detent into the snap points and re-sorts them, so
+          // `index` stops referring to the entry declared above — which is why
+          // Cancel sat below the fold and only appeared after a scroll.
+          enableDynamicSizing={false}
           enablePanDownToClose={false}
           handleIndicatorStyle={{
             width: '13%',
@@ -514,8 +549,8 @@ export function AcceptFare() {
                 <View style={{ marginBottom: windowHeight(2) }}>
                   <Button
                     title={translateData.cancelTextT}
-                    backgroundColor={isDark ? appColors.darkThemeSub : appColors.lightGray}
-                    color={isDark ? appColors.white : appColors.iconColor}
+                    backgroundColor={appColors.alertRed}
+                    color={appColors.white}
                     onPress={cancelOpen}
                   />
                 </View>
@@ -530,8 +565,12 @@ export function AcceptFare() {
 
         <BottomSheetModal
           ref={cancelReasonRef}
-          index={1}
+          index={0}
           snapPoints={snapCancelReason}
+          // Same reason as the sheet above: with dynamic sizing on, gorhom adds
+          // a content-height detent and re-sorts, so `index` no longer refers to
+          // the entry declared here.
+          enableDynamicSizing={false}
           enablePanDownToClose={true}
           onDismiss={() => {
             ambulanceRef.current?.present()
